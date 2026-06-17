@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Montréal Worlds 2026 — Come With Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1c2e;
+    --cream: #f6f4ef;
+    --sand: #e8e2d8;
+    --red: #be3a2a;
+    --blue: #2b3f7c;
+    --sky: #4a6fa5;
+    --gold: #d4a843;
+    --green: #2b4a2e;
+    --mist: #8a9db8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 560px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 80px 0;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1800&q=80');
+    background-size: cover;
+    background-position: center 40%;
+    filter: brightness(0.45);
+    transform: scale(1.02);
+    transition: transform 8s ease;
+  }
+
+  .hero-bg.loaded { transform: scale(1); }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,28,46,0.92) 0%, rgba(26,28,46,0.05) 60%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px;
+    width: 100%;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--cream);
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: rgba(246,244,239,0.72);
+    font-weight: 300;
+    margin-top: 20px;
+    max-width: 520px;
+  }
+
+  .hero-dates {
+    margin-top: 32px;
+    display: inline-flex;
+    gap: 32px;
+    border-top: 1px solid rgba(212,168,67,0.4);
+    padding-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .hero-date-item { color: var(--cream); }
+
+  .hero-date-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+  }
+
+  .hero-date-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 80px 32px;
+  }
+
+  section.full-bleed { max-width: 100%; padding: 0; }
+
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: #3a3630; }
+  p:last-child { margin-bottom: 0; }
+
+  .pitch {
+    border-left: 3px solid var(--gold);
+    padding-left: 28px;
+    font-size: 19px;
+    line-height: 1.8;
+    color: #3a3630;
+    font-weight: 300;
+  }
+
+  .city-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 0;
+  }
+
+  .city-bullets li {
+    font-size: 15px;
+    color: #3a3630;
+    line-height: 1.65;
+    padding-left: 14px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .city-bullets li strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── QUICK LOGISTICS BANNER ── */
+  .quick-logistics {
+    background: var(--ink);
+    padding: 32px;
+  }
+
+  .ql-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .ql-item {
+    flex: 1;
+    min-width: 180px;
+    padding: 20px 28px;
+    border-right: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .ql-item:last-child { border-right: none; }
+
+  .ql-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .ql-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--cream);
+  }
+
+  .ql-note {
+    font-size: 12px;
+    color: rgba(246,244,239,0.4);
+    margin-top: 3px;
+  }
+
+  /* ── RACE BANNER ── */
+  .race-banner {
+    background: var(--blue);
+    color: var(--cream);
+    padding: 64px 32px;
+  }
+
+  .race-banner-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .race-banner .section-eyebrow { color: var(--gold); margin-bottom: 12px; }
+  .race-banner h2 { color: var(--cream); font-size: clamp(24px, 3.5vw, 36px); margin-bottom: 16px; }
+  .race-banner p { color: rgba(246,244,239,0.8); font-size: 15px; }
+
+  .race-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .race-stat {
+    background: rgba(255,255,255,0.05);
+    padding: 20px 22px;
+  }
+
+  .race-stat .label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .race-stat .val {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--cream);
+  }
+
+  .race-stat .note {
+    font-size: 12px;
+    color: rgba(246,244,239,0.4);
+    margin-top: 3px;
+  }
+
+  /* ── RACE SCHEDULE ── */
+  .race-schedule {
+    margin-top: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .race-schedule-title {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 10px 16px;
+    background: rgba(212,168,67,0.1);
+  }
+
+  .rs-row {
+    display: flex;
+    gap: 16px;
+    padding: 9px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px;
+    color: rgba(246,244,239,0.65);
+  }
+
+  .rs-row.highlight {
+    background: rgba(255,255,255,0.05);
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  .rs-day {
+    flex-shrink: 0;
+    width: 90px;
+    color: rgba(246,244,239,0.4);
+    font-size: 12px;
+  }
+
+  .rs-row.highlight .rs-day { color: var(--gold); }
+
+  .rs-note {
+    padding: 8px 16px;
+    font-size: 11px;
+    color: rgba(246,244,239,0.25);
+    font-style: italic;
+  }
+
+  /* ── COST TABLE ── */
+  .cost-wrap {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 64px 32px;
+  }
+
+  .cost-inner { max-width: 860px; margin: 0 auto; }
+  .cost-inner .section-eyebrow { color: var(--gold); }
+  .cost-inner h2 { color: var(--cream); }
+
+  .cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 32px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .cost-cell {
+    background: #22243a;
+    padding: 24px 28px;
+  }
+
+  .cost-cell.header {
+    background: rgba(212,168,67,0.15);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    padding: 14px 28px;
+  }
+
+  .cost-label {
+    font-size: 12px;
+    color: rgba(246,244,239,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .cost-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--cream);
+  }
+
+  .cost-value.good { color: var(--gold); }
+
+  .cost-note {
+    font-size: 13px;
+    color: rgba(246,244,239,0.45);
+    margin-top: 4px;
+  }
+
+  .cost-total-row {
+    background: var(--red);
+    grid-column: 1 / -1;
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .cost-total-row .label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; }
+  .cost-total-row .value { font-family: 'Playfair Display', serif; font-size: 24px; white-space: nowrap; }
+
+  .flight-options {
+    margin-top: 40px;
+    border: 1px solid rgba(212,168,67,0.3);
+    overflow-x: auto;
+  }
+
+  .flight-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 16px 24px;
+    align-items: center;
+    min-width: 540px;
+  }
+
+  .flight-row.header {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 12px 24px;
+    background: rgba(212,168,67,0.1);
+  }
+
+  .flight-row:last-child { border-bottom: none; }
+  .flight-row .fl-route { font-size: 14px; color: var(--cream); }
+  .flight-row .fl-detail { font-size: 12px; color: rgba(246,244,239,0.5); margin-top: 2px; }
+  .flight-row .fl-price { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold); }
+  .flight-row .fl-note { font-size: 12px; color: rgba(246,244,239,0.45); }
+
+  .fl-tag {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .fl-tag.best { background: rgba(212,168,67,0.2); color: var(--gold); }
+  .fl-tag.redeye { background: rgba(74,111,165,0.2); color: var(--mist); }
+
+  /* ── ITINERARY ── */
+  .itinerary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 32px;
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    background: var(--sand);
+    overflow: hidden;
+  }
+
+  .day-row:nth-child(even) { background: #ede7dc; }
+
+  .day-tag {
+    background: var(--sky);
+    color: var(--cream);
+    padding: 20px 16px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .day-tag.travel { background: var(--red); }
+  .day-tag.race { background: #1a1c2e; }
+  .day-tag.ride { background: var(--green); }
+
+  .day-tag .date {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .day-content { padding: 20px 24px; }
+
+  .day-content h4 {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .day-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 0;
+  }
+
+  .day-bullets li {
+    font-size: 13.5px;
+    color: #5a5248;
+    line-height: 1.6;
+    padding-left: 14px;
+    border-left: 2px solid rgba(212,168,67,0.4);
+  }
+
+  .day-bullets li strong { color: #3a3630; font-weight: 500; }
+  .day-bullets a { color: var(--sky); border-bottom: 1px solid rgba(74,111,165,0.3); text-decoration: none; font-size: inherit; }
+  .day-bullets a:hover { border-bottom-color: var(--sky); }
+
+  .tag-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 6px;
+    margin-bottom: 10px;
+  }
+
+  .tag-pill.food { background: rgba(190,58,42,0.12); color: var(--red); }
+  .tag-pill.ride { background: rgba(43,74,43,0.12); color: var(--green); }
+  .tag-pill.culture { background: rgba(43,63,124,0.12); color: var(--blue); }
+  .tag-pill.race { background: rgba(26,28,46,0.1); color: var(--ink); }
+  .tag-pill.music { background: rgba(212,168,67,0.2); color: #8a6d1a; }
+  .tag-pill.spa { background: rgba(74,111,165,0.12); color: var(--sky); }
+
+  /* ── RACE FEATURE ── */
+  .race-feature {
+    background: #1a1c2e;
+    padding: 80px 32px;
+  }
+
+  .race-feature-inner { max-width: 860px; margin: 0 auto; }
+  .race-feature .section-eyebrow { color: var(--gold); }
+  .race-feature h2 { color: var(--cream); font-size: clamp(26px, 4vw, 42px); }
+  .race-feature p { color: rgba(246,244,239,0.75); font-size: 15px; }
+
+  .race-history {
+    margin-top: 40px;
+    border: 1px solid rgba(212,168,67,0.25);
+    padding: 28px;
+  }
+
+  .race-history-title {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 14px;
+    color: rgba(246,244,239,0.65);
+  }
+
+  .history-row:last-child { border-bottom: none; }
+  .history-row .year { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 16px; flex-shrink: 0; }
+  .history-row.highlight { color: var(--cream); }
+  .history-row.highlight .year { color: #ff9f43; font-size: 18px; }
+
+  /* ── CYCLING ROUTES ── */
+  .routes-wrap {
+    background: var(--green);
+    padding: 80px 32px;
+  }
+
+  .routes-inner { max-width: 860px; margin: 0 auto; }
+  .routes-inner .section-eyebrow { color: rgba(246,244,239,0.6); }
+  .routes-inner h2 { color: var(--cream); }
+  .routes-inner p { color: rgba(246,244,239,0.75); }
+
+  .route-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 32px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  .route-card {
+    background: rgba(255,255,255,0.05);
+    padding: 24px 26px;
+  }
+
+  .route-badge {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,244,239,0.5);
+    margin-bottom: 8px;
+  }
+
+  .route-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+
+  .route-stats {
+    display: flex;
+    gap: 20px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+
+  .route-stat .rs-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+  }
+
+  .route-stat .rs-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--cream);
+  }
+
+  .route-card p {
+    font-size: 13px;
+    color: rgba(246,244,239,0.65);
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  .route-card a {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid rgba(212,168,67,0.35);
+    text-decoration: none;
+  }
+
+  .route-card a:hover { border-bottom-color: var(--gold); }
+
+  .strava-cta {
+    margin-top: 40px;
+    border: 1px solid rgba(212,168,67,0.3);
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .strava-cta .sc-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .strava-cta .sc-text { font-size: 14px; color: rgba(246,244,239,0.75); }
+
+  .strava-cta a {
+    display: inline-block;
+    padding: 10px 22px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── PIKNIC FEATURE ── */
+  .piknic-wrap {
+    background: #1a1c2e;
+    padding: 80px 32px;
+  }
+
+  .piknic-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .piknic-inner .section-eyebrow { color: var(--gold); }
+  .piknic-inner h2 { color: var(--cream); margin-bottom: 16px; }
+  .piknic-inner p { color: rgba(246,244,239,0.75); font-size: 15px; }
+
+  .piknic-details {
+    border: 1px solid rgba(212,168,67,0.25);
+    padding: 28px;
+  }
+
+  .piknic-detail-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    color: rgba(246,244,239,0.7);
+  }
+
+  .piknic-detail-item:last-child { border-bottom: none; }
+  .piknic-detail-item span:last-child { color: var(--gold); font-weight: 400; text-align: right; }
+
+  /* ── FOOD ── */
+  .food-category-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    margin-top: 32px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--sand);
+  }
+
+  .food-category-label.essential { color: var(--red); border-color: rgba(190,58,42,0.2); }
+  .food-category-label.nice { color: var(--blue); border-color: rgba(43,63,124,0.2); }
+
+  .food-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .food-list li {
+    padding: 16px 20px;
+    background: var(--sand);
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .food-list .food-name { font-weight: 500; font-size: 15px; color: var(--ink); }
+  .food-list .food-cuisine { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); margin-bottom: 2px; }
+  .food-list .food-desc { color: #7a7068; font-size: 13px; }
+
+  /* ── EXPERIENCES ── */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .exp-card {
+    border: 1px solid var(--sand);
+    padding: 28px;
+    position: relative;
+  }
+
+  .exp-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+
+  .exp-card.city::before { background: var(--sky); }
+  .exp-card.music::before { background: var(--gold); }
+  .exp-card.swim::before { background: var(--blue); }
+  .exp-card.culture::before { background: var(--red); }
+
+  .exp-card h3 { font-size: 18px; margin-bottom: 8px; }
+  .exp-card p { font-size: 14px; color: #5a5248; }
+  .exp-icon { font-size: 22px; margin-bottom: 12px; display: block; }
+
+  /* ── LOGISTICS ── */
+  .logistics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .logistics-card { background: var(--sand); padding: 28px; }
+  .logistics-icon { font-size: 24px; margin-bottom: 12px; display: block; }
+
+  .logistics-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 14px;
+  }
+
+  .logistics-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .logistics-list li {
+    font-size: 13.5px;
+    color: #4a4038;
+    line-height: 1.6;
+    padding-left: 12px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .logistics-list a { color: var(--red); border-bottom: 1px solid rgba(190,58,42,0.3); text-decoration: none; }
+  .logistics-list a:hover { border-bottom-color: var(--red); }
+
+  /* ── FOOTER CTA ── */
+  .footer-cta {
+    background: var(--red);
+    padding: 80px 32px;
+    text-align: center;
+  }
+
+  .footer-cta h2 { color: var(--cream); font-size: clamp(30px, 5vw, 52px); margin-bottom: 16px; }
+
+  .footer-cta p {
+    color: rgba(246,244,239,0.8);
+    font-size: 17px;
+    max-width: 540px;
+    margin: 0 auto 32px;
+  }
+
+  .footer-cta .dates-row {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid rgba(246,244,239,0.3);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .footer-cta .date-block {
+    padding: 16px 28px;
+    border-right: 1px solid rgba(246,244,239,0.3);
+  }
+
+  .footer-cta .date-block:last-child { border-right: none; }
+  .footer-cta .date-block .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(246,244,239,0.6); }
+  .footer-cta .date-block .val { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--cream); }
+
+  /* ── LINKS ── */
+  a { color: var(--red); text-decoration: none; border-bottom: 1px solid rgba(190,58,42,0.3); transition: border-color 0.2s; }
+  a:hover { border-bottom-color: var(--red); }
+
+  /* ── DIVIDER ── */
+  .divider { width: 48px; height: 1px; background: var(--gold); margin: 0 0 40px 0; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 700px) {
+    section { padding: 52px 20px; }
+
+    .hero { padding: 0 0 52px 0; }
+    .hero-content { padding: 0 20px; }
+    .hero-dates { gap: 20px; }
+
+    .quick-logistics { padding: 24px 20px; }
+    .ql-inner { flex-direction: column; }
+    .ql-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 16px 20px; min-width: unset; }
+    .ql-item:last-child { border-bottom: none; }
+
+    .race-banner { padding: 48px 20px; }
+    .race-banner-inner { grid-template-columns: 1fr; gap: 32px; }
+
+    .cost-wrap { padding: 48px 20px; }
+    .cost-grid { grid-template-columns: 1fr; }
+    .cost-total-row { flex-direction: column; gap: 8px; text-align: center; }
+
+    .race-feature { padding: 52px 20px; }
+    .history-row { flex-direction: column; gap: 2px; }
+
+    .routes-wrap { padding: 52px 20px; }
+    .route-cards { grid-template-columns: 1fr; }
+
+    .strava-cta { flex-direction: column; align-items: flex-start; }
+
+    .piknic-wrap { padding: 52px 20px; }
+    .piknic-inner { grid-template-columns: 1fr; gap: 32px; }
+
+    .exp-grid { grid-template-columns: 1fr; }
+    .food-list { grid-template-columns: 1fr; }
+    .logistics-grid { grid-template-columns: 1fr; }
+
+    .day-row { grid-template-columns: 80px 1fr; }
+    .day-content { padding: 16px 18px; }
+    .day-tag { padding: 16px 10px; }
+
+    .footer-cta { padding: 52px 20px; }
+    .footer-cta .date-block { border-right: none; border-bottom: 1px solid rgba(246,244,239,0.3); width: 100%; }
+    .footer-cta .dates-row { width: 100%; max-width: 320px; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { font-size: 40px; }
+    .hero-sub { font-size: 16px; }
+    .pitch { font-size: 17px; }
+    h2 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Montréal · September 2026 · UCI Road World Championships</div>
+    <h1 class="hero-title">Go to<br><em>Montréal</em><br>for Worlds.</h1>
+    <p class="hero-sub">Six days. The biggest cycling race on earth, in one of the most alive cities in North America.</p>
+    <div class="hero-dates">
+      <div class="hero-date-item">
+        <span class="hero-date-label">Depart</span>
+        <span class="hero-date-val">Sep 23, SFO</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Race Day</span>
+        <span class="hero-date-val">Sun Sep 27</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Return</span>
+        <span class="hero-date-val">Sep 28, YUL</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK LOGISTICS -->
+<div class="quick-logistics full-bleed">
+  <div class="ql-inner">
+    <div class="ql-item">
+      <div class="ql-label">Vacation Days Needed</div>
+      <div class="ql-val">4 days</div>
+      <div class="ql-note">Wed Sep 23 – Mon Sep 28</div>
+    </div>
+    <div class="ql-item">
+      <div class="ql-label">Dates</div>
+      <div class="ql-val">Sep 23–28</div>
+      <div class="ql-note">Sat/Sun race weekend in the middle</div>
+    </div>
+    <div class="ql-item">
+      <div class="ql-label">Bikes</div>
+      <div class="ql-val">TBD</div>
+      <div class="ql-note">Bring yours or rent locally — both work</div>
+    </div>
+    <div class="ql-item">
+      <div class="ql-label">Exchange Rate</div>
+      <div class="ql-val">1 USD ≈ 1.38 CAD</div>
+      <div class="ql-note">Verify current rate before booking</div>
+    </div>
+  </div>
+</div>
+
+<!-- PITCH -->
+<section>
+  <div class="section-eyebrow">Why Montréal, Why Now</div>
+  <div class="divider"></div>
+  <p class="pitch">The UCI Road World Championships is coming to Montréal — and the city is the perfect host. A 250 km race through the streets, up Mont-Royal, and into a festival atmosphere that only this city can pull off. We watch it, we ride the same roads, we eat well, and we do it all in a place that feels more alive in September than almost anywhere in North America.</p>
+  <br>
+  <p>Late September weather is ideal: highs around 21–23°C (70–73°F), crisp nights dropping to 9–12°C (48–54°F). Perfect riding weather. Perfect patio weather.</p>
+  <ul class="city-bullets">
+    <li><strong>Bagels:</strong> St-Viateur, wood-fired in a centuries-old stone oven, eaten fresh on the street. Nothing like it anywhere else.</li>
+    <li><strong>Smoked meat:</strong> Montreal-style on rye at Schwartz's or Katz's — institutions that have been open since the 1930s.</li>
+    <li><strong>Patios + shopping:</strong> Car-free streets in the Plateau spilling with outdoor cafés, thrift and vintage shops lining Saint-Laurent.</li>
+    <li><strong>Electronic music:</strong> Piknic Électronik, one of the best outdoor festivals on the continent, and Stereo, which has the second-best club sound system in the world.</li>
+    <li><strong>Spa:</strong> Bota Bota — a circuit spa built inside a converted ferry boat moored in the Old Port. Hot and cold pools on multiple decks over the St. Lawrence.</li>
+  </ul>
+</section>
+
+<!-- RACE BANNER -->
+<div class="race-banner full-bleed">
+  <div class="race-banner-inner">
+    <div>
+      <div class="section-eyebrow">The Main Event</div>
+      <h2>Elite Men's Road Race. Sunday, September 27.</h2>
+      <p>Over 250 km through Montréal and the surrounding hills, finishing on a city circuit. The best riders in the world — Pogačar, Van der Poel, Van Aert — racing for the rainbow jersey. On our side of the Atlantic. This is the one.</p>
+      <br>
+      <p style="font-size:13px; color:rgba(246,244,239,0.5);">Other events run all week — the time trial and women's elite race are both worth catching. Sunday is the day you don't sit down.</p>
+      <div class="race-schedule">
+        <div class="race-schedule-title">Race Week Schedule</div>
+        <div class="rs-row"><span class="rs-day">Wed Sep 23</span><span>Elite Time Trials — Men &amp; Women</span></div>
+        <div class="rs-row"><span class="rs-day">Thu Sep 24</span><span>Junior Road Races</span></div>
+        <div class="rs-row"><span class="rs-day">Fri Sep 25</span><span>U23 Road Races</span></div>
+        <div class="rs-row"><span class="rs-day">Sat Sep 26</span><span>Elite Women's Road Race</span></div>
+        <div class="rs-row highlight"><span class="rs-day">Sun Sep 27</span><span>Elite Men's Road Race</span></div>
+        <div class="rs-note">Approximate — verify at <a href="https://www.uci.org/competition-hub/2026-uci-road-world-championships/14QBdFX8GqbCHUPE234D0Q" target="_blank" rel="noopener" style="color:rgba(246,244,239,0.4); border-bottom-color:rgba(246,244,239,0.15);">uci.org</a></div>
+      </div>
+    </div>
+    <div class="race-stats">
+      <div class="race-stat">
+        <div class="label">Race Distance</div>
+        <div class="val">~250 km</div>
+        <div class="note">Elite Men's Road Race</div>
+      </div>
+      <div class="race-stat">
+        <div class="label">Race Day</div>
+        <div class="val">Sun Sep 27</div>
+        <div class="note">The big one</div>
+      </div>
+      <div class="race-stat">
+        <div class="label">Location</div>
+        <div class="val">Montréal, QC</div>
+        <div class="note">Circuit finish in the city</div>
+      </div>
+      <div class="race-stat">
+        <div class="label">Last in Montréal</div>
+        <div class="val">1974</div>
+        <div class="note">52 years ago</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COST -->
+<div class="cost-wrap full-bleed">
+  <div class="cost-inner">
+    <div class="section-eyebrow">What It Costs</div>
+    <h2>The numbers are straightforward.</h2>
+
+    <div class="cost-grid">
+      <div class="cost-cell header">Item</div>
+      <div class="cost-cell header">Cost</div>
+
+      <div class="cost-cell">
+        <div class="cost-label">Flight (SFO ⇄ YUL, nonstop)</div>
+        <div class="cost-value">$617–$684</div>
+        <div class="cost-note">Per person · round trip · see flight options below</div>
+      </div>
+      <div class="cost-cell">
+        <div class="cost-label">Airbnb — 5 nights total (Sep 23–28)</div>
+        <div class="cost-value good">$6,298.36 total · fits up to 11</div>
+        <div class="cost-note">$572.58–$630 per person for 5 nights, depending on group size</div>
+      </div>
+
+      <div class="cost-total-row">
+        <span class="label">Estimated total per person (flight + share of Airbnb)</span>
+        <span class="value">~$1,200–$1,300</span>
+      </div>
+    </div>
+
+    <div class="flight-options">
+      <div class="flight-row header">
+        <span>Flight</span>
+        <span>Price</span>
+        <span>Notes</span>
+        <span></span>
+      </div>
+      <div class="flight-row">
+        <div>
+          <div class="fl-route">Air Canada · Wed Sep 23 · 8:10 AM – 4:42 PM</div>
+          <div class="fl-detail">SFO → YUL · 5h 32min · Nonstop</div>
+        </div>
+        <div class="fl-price">$684</div>
+        <div class="fl-note">Arrive mid-afternoon, full evening ahead</div>
+        <div><span class="fl-tag best">Recommended</span></div>
+      </div>
+      <div class="flight-row">
+        <div>
+          <div class="fl-route">Air Canada · Wed Sep 23 · 11:10 AM – 7:47 PM</div>
+          <div class="fl-detail">SFO → YUL · 5h 37min · Nonstop</div>
+        </div>
+        <div class="fl-price">$680</div>
+        <div class="fl-note">Similar price, slightly later arrival</div>
+        <div><span class="fl-tag best">Option</span></div>
+      </div>
+      <div class="flight-row">
+        <div>
+          <div class="fl-route">United · Tue Sep 22 · 11:39 PM – Wed 8:16 AM</div>
+          <div class="fl-detail">SFO → YUL · 5h 37min · Nonstop</div>
+        </div>
+        <div class="fl-price">$617</div>
+        <div class="fl-note">Cheapest — arrive exhausted, save ~$65</div>
+        <div><span class="fl-tag redeye">Red-eye</span></div>
+      </div>
+      <div class="flight-row">
+        <div>
+          <div class="fl-route">United · Mon Sep 28 · 6:35 PM – 9:48 PM</div>
+          <div class="fl-detail">YUL → SFO · 6h 13min · Nonstop · Return leg</div>
+        </div>
+        <div class="fl-price">Included</div>
+        <div class="fl-note">Part of round trip above</div>
+        <div></div>
+      </div>
+    </div>
+
+    <p style="color: rgba(246,244,239,0.4); font-size: 13px; margin-top: 20px;">Prices from Google Flights as of June 2026. 1 USD ≈ 1.38 CAD — verify current rate before booking. Race week will fill up fast.</p>
+  </div>
+</div>
+
+<!-- ITINERARY -->
+<section>
+  <div class="section-eyebrow">Day by Day</div>
+  <h2>The itinerary.</h2>
+  <p>Five full days in Montréal. Rides in the morning, race events and the city during the day, great dinners at night. Everything builds toward Sunday.</p>
+
+  <div class="itinerary-grid">
+
+    <div class="day-row">
+      <div class="day-tag travel">
+        <span class="date">Sep 23</span>Wed
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Travel</span>
+        <h4>Fly SFO → YUL</h4>
+        <ul class="day-bullets">
+          <li><strong>Flight:</strong> Air Canada 8:10 AM, arrives YUL 4:42 PM (recommended). 5h 32min nonstop.</li>
+          <li><strong>Airport to city:</strong> 747 express bus to downtown ($11 CAD, ~50 min) or taxi/rideshare with luggage (~$55 CAD, ~30 min).</li>
+          <li><strong>Check in:</strong> Airbnb in the Plateau — drop bags, decompress.</li>
+          <li><strong>Dinner:</strong> Walk to the nearest patio on Saint-Denis or Prince-Arthur. Order poutine. You're here.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag">
+        <span class="date">Sep 24</span>Thu
+      </div>
+      <div class="day-content">
+        <span class="tag-pill ride">Ride</span>
+        <span class="tag-pill food">Food</span>
+        <h4>Warm-Up Ride + The Plateau</h4>
+        <ul class="day-bullets">
+          <li><strong>Morning ride:</strong> <a href="https://www.strava.com/routes/3350106931334946908" target="_blank" rel="noopener">Verdun Tour</a> — 41 km, 93m elevation. Lachine Canal through Saint-Henri, along the St. Lawrence through Verdun and Lasalle, back via the Old Port. Flat, scenic, ideal first ride.</li>
+          <li><strong>Bagels:</strong> <strong>St-Viateur Bagels</strong> — wood-fired, sesame-crusted, eaten fresh from the oven. This is non-negotiable.</li>
+          <li><strong>Afternoon:</strong> Explore the Plateau. Car-free streets, young crowd, patios everywhere. Walk Saint-Denis north through Mile End.</li>
+          <li><strong>Dinner:</strong> <a href="https://guide.michelin.com/us/en/quebec/montreal_2433514/restaurant/damas" target="_blank" rel="noopener">Damas</a> (Syrian) — one of the city's most acclaimed restaurants. Book ahead.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag ride">
+        <span class="date">Sep 25</span>Fri
+      </div>
+      <div class="day-content">
+        <span class="tag-pill ride">Big Ride</span>
+        <span class="tag-pill spa">Spa</span>
+        <span class="tag-pill food">Dinner</span>
+        <h4>Sight Seeing Ride + Bota Bota</h4>
+        <ul class="day-bullets">
+          <li><strong>Morning ride:</strong> <a href="https://www.strava.com/routes/3350106285031013664" target="_blank" rel="noopener">Sight Seeing Montréal</a> — 64 km, 486m elevation. Hits the St. Lawrence riverfront, climbs Mont-Royal, covers the best of the city on two wheels. The one ride to do if you only do one. For more: <a href="https://www.strava.com/routes/3350105513384629536" target="_blank" rel="noopener">Monteregian Hills</a> at 99.5 km is the real leg day.</li>
+          <li><strong>Post-ride:</strong> <a href="https://botabota.ca/en/" target="_blank" rel="noopener"><strong>Bota Bota Spa</strong></a> — a circuit spa built inside a converted ferry boat, moored in the Old Port. Hot/cold pools, steam rooms, relaxation terraces with views of the St. Lawrence. Perfect post-ride recovery. ~$75 CAD entry.</li>
+          <li><strong>Dinner:</strong> <strong>Joe Beef</strong> (Québécois / French brasserie) — the most famous restaurant in Montréal. Loud, convivial, ingredient-obsessed. Book as soon as flights are confirmed.</li>
+          <li><strong>Late night:</strong> <strong>Stereo</strong> — doors at midnight, tickets ~$40–50 CAD. One of the best club sound systems in the world (#2 globally). All-night underground electronic music.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag">
+        <span class="date">Sep 26</span>Sat
+      </div>
+      <div class="day-content">
+        <span class="tag-pill ride">Ride</span>
+        <span class="tag-pill race">Pre-Race</span>
+        <h4>The Pro Tour Climb + Race Eve</h4>
+        <ul class="day-bullets">
+          <li><strong>Morning ride:</strong> <a href="https://www.strava.com/routes/3350108368155918654" target="_blank" rel="noopener">The Pro Tour</a> — 15.7 km, 319m of climbing on the Camilien-Houde. Short but all uphill — the same road the pros will race on Sunday. Feel it before you watch it.</li>
+          <li><strong>Afternoon:</strong> Walk the course. Watch the time trial or early championship events. The city will be buzzing with cycling fans from everywhere.</li>
+          <li><strong>Outdoor pool:</strong> <strong>Parc Jarry</strong> outdoor pool — one of the city's best, very cheap (~$5 CAD).</li>
+          <li><strong>Dinner:</strong> <strong>Moishes</strong> (classic steakhouse, institution since 1938) or <strong>Bouillon Bilk</strong> (contemporary French) — either works as a proper pre-race dinner. Early night.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag race">
+        <span class="date">Sep 27</span>Sun
+      </div>
+      <div class="day-content">
+        <span class="tag-pill race">Race Day</span>
+        <span class="tag-pill music">Piknic</span>
+        <h4>Elite Road Race + Piknic Électronik</h4>
+        <ul class="day-bullets">
+          <li><strong>Race:</strong> Get to the course early. Best spot is the Camilien-Houde climb on Mont-Royal — watch the peloton come through multiple times as the race explodes. Track live on the UCI app. The final circuits finish in the city with a proper crowd.</li>
+          <li><strong>Evening:</strong> <a href="https://piknicelectronik.com/en/tickets-lineup" target="_blank" rel="noopener"><strong>Piknic Électronik</strong></a> — 4 PM to 10 PM on Île Sainte-Hélène (metro: Jean-Drapeau). $24 CAD. Outdoor electronic music festival, every Sunday all summer. September lineup TBD — check the site closer to the date.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag travel">
+        <span class="date">Sep 28</span>Mon
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Travel</span>
+        <h4>Morning in the City + Fly Home</h4>
+        <ul class="day-bullets">
+          <li><strong>Morning:</strong> <strong>St-Viateur Bagels</strong> one last time — grab a dozen for the road. They travel well.</li>
+          <li><strong>Flight:</strong> United 6:35 PM YUL → SFO, arrives 9:48 PM. Nonstop, 6h 13min.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- RACE HISTORY FEATURE -->
+<div class="race-feature full-bleed">
+  <div class="race-feature-inner">
+    <div class="section-eyebrow">Context</div>
+    <h2>Montréal last hosted the Worlds in 1974. That's 52 years.</h2>
+    <p>The UCI Road Worlds has visited North America three times in the modern era. All three are worth noting — but Montréal specifically hasn't seen this race in over half a century.</p>
+
+    <div class="race-history">
+      <div class="race-history-title">UCI Road Worlds in North America</div>
+      <div class="history-row">
+        <span class="year">1974</span>
+        <span>Montréal, Canada — last time this city hosted</span>
+      </div>
+      <div class="history-row">
+        <span class="year">1986</span>
+        <span>Colorado Springs, USA</span>
+      </div>
+      <div class="history-row">
+        <span class="year">2003</span>
+        <span>Hamilton, Canada</span>
+      </div>
+      <div class="history-row">
+        <span class="year">2015</span>
+        <span>Richmond, Virginia, USA</span>
+      </div>
+      <div class="history-row highlight">
+        <span class="year">2026</span>
+        <span><strong>Montréal, Canada</strong> — 52 years since the city last held it. Book the flights.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CYCLING ROUTES -->
+<div class="routes-wrap full-bleed">
+  <div class="routes-inner">
+    <div class="section-eyebrow">Bring Your Bike — Or Rent One</div>
+    <h2>The routes worth doing.</h2>
+    <p>Le Club — Montréal's best cycling shop and café, on Saint-Denis — has mapped the city's best rides. These are the four to know. Whether you fly with your bike or rent locally, all of these are doable.</p>
+
+    <div class="route-cards">
+      <div class="route-card">
+        <div class="route-badge">Day 2 · Warm-up</div>
+        <h3>Verdun Tour</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">41 km</span></div>
+          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">93 m</span></div>
+        </div>
+        <p>The flat one. Lachine Canal, St. Lawrence riverfront, Verdun, Lasalle, back through the Old Port. Great first-day ride — scenic, manageable.</p>
+        <a href="https://www.strava.com/routes/3350106931334946908" target="_blank" rel="noopener">View on Strava →</a>
+      </div>
+
+      <div class="route-card">
+        <div class="route-badge">Day 3 · Main Ride</div>
+        <h3>Sight Seeing Montréal</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">64 km</span></div>
+          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">486 m</span></div>
+        </div>
+        <p>The best single ride in the city. St. Lawrence views, the Mont-Royal climb, the riverfront paths. If you do one ride all trip, this is it.</p>
+        <a href="https://www.strava.com/routes/3350106285031013664" target="_blank" rel="noopener">View on Strava →</a>
+      </div>
+
+      <div class="route-card">
+        <div class="route-badge">Day 3 · Go Big Option</div>
+        <h3>Monteregian Hills</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">99.5 km</span></div>
+          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">523 m</span></div>
+        </div>
+        <p>Starts and ends at Le Club Café. Mont-St-Bruno, Mont-St-Hilaire, the Richelieu River. For the days when you want to actually earn the bagel.</p>
+        <a href="https://www.strava.com/routes/3350105513384629536" target="_blank" rel="noopener">View on Strava →</a>
+      </div>
+
+      <div class="route-card">
+        <div class="route-badge">Day 4 · Pre-Race Climb</div>
+        <h3>The Pro Tour</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">15.7 km</span></div>
+          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">319 m</span></div>
+        </div>
+        <p>Camilien-Houde climb and Mont-Royal loop. Short but all vertical — the same climb the pros attack on Sunday. Do it the day before and feel the road.</p>
+        <a href="https://www.strava.com/routes/3350108368155918654" target="_blank" rel="noopener">View on Strava →</a>
+      </div>
+    </div>
+
+    <div class="strava-cta">
+      <div>
+        <div class="sc-label">Le Club Cycling on Strava</div>
+        <div class="sc-text">The local cycling community hub. Follow for weekly rides and route updates. Their café at 3801 Saint-Denis is worth stopping at mid-ride — great coffee, good gear next door.</div>
+      </div>
+      <a href="https://www.strava.com/clubs/436057" target="_blank" rel="noopener">Join on Strava</a>
+    </div>
+  </div>
+</div>
+
+<!-- PIKNIC FEATURE -->
+<div class="piknic-wrap full-bleed">
+  <div class="piknic-inner">
+    <div>
+      <div class="section-eyebrow">Nightlife</div>
+      <h2>Piknic on Sunday. Stereo on Friday.</h2>
+      <p>Two of the best music experiences in North America, two nights apart. Piknic Électronik takes over Île Sainte-Hélène every Sunday — open air, St. Lawrence views, locals with blankets and wine. Stereo is the legendary underground club with the second-best sound system in the world, running all-night from midnight.</p>
+      <br>
+      <p>Piknic on Sep 27 runs 4 PM to 10 PM, starting right as the road race wraps up — watch the finish, metro to the island. Stereo on Friday Sep 25 after Joe Beef dinner.</p>
+      <br>
+      <p style="font-size: 13px; color: rgba(246,244,239,0.5);">Piknic September lineup TBD — check <a href="https://piknicelectronik.com/en/tickets-lineup" target="_blank" rel="noopener" style="color: var(--gold); border-bottom-color: rgba(212,168,67,0.3);">piknicelectronik.com</a> closer to the date. They typically bring strong international DJs for the closing weeks of the season.</p>
+    </div>
+    <div>
+      <div class="piknic-details">
+        <div class="piknic-detail-item" style="padding: 8px 0 14px; border-bottom: 1px solid rgba(212,168,67,0.3); margin-bottom: 4px;"><span style="color: var(--gold); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;">Piknic Électronik</span></div>
+        <div class="piknic-detail-item"><span>Date</span><span>Sunday, Sep 27</span></div>
+        <div class="piknic-detail-item"><span>Time</span><span>4:00 PM – 10:00 PM</span></div>
+        <div class="piknic-detail-item"><span>Location</span><span>Île Sainte-Hélène</span></div>
+        <div class="piknic-detail-item"><span>Tickets</span><span>$24 CAD (~$17 USD)</span></div>
+        <div class="piknic-detail-item" style="padding: 18px 0 14px; border-bottom: 1px solid rgba(212,168,67,0.3); margin-top: 8px;"><span style="color: var(--gold); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;">Stereo</span></div>
+        <div class="piknic-detail-item"><span>Doors</span><span>Midnight</span></div>
+        <div class="piknic-detail-item"><span>Tickets</span><span>~$40–50 CAD</span></div>
+        <div class="piknic-detail-item"><span>Sound system</span><span>Ranked #2 in the world</span></div>
+        <div class="piknic-detail-item"><span>Vibe</span><span>Underground all-night</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOD -->
+<section>
+  <div class="section-eyebrow">Eat Well</div>
+  <h2>Montréal's food scene is serious.</h2>
+  <p>A few things you have to eat, and a few restaurants that are worth planning evenings around.</p>
+
+  <div class="food-category-label essential">The Essentials</div>
+  <ul class="food-list">
+    <li>
+      <span class="food-name">St-Viateur Bagels</span>
+      <span class="food-cuisine">Wood-Fired Bagels</span>
+      <span class="food-desc">The only bagels. Wood-fired, sesame-crusted, lighter and chewier than anything you'll get at home. Get one fresh out of the oven. Do this more than once.</span>
+    </li>
+    <li>
+      <span class="food-name">Poutine</span>
+      <span class="food-cuisine">Québécois Classic</span>
+      <span class="food-desc">Fries, cheese curds, gravy. At its best here. La Banquise is the most famous late-night spot. Every place in the Plateau does a decent version. Non-negotiable.</span>
+    </li>
+    <li>
+      <span class="food-name">Schwartz's</span>
+      <span class="food-cuisine">Jewish Deli · Smoked Meat</span>
+      <span class="food-desc">The city's most iconic smoked meat sandwich. Montreal-style on rye with mustard. Order medium fat. Expect a line — it moves fast.</span>
+    </li>
+    <li>
+      <span class="food-name">Katz's Deli</span>
+      <span class="food-cuisine">Jewish Deli</span>
+      <span class="food-desc">Another Montreal deli institution. Sandwiches, smoked meat, classic deli counter energy. Good alternative to Schwartz's if the line is long.</span>
+    </li>
+  </ul>
+
+  <div class="food-category-label nice">Worth Booking Ahead</div>
+  <ul class="food-list">
+    <li>
+      <span class="food-name"><a href="https://guide.michelin.com/us/en/quebec/montreal_2433514/restaurant/damas" target="_blank" rel="noopener">Damas</a></span>
+      <span class="food-cuisine">Syrian / Middle Eastern</span>
+      <span class="food-desc">Delicate, refined tasting menu. One of the most acclaimed restaurants in the city. Book weeks ahead — Thursday dinner.</span>
+    </li>
+    <li>
+      <span class="food-name">Joe Beef</span>
+      <span class="food-cuisine">Québécois / French Brasserie</span>
+      <span class="food-desc">The most famous restaurant in Montréal. Loud, convivial, ingredient-obsessed. Book the moment flights are confirmed.</span>
+    </li>
+    <li>
+      <span class="food-name">Bouillon Bilk</span>
+      <span class="food-cuisine">Contemporary French</span>
+      <span class="food-desc">Refined tasting menu in the Plateau, exceptional wine list. Good for Saturday pre-race dinner — quieter and more elegant than Joe Beef.</span>
+    </li>
+    <li>
+      <span class="food-name">Moishes</span>
+      <span class="food-cuisine">Classic Steakhouse</span>
+      <span class="food-desc">Steakhouse institution since 1938. Old-school, proper tablecloths, the best dry-aged beef in the city. Saturday night.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- EXPERIENCES -->
+<section style="padding-top: 0;">
+  <div class="section-eyebrow">The City</div>
+  <h2>Montréal beyond the race.</h2>
+
+  <div class="exp-grid">
+    <div class="exp-card city">
+      <span class="exp-icon">🏙️</span>
+      <h3>The Plateau & Car-Free Streets</h3>
+      <p>Aim for an Airbnb here. Car-free streets on weekends, patios overflowing, a very young city outdoors in late September. Walk Prince-Arthur or Saint-Denis on any afternoon. This is what makes the city different from anywhere else in North America.</p>
+    </div>
+
+    <div class="exp-card swim">
+      <span class="exp-icon">🏊</span>
+      <h3>Parc Jarry Outdoor Pool</h3>
+      <p>One of Montréal's best public outdoor pools, open through September. Architecturally beautiful, very cheap (~$5 CAD entry), great for a post-ride cool-down. A uniquely Montréal afternoon.</p>
+    </div>
+
+    <div class="exp-card culture">
+      <span class="exp-icon">⛵</span>
+      <h3>Bota Bota Floating Spa</h3>
+      <p>A circuit spa inside a converted ferry boat in the Old Port. Hot and cold pools on multiple decks, steam rooms, relaxation terraces over the St. Lawrence. Perfect Friday recovery after the long ride. ~$75 CAD.</p>
+    </div>
+
+    <div class="exp-card music">
+      <span class="exp-icon">🗣️</span>
+      <h3>Bilingual, Easy to Navigate</h3>
+      <p>You can get by 100% in English everywhere in Montréal. A few words of French (merci, s'il vous plaît) go a long way. The metro is excellent. The city is far more walkable than most of North America.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LOGISTICS -->
+<section style="padding-top: 0;">
+  <div class="section-eyebrow">Before You Go</div>
+  <h2>Logistics.</h2>
+
+  <div class="logistics-grid">
+    <div class="logistics-card">
+      <div class="logistics-icon">🚲</div>
+      <h3>Bikes — TBD</h3>
+      <ul class="logistics-list">
+        <li><strong>Fly with your bike:</strong> Air Canada charges ~$50 CAD each way for a bike. Pack in a hard case or a bike box from your local shop (free). Label clearly and remove pedals/handlebars.</li>
+        <li><strong>Rent locally:</strong> Several good road bike rental shops in Montréal. Prices typically $50–100 CAD/day for a decent road bike. Worth it if you don't want the hassle.</li>
+        <li><strong>Bixi:</strong> The city's bike share is excellent for getting around — not for the longer rides, but great for the day-to-day. $7 CAD for a day pass.</li>
+        <li><strong>Le Club</strong> (3807 Saint-Denis) has gear if you need anything on arrival.</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">🏠</div>
+      <h3>Airbnb</h3>
+      <ul class="logistics-list">
+        <li>Aim for <strong>Plateau-Mont-Royal</strong> or <strong>Mile End</strong> — walkable to everything, great neighborhood energy, close to Saint-Denis.</li>
+        <li>Budget <strong>~$2,000–$3,000 CAD total</strong> for 5 nights (split in the group). At 1 USD ≈ 1.38 CAD that's roughly $1,450–$2,175 USD total.</li>
+        <li>Book immediately. Race week Airbnbs will disappear — the UCI event fills the city.</li>
+        <li>Filter for indoor bike storage if you're flying with bikes.</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">🚇</div>
+      <h3>Getting Around</h3>
+      <ul class="logistics-list">
+        <li><strong>Metro:</strong> Clean, fast, covers the city well. Buy an OPUS card at any station — reloadable, tap in/out. ~$3.75 CAD per ride.</li>
+        <li><strong>YUL → city:</strong> 747 express bus to downtown ($11 CAD, ~50 min) or taxi (~$55 CAD, ~30 min). With luggage and a group, taxis make more sense.</li>
+        <li><strong>Piknic:</strong> Metro to Jean-Drapeau — dead simple, 10 min from the city center.</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">💱</div>
+      <h3>Money</h3>
+      <ul class="logistics-list">
+        <li><strong>Exchange rate:</strong> 1 USD ≈ 1.38 CAD as of mid-2026 — verify current rate before booking. Everything feels like a mild discount.</li>
+        <li>Credit cards accepted everywhere. Visa/Mastercard fine.</li>
+        <li>Tipping culture mirrors the US — 15–20% at restaurants.</li>
+        <li>No roaming charges for most US carriers — Canada is covered.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="footer-cta full-bleed">
+  <h2>You in?</h2>
+  <p>3 vacation days. The Worlds in Montréal for the first time since 1974. Let's go.</p>
+  <div class="dates-row">
+    <div class="date-block">
+      <div class="label">Depart</div>
+      <div class="val">Sep 23, 2026</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Race Day</div>
+      <div class="val">Sun, Sep 27</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Return</div>
+      <div class="val">Sep 28, 2026</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Flight/person</div>
+      <div class="val">$617–$684</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const heroBg = document.getElementById('heroBg');
+  window.addEventListener('load', () => { heroBg.classList.add('loaded'); });
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    if (scrolled < window.innerHeight) {
+      heroBg.style.transform = `scale(1) translateY(${scrolled * 0.25}px)`;
+    }
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.06 });
+
+  document.querySelectorAll('section, .cost-wrap, .race-banner, .race-feature, .routes-wrap, .piknic-wrap, .quick-logistics, .footer-cta').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

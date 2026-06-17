@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sophia's notes</title>
+  <style>
+    :root {
+      --bg: #fafaf8;
+      --surface: #ffffff;
+      --border: #e8e6e0;
+      --text: #1a1a1a;
+      --muted: #888;
+      --accent: #5c6bc0;
+      --accent-hover: #3949ab;
+      --folder-bg: #f4f2ee;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 48px 24px;
+    }
+    .container { max-width: 680px; margin: 0 auto; }
+    header { margin-bottom: 48px; }
+    h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+    .subtitle { color: var(--muted); font-size: 0.875rem; margin-top: 4px; }
+
+    .folder { margin-bottom: 32px; }
+    .folder-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--folder-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px 8px 0 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .folder-header svg { flex-shrink: 0; }
+    .folder-body {
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .page-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.925rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .page-link:last-child { border-bottom: none; }
+    .page-link:hover { background: #f7f6f2; }
+    .page-link:hover .link-arrow { color: var(--accent); }
+    .link-name { display: flex; align-items: center; gap: 10px; }
+    .link-arrow { color: #ccc; font-size: 0.8rem; transition: color 0.1s; }
+
+    footer {
+      margin-top: 56px;
+      font-size: 0.78rem;
+      color: #bbb;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>sophia's notes</h1>
+      <p class="subtitle">synced from Claude Code</p>
+    </header>
+
+    <div class="folder">
+      <div class="folder-header">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Leetcode
+      </div>
+      <div class="folder-body">
+        <a class="page-link" href="Leetcode/interview_training_plan.html">
+          <span class="link-name">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Interview Training Plan
+          </span>
+          <span class="link-arrow">→</span>
+        </a>
+        <a class="page-link" href="Leetcode/learning_journal.html">
+          <span class="link-name">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Learning Journal
+          </span>
+          <span class="link-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="folder">
+      <div class="folder-header">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Trip Planning
+      </div>
+      <div class="folder-body">
+        <a class="page-link" href="Trip-Planning/korea-october.html">
+          <span class="link-name">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Korea — October
+          </span>
+          <span class="link-arrow">→</span>
+        </a>
+        <a class="page-link" href="Trip-Planning/montreal-worlds-2026.html">
+          <span class="link-name">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Montreal Worlds 2026
+          </span>
+          <span class="link-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="folder">
+      <div class="folder-header">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Cycling Training
+      </div>
+      <div class="folder-body">
+        <a class="page-link" href="Cycling Training/DiabloTrainingPlanV3.html">
+          <span class="link-name">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Diablo Training Plan V3
+          </span>
+          <span class="link-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <footer>last synced from Claude Code</footer>
+  </div>
+</body>
+</html>

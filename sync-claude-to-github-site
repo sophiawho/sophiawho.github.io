@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Syncs Claude Project HTML files into the GitHub Pages repo and pushes.
+set -euo pipefail
+
+REPO="$(cd "$(dirname "$0")" && pwd)"
+PROJECTS="/Users/sophiahu/Documents/Claude/Projects"
+
+echo "→ Copying files..."
+
+cp "$PROJECTS/Leetcode/interview_training_plan.html"   "$REPO/Leetcode/"
+cp "$PROJECTS/Leetcode/learning_journal.html"           "$REPO/Leetcode/"
+cp "$PROJECTS/Trip-Planning/korea-october.html"         "$REPO/Trip-Planning/"
+cp "$PROJECTS/Trip-Planning/montreal-worlds-2026.html"  "$REPO/Trip-Planning/"
+cp "$PROJECTS/Cycling Training/DiabloTrainingPlanV3.html" "$REPO/Cycling Training/"
+
+echo "→ Committing..."
+cd "$REPO"
+git add -A
+if git diff --cached --quiet; then
+  echo "  Nothing changed, nothing to commit."
+else
+  git commit -m "sync: $(date '+%Y-%m-%d %H:%M')"
+  echo "→ Pushing..."
+  git push
+  echo "✓ Done — https://sophiawho.github.io"
+fi

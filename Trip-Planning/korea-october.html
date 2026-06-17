@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Korea Oct 2026 — Come With Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --cream: #f7f4ef;
+    --sand: #e8e0d4;
+    --rust: #b85c38;
+    --moss: #4a5c47;
+    --mist: #8a9ba8;
+    --gold: #c9a84c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 600px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 80px 0;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1538669715315-155098f0fb1d?w=1800&q=80');
+    background-size: cover;
+    background-position: center 40%;
+    filter: brightness(0.55);
+    transform: scale(1.02);
+    transition: transform 8s ease;
+  }
+
+  .hero-bg.loaded { transform: scale(1); }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,24,20,0.85) 0%, rgba(26,24,20,0.1) 60%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px;
+    width: 100%;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--cream);
+    margin-bottom: 8px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: rgba(247,244,239,0.75);
+    font-weight: 300;
+    margin-top: 20px;
+    max-width: 480px;
+  }
+
+  .hero-dates {
+    margin-top: 32px;
+    display: inline-flex;
+    gap: 32px;
+    border-top: 1px solid rgba(201,168,76,0.4);
+    padding-top: 20px;
+  }
+
+  .hero-date-item {
+    color: var(--cream);
+  }
+
+  .hero-date-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+  }
+
+  .hero-date-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 80px 32px;
+  }
+
+  section.full-bleed {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: #3a3630; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── PITCH OPENER ── */
+  .pitch {
+    border-left: 3px solid var(--gold);
+    padding-left: 28px;
+    font-size: 19px;
+    line-height: 1.8;
+    color: #3a3630;
+    font-weight: 300;
+  }
+
+  /* ── COST TABLE ── */
+  .cost-wrap {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 64px 32px;
+  }
+
+  .cost-inner {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .cost-inner .section-eyebrow { color: var(--gold); }
+  .cost-inner h2 { color: var(--cream); }
+
+  .cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 32px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .cost-cell {
+    background: #26231e;
+    padding: 24px 28px;
+  }
+
+  .cost-cell.header {
+    background: rgba(201,168,76,0.15);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    padding: 14px 28px;
+  }
+
+  .cost-label {
+    font-size: 12px;
+    color: rgba(247,244,239,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .cost-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--cream);
+  }
+
+  .cost-value.pts { color: var(--gold); }
+
+  .cost-note {
+    font-size: 13px;
+    color: rgba(247,244,239,0.45);
+    margin-top: 4px;
+  }
+
+  .cost-total-row {
+    background: var(--rust);
+    grid-column: 1 / -1;
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cost-total-row .label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; }
+  .cost-total-row .value { font-family: 'Playfair Display', serif; font-size: 24px; }
+
+  .train-box {
+    margin-top: 40px;
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 24px 28px;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .train-stat { flex: 1; min-width: 120px; }
+  .train-stat .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .train-stat .val { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--cream); }
+
+  /* ── ITINERARY ── */
+  .itinerary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 32px;
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 0;
+    background: var(--sand);
+    overflow: hidden;
+  }
+
+  .day-row:nth-child(even) { background: #ede8e0; }
+
+  .day-tag {
+    background: var(--moss);
+    color: var(--cream);
+    padding: 20px 16px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .day-tag.transit { background: var(--rust); }
+  .day-tag.busan { background: #2c4a6e; }
+  .day-tag.fly { background: var(--ink); }
+
+  .day-tag .date { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; display: block; margin-bottom: 2px; }
+
+  .day-content {
+    padding: 20px 24px;
+  }
+
+  .day-content h4 {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .day-content p {
+    font-size: 14px;
+    color: #5a5248;
+    margin-bottom: 0;
+  }
+
+  .tag-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 6px;
+    margin-bottom: 8px;
+  }
+
+  .tag-pill.food { background: rgba(184,92,56,0.15); color: var(--rust); }
+  .tag-pill.culture { background: rgba(74,92,71,0.15); color: var(--moss); }
+  .tag-pill.wellness { background: rgba(44,74,110,0.15); color: #2c4a6e; }
+  .tag-pill.shopping { background: rgba(201,168,76,0.2); color: #8a6d1a; }
+  .tag-pill.run { background: rgba(26,24,20,0.08); color: var(--ink); }
+
+  /* ── PHOTO STRIPS ── */
+  .photo-strip {
+    display: grid;
+    gap: 4px;
+    height: 380px;
+  }
+
+  .photo-strip.two { grid-template-columns: 3fr 2fr; }
+  .photo-strip.three { grid-template-columns: 2fr 1fr 1fr; }
+
+  .photo-strip img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .photo-caption-bar {
+    background: var(--ink);
+    color: rgba(247,244,239,0.6);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    text-align: center;
+  }
+
+  /* ── EXPERIENCES GRID ── */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .exp-card {
+    border: 1px solid var(--sand);
+    padding: 28px;
+    position: relative;
+  }
+
+  .exp-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+  }
+
+  .exp-card.food::before { background: var(--rust); }
+  .exp-card.culture::before { background: var(--moss); }
+  .exp-card.wellness::before { background: #2c4a6e; }
+  .exp-card.shop::before { background: var(--gold); }
+
+  .exp-card h3 { font-size: 18px; margin-bottom: 8px; }
+  .exp-card p { font-size: 14px; color: #5a5248; }
+
+  .exp-icon {
+    font-size: 22px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  /* ── SPA SECTION ── */
+  .spa-feature {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 40px;
+    overflow: hidden;
+  }
+
+  .spa-img {
+    height: 440px;
+    overflow: hidden;
+  }
+
+  .spa-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .spa-text {
+    background: var(--moss);
+    color: var(--cream);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .spa-text .section-eyebrow { color: rgba(247,244,239,0.6); }
+  .spa-text h2 { color: var(--cream); font-size: 30px; margin-bottom: 20px; }
+  .spa-text p { color: rgba(247,244,239,0.8); font-size: 15px; }
+
+  .spa-detail {
+    border-top: 1px solid rgba(247,244,239,0.2);
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+
+  .spa-detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(247,244,239,0.1);
+    color: rgba(247,244,239,0.75);
+  }
+
+  .spa-detail-item span:last-child { color: var(--gold); }
+
+  /* ── SHOPPING ── */
+  .shop-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .shop-list li {
+    padding: 16px 20px;
+    background: var(--sand);
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .shop-list .shop-name { font-weight: 500; font-size: 15px; }
+  .shop-list .shop-desc { color: #7a7068; font-size: 13px; }
+
+  /* ── BUSAN ── */
+  .busan-hero {
+    position: relative;
+    height: 480px;
+    overflow: hidden;
+  }
+
+  .busan-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: brightness(0.6);
+  }
+
+  .busan-hero-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 48px;
+    background: linear-gradient(to top, rgba(26,24,20,0.8) 0%, transparent 60%);
+  }
+
+  .busan-hero-text h2 {
+    color: var(--cream);
+    font-size: clamp(36px, 5vw, 56px);
+    margin-bottom: 8px;
+  }
+
+  .busan-hero-text p {
+    color: rgba(247,244,239,0.8);
+    font-size: 17px;
+    max-width: 520px;
+    margin: 0;
+  }
+
+  /* ── SPA TEXT ONLY ── */
+  .spa-text-only {
+    background: var(--moss);
+    color: var(--cream);
+    padding: 64px 32px;
+    max-width: 100%;
+  }
+
+  .spa-text-only .section-eyebrow { color: rgba(247,244,239,0.6); margin: 0 auto 12px; max-width: 860px; display: block; }
+  .spa-text-only h2 { color: var(--cream); font-size: 32px; margin-bottom: 16px; max-width: 860px; margin-left: auto; margin-right: auto; }
+  .spa-text-only > p { color: rgba(247,244,239,0.8); font-size: 15px; max-width: 860px; margin: 0 auto 32px; }
+
+  .spa-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .spa-text-only .spa-detail { border-top: 1px solid rgba(247,244,239,0.2); padding-top: 16px; }
+
+  /* ── LOGISTICS ── */
+  .logistics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .logistics-card {
+    background: var(--sand);
+    padding: 28px;
+  }
+
+  .logistics-icon { font-size: 24px; margin-bottom: 12px; display: block; }
+  .logistics-card h3 { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; margin-bottom: 14px; }
+
+  .logistics-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .logistics-list li {
+    font-size: 13.5px;
+    color: #4a4038;
+    line-height: 1.6;
+    padding-left: 12px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .logistics-list a { color: var(--rust); border-bottom-color: rgba(184,92,56,0.3); }
+
+  @media (max-width: 640px) {
+    .logistics-grid { grid-template-columns: 1fr; }
+    .spa-detail-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── HOTEL OPTIONS ── */
+  .hotel-opts-wrap {
+    background: #1e1c18;
+    padding: 80px 32px;
+  }
+
+  .hotel-opts-inner {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .hotel-opts-inner .section-eyebrow { color: var(--gold); }
+  .hotel-opts-inner h2 { color: var(--cream); }
+
+  .hotel-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+  }
+
+  .hotel-card {
+    background: #26231e;
+    overflow: hidden;
+  }
+
+  .hotel-card-header {
+    padding: 28px 28px 20px;
+  }
+
+  .hotel-card-header.ryse { background: linear-gradient(135deg, #2c4a3e, #1e3028); }
+  .hotel-card-header.josun { background: linear-gradient(135deg, #2c3a5c, #1a2840); }
+
+  .hotel-badge {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .hotel-card-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+
+  .hotel-location {
+    font-size: 13px;
+    color: rgba(247,244,239,0.55);
+    letter-spacing: 0.05em;
+  }
+
+  .hotel-card-body {
+    padding: 24px 28px 28px;
+  }
+
+  .hotel-stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .hotel-stat { display: flex; flex-direction: column; gap: 3px; }
+  .hstat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(247,244,239,0.4); }
+  .hstat-val { font-size: 14px; color: var(--cream); font-weight: 400; }
+
+  .hotel-desc {
+    font-size: 13.5px;
+    color: rgba(247,244,239,0.7);
+    margin-bottom: 12px;
+    line-height: 1.65;
+  }
+
+  .hotel-desc strong { color: var(--cream); font-weight: 500; }
+  .hotel-desc a { color: var(--gold); border-bottom-color: rgba(201,168,76,0.3); }
+
+  @media (max-width: 900px) {
+    .hotel-cards { grid-template-columns: 1fr 1fr !important; }
+  }
+  @media (max-width: 640px) {
+    .hotel-cards { grid-template-columns: 1fr !important; }
+  }
+
+  /* ── FOOTER CTA ── */
+  .footer-cta {
+    background: var(--rust);
+    padding: 80px 32px;
+    text-align: center;
+  }
+
+  .footer-cta h2 {
+    color: var(--cream);
+    font-size: clamp(32px, 5vw, 52px);
+    margin-bottom: 16px;
+  }
+
+  .footer-cta p {
+    color: rgba(247,244,239,0.8);
+    font-size: 17px;
+    max-width: 540px;
+    margin: 0 auto 32px;
+  }
+
+  .footer-cta .dates-row {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid rgba(247,244,239,0.3);
+  }
+
+  .footer-cta .date-block {
+    padding: 16px 32px;
+    border-right: 1px solid rgba(247,244,239,0.3);
+  }
+
+  .footer-cta .date-block:last-child { border-right: none; }
+  .footer-cta .date-block .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(247,244,239,0.6); }
+  .footer-cta .date-block .val { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--cream); }
+
+  /* ── LINKS ── */
+  a { color: var(--rust); text-decoration: none; border-bottom: 1px solid rgba(184,92,56,0.3); transition: border-color 0.2s; }
+  a:hover { border-bottom-color: var(--rust); }
+  .cost-wrap a, .spa-text a { color: var(--gold); border-bottom-color: rgba(201,168,76,0.3); }
+  .cost-wrap a:hover, .spa-text a:hover { border-bottom-color: var(--gold); }
+  .shop-list a { color: var(--ink); border-bottom: 1px solid rgba(26,24,20,0.2); font-weight: 500; }
+  .shop-list a:hover { border-bottom-color: var(--ink); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 0 40px 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .exp-grid, .shop-list, .cost-grid { grid-template-columns: 1fr; }
+    .photo-strip { height: 240px; }
+    .photo-strip.three { grid-template-columns: 1fr 1fr; }
+    .photo-strip.three img:last-child { display: none; }
+    .spa-feature { grid-template-columns: 1fr; }
+    .spa-img { height: 260px; }
+    .day-row { grid-template-columns: 80px 1fr; }
+    .hero-dates { flex-direction: column; gap: 16px; }
+    .footer-cta .dates-row { flex-direction: column; }
+    .footer-cta .date-block { border-right: none; border-bottom: 1px solid rgba(247,244,239,0.3); }
+    .train-box { gap: 20px; }
+    .cost-total-row { flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Seoul &amp; Busan · October 2026</div>
+    <h1 class="hero-title">Come to<br><em>Korea</em><br>with us.</h1>
+    <p class="hero-sub">Nine days. Two cities. KTX rail, world-class spas, serious food, and shopping you can't do anywhere else.</p>
+    <div class="hero-dates">
+      <div class="hero-date-item">
+        <span class="hero-date-label">Depart</span>
+        <span class="hero-date-val">Oct 5, SFO</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Return</span>
+        <span class="hero-date-val">Oct 14, SFO</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Nights</span>
+        <span class="hero-date-val">9 nights</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PITCH -->
+<section>
+  <div class="section-eyebrow">Why Korea, Why Now</div>
+  <div class="divider"></div>
+  <p class="pitch">October is Korea's sweet spot — crisp autumn air, fall foliage on Namsan Mountain, no summer crowds. We'll spend four nights in Seoul doing the things we loved last time (and found new spots), then board the KTX for Busan: beach city, seafood market, the country's most celebrated spa, and a side of coastal drama you can only get there.</p>
+  <br>
+  <p>Flights are nonstop SFO–ICN on United. Park Hyatt Busan is booked on points (80,000 Chase Hyatt points per person if sharing a room, 4 nights). Seoul hotel is cash — see options below.</p>
+</section>
+
+<!-- COST -->
+<div class="cost-wrap full-bleed">
+  <div class="cost-inner">
+    <div class="section-eyebrow">What It Costs</div>
+    <h2>Per person, the numbers are good.</h2>
+
+    <div class="cost-grid">
+      <div class="cost-cell header">Item</div>
+      <div class="cost-cell header">Per Person</div>
+
+      <div class="cost-cell">
+        <div class="cost-label">Flight (SFO ⇄ ICN, nonstop)</div>
+        <div class="cost-value">$720</div>
+        <div class="cost-note">United Airlines · includes all taxes &amp; fees</div>
+      </div>
+      <div class="cost-cell">
+        <div class="cost-label">Seoul Hotel · 4 nights (Oct 6–10) — TBD</div>
+        <div class="cost-value pts" style="font-size:18px; line-height:1.6;">
+          RYSE Hongdae: ~$1,108 cash<br>
+          <span style="font-size:14px; color:rgba(247,244,239,0.5);">Marriott Bonvoy · best neighborhood fit</span><br>
+          JW Marriott Seoul: ~$1,440 cash<br>
+          <span style="font-size:14px; color:rgba(247,244,239,0.5);">Best river access &amp; hotel</span>
+        </div>
+        <div class="cost-note">See hotel options section below for full comparison</div>
+      </div>
+
+      <div class="cost-cell">
+        <div class="cost-label">KTX Seoul → Busan (Oct 10)</div>
+        <div class="cost-value">~$40</div>
+        <div class="cost-note">2h 15min · economy class</div>
+      </div>
+      <div class="cost-cell" style="grid-column: 1 / -1;">
+        <div class="cost-label">Park Hyatt Busan · 4 nights (Oct 10–14) — Booked ✓</div>
+        <div class="cost-value pts">80,000 pts</div>
+        <div class="cost-note">20,000 pts/night · Category 5 · Marina views · King Bed or 2 Twin Beds Family Deluxe if sharing</div>
+      </div>
+
+      <div class="cost-total-row">
+        <span class="label">Total cash per person (flight + KTX)</span>
+        <span class="value">~$760 + Seoul hotel</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ITINERARY -->
+<section>
+  <div class="section-eyebrow">Day by Day</div>
+  <h2>The itinerary.</h2>
+  <p>Rough shape — still some flex built in. Seoul first, Busan to close. The KTX ride is an experience in itself.</p>
+
+  <div class="itinerary-grid">
+
+    <div class="day-row">
+      <div class="day-tag transit">
+        <span class="date">Oct 5</span>Mon
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Travel</span>
+        <h4>Fly SFO → ICN</h4>
+        <p>United UA893 · Departs 10:25am, arrives Seoul next day 3pm. Nonstop, 12h 35min. Settle in, recover.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag">
+        <span class="date">Oct 6</span>Tue
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Arrive</span>
+        <h4>Seoul — Arrival Day · Flight lands 3:00pm</h4>
+        <p>UA893 arrives ICN at 3:00pm. Clear customs, grab the KAL Limousine bus or taxi (~1hr) to the hotel. Check-in depends on which Seoul hotel we land on:</p>
+        <p style="margin-top:8px; font-size:13px; color:#7a7068;"><strong>Option A — RYSE (Hongdae):</strong> 10 min walk from Hongik Univ. Station (Line 2). Local energy, indie boutiques, Korean BBQ everywhere. Blue Bottle in the lobby, Gentle Monster's original flagship is a short walk away. Best flat Han River access — 15–20 min run south to the Mapo/Yeouido riverside path.</p>
+        <p style="margin-top:8px; font-size:13px; color:#7a7068;"><strong>Option B — JW Marriott Seoul (Banpo-dong):</strong> Connected to Lines 3, 7, 9, sits above Shinsegae Dept Store. Seorae Village (cafés, French expat enclave) is walkable. Banpo Hangang Park and the flat river path are ~0.5 miles away — Banpo Bridge Moonlight Rainbow Fountain runs evenings through October. Multiple rooms have Han River views.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag">
+        <span class="date">Oct 7</span>Wed
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Cooking class</span>
+        <span class="tag-pill food">Food</span>
+        <h4>Group Cooking Class + Seongsu-dong</h4>
+        <p>Morning: group Korean cooking class (fits 4–6) — market tour at Mangwon Market, hands-on kimchi, bulgogi, japchae, eat what you make. Book via <a href="https://www.airbnb.com/experiences/seoul" target="_blank" rel="noopener">Airbnb Experiences</a> or <a href="https://www.viator.com/Seoul/d973-ttd" target="_blank" rel="noopener">Viator</a>. ~$80–100/pp. (Flag Stanley's shrimp allergy when booking — chefs accommodate.) Afternoon: head to <a href="https://www.koreatodo.com/seongsu" target="_blank" rel="noopener">Seongsu-dong</a> — MUSINSA Megastore, ADERERROR, Matin Kim, Covernat, Gentle Monster's NUDAKE for matcha croissants. Salt bread at Cafe Onion. Evening: <a href="https://www.instagram.com/sav.seoul" target="_blank" rel="noopener">sav.seoul</a> wine bar.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag">
+        <span class="date">Oct 8</span>Thu
+      </div>
+      <div class="day-content">
+        <span class="tag-pill food">Tasting menu</span>
+        <span class="tag-pill culture">Culture</span>
+        <h4>Born &amp; Bred + Ikseon-dong + Gentle Monster</h4>
+        <p>Lunch at <a href="https://catchtable.co.kr" target="_blank" rel="noopener">Born &amp; Bred 2F</a> (Casual Tasting Menu, ~$120/pp) — book via <a href="https://catchtable.co.kr" target="_blank" rel="noopener">Catchtable</a>. Afternoon: Ikseon-dong Hanok Village — a maze of restored hanok alleys turned into cafés, cocktail bars, and small boutiques, with a much more low-key, local crowd than Bukchon. While there, swing by the <strong>Gentle Monster</strong> flagship — avant-garde eyewear in an installation-art setting, worth a visit even if you don't buy anything. Evening free in Itaewon near the hotel.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag">
+        <span class="date">Oct 9</span>Fri
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Hike</span>
+        <span class="tag-pill wellness">Spa</span>
+        <span class="tag-pill food">Dinner</span>
+        <h4>Bukhansan Hike + Dragon Hill Spa Recovery</h4>
+        <p>Morning: <strong>Bukhansan National Park</strong> — the Baegundae Peak trail (836m, ~3–4hr round trip), the classic route with sweeping views over Seoul and peak fall foliage in October. <strong>Getting there:</strong> from Hannam-dong, take the subway to Gupabal Station (Line 3, ~30 min with one transfer), then bus 704 to the Bukhansanseong trailhead (~20 min). Total door-to-trailhead is about an hour. Wear real hiking shoes — the upper section involves rope-assisted rock scrambling.</p>
+        <p style="margin-top:8px;">Afternoon: head straight to <a href="https://dragonhillspa.com" target="_blank" rel="noopener"><strong>Dragon Hill Spa</strong></a> — Seoul's most famous jjimjilbang, rooftop garden, multiple themed saunas, traditional Korean body scrub (seshin). Perfect timing for sore legs. Book the full package. Evening: Gangnam for dinner.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag transit">
+        <span class="date">Oct 10</span>Sat
+      </div>
+      <div class="day-content">
+        <span class="tag-pill shopping">Shopping</span>
+        <span class="tag-pill transit">Train</span>
+        <h4>Seongsu Shoe Street + KTX to Busan</h4>
+        <p>Morning: bespoke leather shoes on Seongsu-dong Shoe Street (~$110–220, made by craftsmen here since the 1970s). Check out of hotel, board ~1–2pm <a href="https://www.letskorail.com" target="_blank" rel="noopener">KTX</a> — 2h 15min to Busan, arrives early afternoon. Check into <a href="https://www.hyatt.com/park-hyatt/en-US/pushi-park-hyatt-busan" target="_blank" rel="noopener">Park Hyatt Busan</a> — located in Marine City, Haeundae-gu, with floor-to-ceiling views of the marina and the twin skyscrapers of Marine City framing the bay.</p>
+        <p style="margin-top:8px; font-size:13px; color:#7a7068;"><strong>The neighborhood:</strong> Haeundae is Busan's beach district — the hotel is walking distance from Haeundae Beach (5 min) and Gwangalli Beach is a short taxi. The Centum City shopping and Spa Land complex is one subway stop away. Dozens of beachfront cafés and seafood restaurants within a 10-min walk.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag busan">
+        <span class="date">Oct 11</span>Sun
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Culture</span>
+        <span class="tag-pill wellness">Spa</span>
+        <h4>Gamcheon Village + Spa Land</h4>
+        <p>Morning: Gamcheon Culture Village — hillside murals, indie cafés, winding alleys that look like a painting. Haedong Yonggungsa Temple on the sea cliffs (one of Korea's most dramatic). Afternoon/evening: <a href="https://www.shinsegae.com/store/centumcity/spaland" target="_blank" rel="noopener"><strong>Spa Land at Shinsegae Centum City</strong></a> — 18 mineral hot spring pools, 13 themed saunas, seshin body scrub. The best spa in Korea by any measure. Budget half a day here.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag busan">
+        <span class="date">Oct 12</span>Mon
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Day trip</span>
+        <span class="tag-pill food">Seafood</span>
+        <h4>Tongyeong Day Trip + Jagalchi Market</h4>
+        <p>Day trip to <strong>Tongyeong</strong> — a coastal town about 1.5–2hrs from Busan. <strong>Getting there:</strong> intercity bus from Busan Seobu (Sasang) Bus Terminal to Tongyeong Bus Terminal (~1h40min, departures every 20–30 min, no reservation needed). Highlights: the Tongyeong Cable Car up Mireuksan for panoramic views over the harbor and islands, Dongpirang Mural Village (hillside alleys covered in murals, café-hopping), and Tongyeong Central Market for fresh seafood and chungmu gimbap (the town's signature dish). Aim for an early bus to make the most of the day.</p>
+        <p style="margin-top:8px;">Evening: back in Busan, head to Jagalchi Fish Market — pick live fish from the stalls, they cook it upstairs on the spot. Busan's version of a food adventure.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag busan">
+        <span class="date">Oct 13</span>Tue
+      </div>
+      <div class="day-content">
+        <span class="tag-pill culture">Views</span>
+        <span class="tag-pill food">Dinner</span>
+        <h4>Haeundae Blueline + Busan X the Sky + Gwangalli Beach</h4>
+        <p>Morning run along Haeundae Beach (flat, perfect 5K). Coastal capsule train along Haeundae Blueline Park (glass-floor Sky Capsule, ocean cliffs). Busan X the Sky observatory — 100+ floors above the city, coffee with the horizon. Afternoon: Gwangalli Beach — café strip, views of the Gwangan Bridge. Evening: Gwangalli for the autumn fireworks festival (typically early October). Dwaeji gukbap for dinner — Busan's iconic pork rice soup.</p>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag fly">
+        <span class="date">Oct 14</span>Wed
+      </div>
+      <div class="day-content">
+        <span class="tag-pill transit">Travel</span>
+        <h4>Fly Home</h4>
+        <p>Check out, KTX back to Seoul/ICN. UA892 departs ICN 4:50pm, arrives SFO 11:40am same day. 10h 50min nonstop.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SPA FEATURE -->
+<div class="full-bleed">
+  <div class="spa-text-only">
+    <div class="section-eyebrow">Wellness Highlight</div>
+    <h2>Two spas. Both unforgettable.</h2>
+    <p>We're doing this properly: one spa day in Seoul, one in Busan. The Korean body scrub (seshin) is the star — an ajumma scrubs off a winter's worth of dead skin in 30 minutes and you emerge feeling like a different person.</p>
+    <div class="spa-detail-grid">
+      <div class="spa-detail">
+        <div class="spa-detail-item"><span><a href="https://dragonhillspa.com" target="_blank" rel="noopener" style="color: inherit;">Seoul · Dragon Hill Spa</a></span><span>Yongsan, 7 floors, rooftop garden</span></div>
+        <div class="spa-detail-item"><span>Body scrub + massage package</span><span>~$60–90/pp</span></div>
+      </div>
+      <div class="spa-detail">
+        <div class="spa-detail-item"><span><a href="https://www.shinsegae.com/store/centumcity/spaland" target="_blank" rel="noopener" style="color: inherit;">Busan · Spa Land Centum City</a></span><span>18 pools, 13 themed saunas</span></div>
+        <div class="spa-detail-item"><span>Seshin scrub (full body)</span><span>~$25 add-on</span></div>
+        <div class="spa-detail-item"><span>Spa Land entry</span><span>~$15 base</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUSAN HERO -->
+<div class="full-bleed">
+  <div class="busan-hero" style="background: linear-gradient(135deg, #0d2b45 0%, #1a4a6b 40%, #2c6b8a 70%, #1a3a5c 100%);">
+    <div class="busan-hero-text">
+      <h2>Then there's Busan.</h2>
+      <p>Coastal city on the southern tip. Beaches, sea-cliff temples, the country's best seafood market, and Gamcheon — a hillside village that looks like a Wes Anderson set. October is peak season to visit.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EXPERIENCES GRID -->
+<section>
+  <div class="section-eyebrow">What You'll Do</div>
+  <h2>The experiences worth flying for.</h2>
+
+  <div class="exp-grid">
+    <div class="exp-card food">
+      <span class="exp-icon">🥩</span>
+      <h3>Born &amp; Bred Seoul</h3>
+      <p>The tasting menu you loved last time. Casual 2F format, ~$120/pp, reservation via Catchtable. One of Seoul's best Wagyu experiences. Book early — fills up fast.</p>
+    </div>
+
+    <div class="exp-card culture">
+      <span class="exp-icon">🍳</span>
+      <h3>Group Cooking Class</h3>
+      <p>Day 2, morning: market tour at Mangwon Market + hands-on kimchi, bulgogi, japchae for the whole group. Chef-led, max 6 people, you eat what you make for lunch. ~$80–100/pp. Book via <a href="https://www.viator.com/Seoul/d973-ttd" target="_blank" rel="noopener">Viator</a> or Airbnb Experiences.</p>
+    </div>
+
+    <div class="exp-card wellness">
+      <span class="exp-icon">♨️</span>
+      <h3>Korean Spa + Seshin Scrub</h3>
+      <p>Dragon Hill in Seoul (rooftop, themed saunas, scenic city-side setting) and Spa Land in Busan (the definitive Korean spa with 18 mineral pools). The seshin body scrub is a rite of passage.</p>
+    </div>
+
+    <div class="exp-card food">
+      <span class="exp-icon">🐟</span>
+      <h3>Jagalchi Fish Market, Busan</h3>
+      <p>Korea's largest seafood market. Walk past stalls of live octopus, abalone, and fresh catch. Point at what you want — the restaurant upstairs grills or serves it raw (hoe). Very Stanley-shrimp-allergy-navigable.</p>
+    </div>
+
+    <div class="exp-card shop">
+      <span class="exp-icon">🛍</span>
+      <h3>Seongsu-dong Shopping</h3>
+      <p>Seoul's coolest neighborhood in 2024/2025. MUSINSA Megastore, ADERERROR, Matin Kim. Bespoke leather shoes made to order on Shoe Street. More pop-up stores per block than anywhere else in Korea.</p>
+    </div>
+
+    <div class="exp-card culture">
+      <span class="exp-icon">🏯</span>
+      <h3>Haedong Yonggungsa Temple</h3>
+      <p>Buddhist temple built directly onto Busan's sea cliffs. One of the few coastal temples in Korea — dramatic autumn light, crashing waves below. Zero crowds compared to the Gyeongbokgung palaces in Seoul.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SHOPPING -->
+<section style="padding-top: 0;">
+  <div class="section-eyebrow">Seoul Shopping</div>
+  <h2>Brands worth the detour.</h2>
+  <p>Two neighborhoods carry the best of Seoul fashion. Seongsu-dong is the flagship-and-pop-up hub — Time Out's 4th coolest neighborhood globally. Itaewon/Hannam is where the more editorial, designer-forward labels live.</p>
+
+  <p style="font-size:11px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; color:var(--moss); margin-bottom:8px; margin-top:28px;">Seongsu-dong</p>
+  <ul class="shop-list">
+    <li>
+      <span class="shop-name"><a href="https://www.musinsa.com" target="_blank" rel="noopener">MUSINSA</a></span>
+      <span class="shop-desc">Just opened a 6,600 sqm megastore (April 2026). Korea's dominant K-fashion platform, now IRL.</span>
+    </li>
+    <li>
+      <span class="shop-name"><a href="https://adererror.com" target="_blank" rel="noopener">ADERERROR</a></span>
+      <span class="shop-desc">Seoul's favorite experimental streetwear brand. Sculptural, wearable, unmistakably Korean.</span>
+    </li>
+    <li>
+      <span class="shop-name"><a href="https://matinkim.com" target="_blank" rel="noopener">Matin Kim — Seongsu Store</a></span>
+      <span class="shop-desc">The Seongsu flagship has the full range — clean, elevated Korean womenswear with a subtle sculptural quality. Better selection than most stockists abroad.</span>
+    </li>
+    <li>
+      <span class="shop-name"><a href="https://covernat.com" target="_blank" rel="noopener">Covernat</a></span>
+      <span class="shop-desc">Workwear-inspired Korean streetwear. Less hype, more substance.</span>
+    </li>
+    <li>
+      <span class="shop-name"><a href="https://osoi.co.kr" target="_blank" rel="noopener">OSOI</a></span>
+      <span class="shop-desc">Minimalist Korean leather goods and bags — clean shapes, soft leather, quietly popular.</span>
+    </li>
+    <li>
+      <span class="shop-name"><a href="https://www.gentlemonster.com" target="_blank" rel="noopener">Gentle Monster / NUDAKE</a></span>
+      <span class="shop-desc">Eyewear flagship + their café concept. Best matcha croissant in Seoul.</span>
+    </li>
+    <li>
+      <span class="shop-name">Seongsu Shoe Street</span>
+      <span class="shop-desc">Bespoke leather shoes made by craftsmen who've been here since the 1970s. ₩150–300k (~$110–220).</span>
+    </li>
+  </ul>
+
+  <p style="font-size:11px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; color:var(--rust); margin-bottom:8px; margin-top:28px;">Itaewon / Hannam-dong</p>
+  <ul class="shop-list">
+    <li>
+      <span class="shop-name"><a href="https://www.kijun.kr" target="_blank" rel="noopener">KIJUN</a></span>
+      <span class="shop-desc">"Standard" in Korean — womenswear that redefines it. Cinematic collections inspired by '80s and '90s Seoul street style. Structured coats, flared pants, bubble skirts. Store at 2F, 19 Itaewon-ro 54-gil. Open 12–8pm daily.</span>
+    </li>
+    <li>
+      <span class="shop-name"><a href="https://www.gentlemonster.com" target="_blank" rel="noopener">Gentle Monster Flagship</a></span>
+      <span class="shop-desc">The original Hongdae flagship — avant-garde eyewear in an installation-art setting. Worth visiting even if you don't buy anything.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- HOTEL OPTIONS -->
+<div class="hotel-opts-wrap full-bleed">
+  <div class="hotel-opts-inner">
+    <div class="section-eyebrow">Where You'll Stay — Seoul</div>
+    <h2>Two options. Pick your tradeoff.</h2>
+    <p style="color:rgba(247,244,239,0.7); max-width:580px; margin-bottom:40px;">Park Hyatt Busan is booked on Hyatt points (Oct 10–14). Seoul is the remaining decision — both options below are cash, paid via Marriott Bonvoy.</p>
+    <p style="color:var(--gold); max-width:580px; margin-bottom:32px; font-size:14px; letter-spacing:0.02em;"><strong>Recommended: RYSE.</strong> ~$330 cheaper over 4 nights, direct Line 2 ride to Seongsu-dong (where we're shopping twice), and the Hongdae neighborhood matches what we liked last time.</p>
+
+    <div class="hotel-cards">
+
+      <div class="hotel-card">
+        <div class="hotel-card-header ryse">
+          <div class="hotel-badge">Marriott Bonvoy · Autograph Collection</div>
+          <h3>RYSE</h3>
+          <div class="hotel-location">Hongdae · Mapo-gu</div>
+        </div>
+        <div class="hotel-card-body">
+          <div class="hotel-stat-row">
+            <div class="hotel-stat"><span class="hstat-label">Cash/night</span><span class="hstat-val">~$277</span></div>
+            <div class="hotel-stat"><span class="hstat-label">4 nights cash</span><span class="hstat-val">~$1,108</span></div>
+            <div class="hotel-stat"><span class="hstat-label">Book via</span><span class="hstat-val">Marriott.com / Google</span></div>
+            <div class="hotel-stat"><span class="hstat-label">Breakfast</span><span class="hstat-val">~$43/room add-on</span></div>
+          </div>
+          <p class="hotel-desc"><strong>Neighborhood:</strong> Hongdae — exactly what you liked last time. Local energy, indie boutiques, Korean BBQ everywhere, mostly local crowd. <a href="https://www.marriott.com/en-us/hotels/selsa-ryse-autograph-collection/overview/" target="_blank" rel="noopener">RYSE</a> sits on Hongdae walking street with Blue Bottle in the lobby. Gentle Monster nearby. 5 min walk to Hongik Univ. Station (Line 2) — direct to Seongsu in ~25 min.</p>
+          <p class="hotel-desc"><strong>Running:</strong> Best flat river access. Run south 15–20 min to the Mapo/Yeouido section of the Han River — flat, car-free, 100km+ of paths. Door-to-river is the easiest of the three.</p>
+          <p class="hotel-desc"><strong>Trade-off:</strong> Rooms are on the smaller side. Pay cash — the points redemption here is poor value vs. saving Bonvoy points for a higher-end property.</p>
+        </div>
+      </div>
+
+      <div class="hotel-card">
+        <div class="hotel-card-header josun">
+          <div class="hotel-badge">Marriott Bonvoy · JW Marriott</div>
+          <h3>JW Marriott Seoul</h3>
+          <div class="hotel-location">Banpo-dong · Seocho-gu</div>
+        </div>
+        <div class="hotel-card-body">
+          <div class="hotel-stat-row">
+            <div class="hotel-stat"><span class="hstat-label">Cash/night</span><span class="hstat-val">~$360 (Google rate)</span></div>
+            <div class="hotel-stat"><span class="hstat-label">4 nights cash</span><span class="hstat-val">~$1,440</span></div>
+            <div class="hotel-stat"><span class="hstat-label">Book via</span><span class="hstat-val">Google Hotels</span></div>
+            <div class="hotel-stat"><span class="hstat-label">Breakfast</span><span class="hstat-val">Free for Platinum+</span></div>
+          </div>
+          <p class="hotel-desc"><strong>Neighborhood:</strong> Banpo-dong/Seocho-gu — upscale residential, sits above Shinsegae Dept Store. <a href="https://www.marriott.com/en-us/hotels/seljw-jw-marriott-hotel-seoul/overview/" target="_blank" rel="noopener">JW Marriott</a> is connected to Lines 3, 7, 9. Seorae Village (Seoul's French expat enclave, great cafés) is walking distance. Multiple rooms have Han River views.</p>
+          <p class="hotel-desc"><strong>Running:</strong> Closest 5-star hotel to the Han River south bank. Banpo Hangang Park is ~0.5 miles away — flat river path starts right there. Banpo Bridge Moonlight Rainbow Fountain runs evenings through October. Best combination of nice hotel + flat river run.</p>
+          <p class="hotel-desc"><strong>Trade-off:</strong> Still above your $350 target even with the Google rate. Pay cash — same points-redemption logic as RYSE, not worth burning Bonvoy points here. Lines 3/7/9 means one transfer to Line 2 for Seongsu (~20 min total).</p>
+        </div>
+      </div>
+
+    </div>
+    <p style="color:rgba(247,244,239,0.45); font-size:13px; margin-top:32px;">Both Marriott properties are cash-only — Bonvoy point redemptions here are poor value, so pay cash and save Chase points for Park Hyatt Busan (already booked, 20,000 Hyatt pts/night, Oct 10–14).</p>
+  </div>
+</div>
+
+<!-- LOGISTICS -->
+<section>
+  <div class="section-eyebrow">Before You Go</div>
+  <h2>Logistics.</h2>
+
+  <div class="logistics-grid">
+    <div class="logistics-card">
+      <div class="logistics-icon">📱</div>
+      <h3>Download these apps</h3>
+      <ul class="logistics-list">
+        <li><strong><a href="https://map.naver.com" target="_blank" rel="noopener">Naver Maps</a></strong> — primary navigation. The only Korean map app with full English support. Better than Google Maps for turn-by-turn, subway exits, and restaurant reviews (receipt-verified).</li>
+        <li><strong><a href="https://www.kakaomobility.com/en" target="_blank" rel="noopener">Kakao T</a></strong> — taxis. Korea's Uber. Book ahead, skip the curb wait, pay digitally. Show the driver your destination on Naver Maps if there's a language barrier.</li>
+        <li><strong>T-money</strong> — subway and bus payments. Pick up a physical T-money card at the airport (7-Eleven or GS25 inside arrivals), or use the app. Tap on/off at every gate.</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">🚄</div>
+      <h3>Seoul → Busan by KTX</h3>
+      <ul class="logistics-list">
+        <li><strong>Depart from Seoul Station</strong> (서울역) — Lines 1 and 4, also the AREX airport express terminus. Most convenient KTX hub in the city.</li>
+        <li><strong>Journey time:</strong> 2h 15min · 20+ trains daily · ~$40/person economy</li>
+        <li><strong>Book in advance</strong> at <a href="https://www.letskorail.com" target="_blank" rel="noopener">Korail</a> or Rail.Ninja — October is busy and window seats go fast.</li>
+        <li><strong>Alternative:</strong> Suseo Station (SRT) is slightly cheaper but less central. Stick with Seoul Station KTX.</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">✈️</div>
+      <h3>Airport → Hotel</h3>
+      <ul class="logistics-list">
+        <li><strong>AREX Airport Express</strong> from ICN Terminal 1 directly to Seoul Station — ~43 min, ~$9. Fastest option.</li>
+        <li><strong>KAL Limousine Bus</strong> stops at major hotel areas including Hongdae, Yongsan/Itaewon, and Gangnam — ~60–90 min depending on traffic, ~$18.</li>
+        <li><strong>Kakao T taxi</strong> from airport runs ~$50–70 and 60–90 min. Fine if you have luggage and multiple people splitting.</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">💳</div>
+      <h3>Money and payments</h3>
+      <ul class="logistics-list">
+        <li>Credit cards accepted almost everywhere in Seoul and Busan. Visa/Mastercard fine; Amex less reliable at smaller spots.</li>
+        <li>Carry some cash (₩) for street food, markets, and smaller cafés. ATMs at every convenience store (GS25, CU, 7-Eleven).</li>
+        <li>Tax refund on shopping: eligible if you spend ₩30,000+ at participating stores. Get a refund receipt and claim at ICN airport before departure.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="footer-cta full-bleed">
+  <h2>You in?</h2>
+  <p>Flights are live. Hotels are available on points. October is the best time of year to be in Korea. We're going — come with us.</p>
+  <div class="dates-row">
+    <div class="date-block">
+      <div class="label">Depart</div>
+      <div class="val">Oct 5, 2026</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Return</div>
+      <div class="val">Oct 14, 2026</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Flight/person</div>
+      <div class="val">$720</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Hotels</div>
+      <div class="val">On points</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // subtle hero parallax + load animation
+  const heroBg = document.getElementById('heroBg');
+  window.addEventListener('load', () => {
+    heroBg.classList.add('loaded');
+  });
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    if (scrolled < window.innerHeight) {
+      heroBg.style.transform = `scale(1) translateY(${scrolled * 0.25}px)`;
+    }
+  });
+
+  // fade in sections on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('section, .cost-wrap, .spa-feature, .busan-hero, .hotel-opts-wrap').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
