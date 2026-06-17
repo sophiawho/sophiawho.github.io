@@ -648,6 +648,52 @@
     body { background: white; }
     .phase-card, .strength-card, .taper-card { break-inside: avoid; }
   }
+
+  /* ── Mobile (phones) ── */
+  @media (max-width: 640px) {
+    /* Reclaim the wide side padding so content fills the screen */
+    .masthead { padding: 32px 20px 24px; }
+    .container { padding: 0 20px 56px; }
+
+    /* The decorative hatch overlay is sized for desktop; trim it back */
+    .masthead::before { width: 120px; }
+
+    /* Stack the masthead's top row and stat strip instead of cramming side by side */
+    .masthead-top { flex-direction: column; gap: 16px; }
+    .masthead-stats { flex-wrap: wrap; gap: 24px 32px; }
+
+    /* Collapse every multi-column card grid to a single column */
+    .phase-card-body,
+    .strength-card-body,
+    .taper-card-body,
+    .race-strategy-grid,
+    .weight-card-body {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    /* Stack card headers so the title sits above its stats rather than fighting for width */
+    .phase-card-header { flex-direction: column; gap: 12px; }
+    .phase-card-meta { text-align: left; gap: 20px; }
+
+    /* Trim the accent-bar inset padding that assumed a roomy desktop card */
+    .phase-card-header,
+    .phase-card-body,
+    .strength-card-body,
+    .taper-card-body { padding-left: 20px; padding-right: 16px; }
+
+    /* Wide tables keep their shape but become horizontally swipeable */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-scroll table { min-width: 540px; }
+
+    /* Nudge the smallest labels up to a comfortable mobile reading size */
+    .subtitle { font-size: 11px; }
+    table { font-size: 12px; }
+    th { font-size: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -695,6 +741,7 @@
       <div class="section-title">Phase Overview</div>
       <div class="section-rule"></div>
     </div>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -743,6 +790,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="section">
