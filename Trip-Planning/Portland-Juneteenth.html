@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌲</text></svg>">
+<title>Portland · Juneteenth 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1c1f1a;
+    --cream: #f7f5f0;
+    --paper: #ffffff;
+    --sand: #ede8e0;
+    --forest: #2a4d2a;
+    --moss: #4a7c59;
+    --rust: #b85c38;
+    --gold: #c9963a;
+    --sky: #4a7c99;
+    --muted: #7a7870;
+    --rule: #ddd9d0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 560px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 0 80px 0;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=1800&q=80');
+    background-size: cover;
+    background-position: center 55%;
+    filter: brightness(0.55);
+    transform: scale(1.02);
+    transition: transform 8s ease;
+  }
+
+  .hero-bg.loaded { transform: scale(1); }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(28,31,26,0.88) 0%, rgba(28,31,26,0.08) 55%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px;
+    width: 100%;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1;
+    color: #f7f5f0;
+  }
+
+  .hero-title em { font-style: italic; color: var(--gold); }
+
+  .hero-sub {
+    font-size: 18px;
+    color: rgba(247,245,240,0.75);
+    font-weight: 300;
+    margin-top: 20px;
+    max-width: 520px;
+  }
+
+  .hero-dates {
+    margin-top: 32px;
+    display: inline-flex;
+    gap: 32px;
+    border-top: 1px solid rgba(201,150,58,0.4);
+    padding-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .hero-date-item { color: #f7f5f0; }
+  .hero-date-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); display: block; }
+  .hero-date-val { font-family: 'Playfair Display', serif; font-size: 20px; }
+
+  /* ── SECTIONS ── */
+  section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 80px 32px;
+  }
+
+  section.full-bleed { max-width: 100%; padding: 0; }
+
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  p { margin-bottom: 16px; color: #3a3830; }
+  p:last-child { margin-bottom: 0; }
+
+  .pitch {
+    border-left: 3px solid var(--gold);
+    padding-left: 28px;
+    font-size: 19px;
+    line-height: 1.8;
+    color: #3a3830;
+    font-weight: 300;
+  }
+
+  .divider { width: 48px; height: 1px; background: var(--gold); margin: 0 0 40px 0; }
+
+  /* ── QUICK LOGISTICS BANNER ── */
+  .quick-logistics {
+    background: var(--forest);
+    padding: 32px;
+  }
+
+  .ql-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .ql-item {
+    flex: 1;
+    min-width: 180px;
+    padding: 20px 28px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .ql-item:last-child { border-right: none; }
+
+  .ql-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .ql-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: #f7f5f0;
+  }
+
+  .ql-val a {
+    color: #f7f5f0;
+    border-bottom: 1px solid rgba(247,245,240,0.3);
+    text-decoration: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+  }
+
+  .ql-note {
+    font-size: 12px;
+    color: rgba(247,245,240,0.4);
+    margin-top: 3px;
+  }
+
+  /* ── ITINERARY ── */
+  .itinerary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 32px;
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    background: var(--sand);
+    overflow: hidden;
+  }
+
+  .day-row:nth-child(even) { background: #e8e2d8; }
+
+  .day-tag {
+    background: var(--moss);
+    color: #f7f5f0;
+    padding: 20px 16px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .day-tag.travel { background: var(--rust); }
+  .day-tag.race   { background: var(--forest); }
+  .day-tag.ride   { background: #3a6b3a; }
+  .day-tag.event  { background: var(--sky); }
+
+  .day-tag .date {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .day-content { padding: 20px 24px; }
+
+  .day-content h4 {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .day-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 0;
+  }
+
+  .day-bullets li {
+    font-size: 13.5px;
+    color: #5a5248;
+    line-height: 1.6;
+    padding-left: 14px;
+    border-left: 2px solid rgba(201,150,58,0.45);
+  }
+
+  .day-bullets li strong { color: #3a3830; font-weight: 500; }
+  .day-bullets a { color: var(--sky); border-bottom: 1px solid rgba(74,124,153,0.3); text-decoration: none; }
+  .day-bullets a:hover { border-bottom-color: var(--sky); }
+
+  .tag-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-right: 6px;
+    margin-bottom: 10px;
+  }
+
+  .tag-pill.ride    { background: rgba(42,77,42,0.1);  color: var(--forest); }
+  .tag-pill.food    { background: rgba(184,92,56,0.12); color: var(--rust); }
+  .tag-pill.event   { background: rgba(74,124,153,0.12); color: var(--sky); }
+  .tag-pill.travel  { background: rgba(184,92,56,0.1);  color: var(--rust); }
+  .tag-pill.beach   { background: rgba(201,150,58,0.15); color: #8a6d1a; }
+  .tag-pill.night   { background: rgba(42,77,42,0.1);   color: var(--forest); }
+
+  /* ── RIDES BANNER ── */
+  .rides-banner {
+    background: var(--forest);
+    color: #f7f5f0;
+    padding: 64px 32px;
+  }
+
+  .rides-banner-inner {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .rides-banner .section-eyebrow { color: var(--gold); margin-bottom: 12px; }
+  .rides-banner h2 { color: #f7f5f0; margin-bottom: 32px; }
+
+  .route-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    background: rgba(255,255,255,0.07);
+    margin-bottom: 32px;
+  }
+
+  .route-card {
+    background: rgba(255,255,255,0.05);
+    padding: 24px 26px;
+  }
+
+  .route-badge {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(247,245,240,0.5);
+    margin-bottom: 8px;
+  }
+
+  .route-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: #f7f5f0;
+    margin-bottom: 6px;
+  }
+
+  .route-stats {
+    display: flex;
+    gap: 20px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+
+  .route-stat .rs-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+  }
+
+  .route-stat .rs-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #f7f5f0;
+  }
+
+  .route-card p {
+    font-size: 13px;
+    color: rgba(247,245,240,0.65);
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  .route-card a {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid rgba(201,150,58,0.35);
+    text-decoration: none;
+  }
+
+  .route-card a:hover { border-bottom-color: var(--gold); }
+
+  .rides-extra {
+    border: 1px solid rgba(201,150,58,0.3);
+    padding: 24px 28px;
+    margin-top: 0;
+  }
+
+  .rides-extra .re-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .rides-extra ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rides-extra ul li {
+    font-size: 13px;
+    color: rgba(247,245,240,0.7);
+    padding-left: 12px;
+    border-left: 2px solid rgba(201,150,58,0.3);
+  }
+
+  .rides-extra ul a { color: var(--gold); border-bottom: 1px solid rgba(201,150,58,0.3); text-decoration: none; }
+
+  /* ── COST TABLE ── */
+  .cost-wrap {
+    background: var(--sand);
+    padding: 64px 32px;
+  }
+
+  .cost-inner { max-width: 860px; margin: 0 auto; }
+  .cost-inner .section-eyebrow { color: var(--rust); }
+
+  .cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 32px;
+    background: var(--rule);
+  }
+
+  .cost-cell {
+    background: var(--paper);
+    padding: 24px 28px;
+  }
+
+  .cost-cell.header {
+    background: rgba(201,150,58,0.1);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    padding: 14px 28px;
+  }
+
+  .cost-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .cost-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--ink);
+  }
+
+  .cost-value.good { color: var(--forest); }
+
+  .cost-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .cost-total-row {
+    background: var(--rust);
+    grid-column: 1 / -1;
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .cost-total-row .label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(247,245,240,0.85); }
+  .cost-total-row .value { font-family: 'Playfair Display', serif; font-size: 24px; color: #f7f5f0; white-space: nowrap; }
+
+  /* ── FOOD ── */
+  .food-category-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    margin-top: 32px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .food-category-label.essential { color: var(--rust); border-color: rgba(184,92,56,0.2); }
+  .food-category-label.nice { color: var(--forest); border-color: rgba(42,77,42,0.2); }
+  .food-category-label.cafe { color: var(--sky); border-color: rgba(74,124,153,0.2); }
+
+  .food-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .food-list li {
+    padding: 16px 20px;
+    background: var(--sand);
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .food-list .food-name { font-weight: 500; font-size: 15px; color: var(--ink); }
+  .food-list .food-cuisine { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .food-list .food-desc { color: #7a7068; font-size: 13px; }
+  .food-list a { color: inherit; text-decoration: none; border-bottom: none; }
+
+  /* ── LOGISTICS ── */
+  .logistics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .logistics-card { background: var(--sand); padding: 28px; }
+  .logistics-icon { font-size: 24px; margin-bottom: 12px; display: block; }
+
+  .logistics-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 14px;
+  }
+
+  .logistics-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .logistics-list li {
+    font-size: 13.5px;
+    color: #4a4038;
+    line-height: 1.6;
+    padding-left: 12px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .logistics-list a { color: var(--rust); border-bottom: 1px solid rgba(184,92,56,0.3); text-decoration: none; }
+  .logistics-list a:hover { border-bottom-color: var(--rust); }
+
+  /* ── SPECIAL EVENT BANNER ── */
+  .event-banner {
+    background: var(--sky);
+    color: #f7f5f0;
+    padding: 64px 32px;
+  }
+
+  .event-banner-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .event-banner .section-eyebrow { color: rgba(247,245,240,0.7); }
+  .event-banner h2 { color: #f7f5f0; font-size: clamp(24px, 3.5vw, 36px); margin-bottom: 16px; }
+  .event-banner p { color: rgba(247,245,240,0.82); font-size: 15px; }
+
+  .event-details {
+    border: 1px solid rgba(247,245,240,0.2);
+    padding: 28px;
+  }
+
+  .event-detail-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    color: rgba(247,245,240,0.7);
+  }
+
+  .event-detail-item:last-child { border-bottom: none; }
+  .event-detail-item span:last-child { color: rgba(247,245,240,0.95); font-weight: 400; text-align: right; }
+
+  /* ── FOOTER CTA ── */
+  .footer-cta {
+    background: var(--rust);
+    padding: 80px 32px;
+    text-align: center;
+  }
+
+  .footer-cta h2 { color: #f7f5f0; font-size: clamp(30px, 5vw, 52px); margin-bottom: 16px; }
+
+  .footer-cta p {
+    color: rgba(247,245,240,0.85);
+    font-size: 17px;
+    max-width: 540px;
+    margin: 0 auto 32px;
+  }
+
+  .footer-cta .dates-row {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid rgba(247,245,240,0.35);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .footer-cta .date-block {
+    padding: 16px 28px;
+    border-right: 1px solid rgba(247,245,240,0.35);
+  }
+
+  .footer-cta .date-block:last-child { border-right: none; }
+  .footer-cta .date-block .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(247,245,240,0.65); }
+  .footer-cta .date-block .val { font-family: 'Playfair Display', serif; font-size: 22px; color: #f7f5f0; }
+
+  /* ── GLOBAL LINKS ── */
+  a { color: var(--rust); text-decoration: none; border-bottom: 1px solid rgba(184,92,56,0.3); transition: border-color 0.2s; }
+  a:hover { border-bottom-color: var(--rust); }
+
+  /* ── MOBILE ── */
+  @media (max-width: 700px) {
+    section { padding: 52px 20px; }
+    .hero { padding: 0 0 52px 0; }
+    .hero-content { padding: 0 20px; }
+    .hero-dates { gap: 20px; }
+    .quick-logistics { padding: 24px 20px; }
+    .ql-inner { flex-direction: column; }
+    .ql-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 16px 20px; min-width: unset; }
+    .ql-item:last-child { border-bottom: none; }
+    .rides-banner { padding: 48px 20px; }
+    .route-cards { grid-template-columns: 1fr; }
+    .cost-wrap { padding: 48px 20px; }
+    .cost-grid { grid-template-columns: 1fr; }
+    .cost-total-row { flex-direction: column; gap: 8px; text-align: center; }
+    .event-banner { padding: 48px 20px; }
+    .event-banner-inner { grid-template-columns: 1fr; gap: 32px; }
+    .food-list { grid-template-columns: 1fr; }
+    .logistics-grid { grid-template-columns: 1fr; }
+    .day-row { grid-template-columns: 80px 1fr; }
+    .day-content { padding: 16px 18px; }
+    .day-tag { padding: 16px 10px; }
+    .footer-cta { padding: 52px 20px; }
+    .footer-cta .date-block { border-right: none; border-bottom: 1px solid rgba(247,245,240,0.3); width: 100%; }
+    .footer-cta .dates-row { width: 100%; max-width: 320px; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { font-size: 40px; }
+    .hero-sub { font-size: 16px; }
+    .pitch { font-size: 17px; }
+    h2 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Portland, Oregon · June 17–21, 2026 · 8 Friends</div>
+    <h1 class="hero-title">Portland<br>for <em>Juneteenth.</em></h1>
+    <p class="hero-sub">Four days. Big rides, good food, Bike Play, and Eem Thai. The PNW in June.</p>
+    <div class="hero-dates">
+      <div class="hero-date-item">
+        <span class="hero-date-label">Arrive</span>
+        <span class="hero-date-val">Wed Jun 17</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Big Night</span>
+        <span class="hero-date-val">Sat Jun 20</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Fly Home</span>
+        <span class="hero-date-val">Sun Jun 21</span>
+      </div>
+      <div class="hero-date-item">
+        <span class="hero-date-label">Group Size</span>
+        <span class="hero-date-val">8 people</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK LOGISTICS -->
+<div class="quick-logistics full-bleed">
+  <div class="ql-inner">
+    <div class="ql-item">
+      <div class="ql-label">Flight</div>
+      <div class="ql-val">$367 / person</div>
+      <div class="ql-note">United · SFO–PDX nonstop · round trip</div>
+    </div>
+    <div class="ql-item">
+      <div class="ql-label">Airbnb</div>
+      <div class="ql-val">$649 / person</div>
+      <div class="ql-note">$5,191 total · 5 beds, 3 bath, sleeps 8 · 4 nights</div>
+    </div>
+    <div class="ql-item">
+      <div class="ql-label">Cars</div>
+      <div class="ql-val">2 Minivans</div>
+      <div class="ql-note">AVIS · $323 each · booked by Stanley & Daylen</div>
+    </div>
+    <div class="ql-item">
+      <div class="ql-label">Planning Spreadsheet</div>
+      <div class="ql-val"><a href="https://docs.google.com/document/d/1cBj3ubOPGWpnLzyxmN9U_csrPNglf0fgSBiUU1R60c8/edit?tab=t.0" target="_blank" rel="noopener">Open Doc →</a></div>
+      <div class="ql-note">Full itinerary and notes</div>
+    </div>
+  </div>
+</div>
+
+<!-- PITCH -->
+<section>
+  <div class="section-eyebrow">Why Portland, Why Now</div>
+  <div class="divider"></div>
+  <p class="pitch">The PNW in late June — roads are dry, Mt. Hood is in view, and the city is fully alive. Four days of big rides through the hills, food cart lunches mid-route, Bike Play on Friday night, and a proper group dinner at Eem Thai on Saturday. This is what a trip with bikes is supposed to feel like.</p>
+  <br>
+  <p>The Airbnb is in NE Portland — walkable to Alberta Arts, Mississippi, and Williams. Two minivans for easy transport. Three big rides mapped and ready, all starting and ending at the house. Here's how it goes.</p>
+</section>
+
+<!-- ITINERARY -->
+<section style="padding-top: 0;">
+  <div class="section-eyebrow">Day by Day</div>
+  <h2>The itinerary.</h2>
+
+  <div class="itinerary-grid">
+
+    <div class="day-row">
+      <div class="day-tag travel">
+        <span class="date">Jun 17</span>Wed
+      </div>
+      <div class="day-content">
+        <span class="tag-pill travel">Arrive</span>
+        <h4>Land, Pick Up Cars, Settle In</h4>
+        <ul class="day-bullets">
+          <li><strong>Flight:</strong> United UA 344 · departs SFO 2:55 PM, arrives PDX 4:47 PM. Pick up AVIS minivans at the airport.</li>
+          <li><strong>Airbnb:</strong> <a href="https://maps.app.goo.gl/placeholder" target="_blank" rel="noopener">3917 NE 12th Ave, Portland OR 97212</a> — check in, drop bags, decompress. 5 beds, 3 bath, NE Portland.</li>
+          <li><strong>Groceries:</strong> Whole Foods is walkable. Grab breakfast groceries for Thursday and Saturday mornings.</li>
+          <li><strong>Evening:</strong> <a href="https://www.mttaborseries.com/race-info" target="_blank" rel="noopener">Mt. Tabor Hill Climb</a> — head over and watch racers go up the hill. Great way to shake off the flight and get into Portland mode.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag ride">
+        <span class="date">Jun 18</span>Thu
+      </div>
+      <div class="day-content">
+        <span class="tag-pill ride">80 Miles</span>
+        <span class="tag-pill food">Food Stops</span>
+        <h4>Ant Farm Ride — The Big One</h4>
+        <ul class="day-bullets">
+          <li><strong>Meet-up:</strong> 9:00 AM at Grant Park — 2 miles from the Airbnb. Ride together from there.</li>
+          <li><strong>Route:</strong> Ant Farm from Airbnb — 80 miles through the region. Rayco's route, modified by Sophia to start and end at the house.</li>
+          <li><strong>Mile ~37 — Ant Farm:</strong> Grilled cheese stop in Sandy. This is the reason the ride is named what it is.</li>
+          <li><strong>Mile ~64 — Sellwood Food Cart Pod:</strong> Second food stop in Sellwood. Load up for the final stretch home.</li>
+          <li><strong>Evening:</strong> Cook at home with Thursday breakfast groceries, or hit the neighborhood — Alberta and Mississippi are a short walk.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag event">
+        <span class="date">Jun 19</span>Fri
+      </div>
+      <div class="day-content">
+        <span class="tag-pill ride">30 Miles</span>
+        <span class="tag-pill beach">Beach?</span>
+        <span class="tag-pill night">Bike Play</span>
+        <h4>City Tour + Rooster Rock + Bike Play</h4>
+        <ul class="day-bullets">
+          <li><strong>Breakfast:</strong> <strong>Pine State Biscuits</strong> on Alberta — 7 minute ride from the Airbnb. Biscuit sandwiches, gravy, honey butter. This is Portland breakfast.</li>
+          <li><strong>Morning ride:</strong> Rayco's 30-mile tour of Portland — starts and ends at the Airbnb. The city version: neighborhoods, bridges, river paths.</li>
+          <li><strong>Afternoon:</strong> <a href="https://maps.app.goo.gl/2k13f2Qk23XFAm1v8" target="_blank" rel="noopener">Rooster Rock Beach</a> — a clothing-optional beach on the Columbia River, 30 min by car. Easy afternoon if legs need a rest.</li>
+          <li><strong>Quick early dinner:</strong> Food cart pods — get in and out fast, you need to be on bikes by 6:30.</li>
+          <li><strong>6:30 PM — Bike Play:</strong> <a href="https://www.shift2bikes.org/calendar/event-23419" target="_blank" rel="noopener">Oregon Park (NE Oregon St & NE 30th Ave)</a>. Half original theater, half bike ride. 3–8 miles, period-inspired costumes encouraged. Bring your bike and helmet. This is a Portland original.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag ride">
+        <span class="date">Jun 20</span>Sat
+      </div>
+      <div class="day-content">
+        <span class="tag-pill ride">70 Miles</span>
+        <span class="tag-pill food">Eem Thai</span>
+        <h4>Zombie Ride + Eem Thai Dinner</h4>
+        <ul class="day-bullets">
+          <li><strong>Morning:</strong> Cook breakfast at home with Saturday groceries before rolling out.</li>
+          <li><strong>Route:</strong> <strong>Zombie v2</strong> — 70 miles, drops you downtown at the end. You'll ride right past a food cart collection just as the green bike paths begin — impossible to miss.</li>
+          <li><strong>Notes from Rayco:</strong> There's ~500ft of gravel from a construction section on the way home — no big deal on weekends, just ride through. One dirt singletrack in Lake Oswego is easy to miss; you'll backtrack briefly, then see the opening — it's only 100 feet.</li>
+          <li><strong>6:00 PM — <a href="https://maps.app.goo.gl/zEcW2SQWDNuuyU9DA" target="_blank" rel="noopener">Eem Thai</a>:</strong> Reservation for 10 at Eem Thai Portland. 15-minute walk from the Airbnb. Booked on OpenTable under Sophia — <strong>24-hour cancellation policy, $50/pp charge</strong>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day-row">
+      <div class="day-tag travel">
+        <span class="date">Jun 21</span>Sun
+      </div>
+      <div class="day-content">
+        <span class="tag-pill travel">Fly Home</span>
+        <h4>Morning Bagels + Head to Airport</h4>
+        <ul class="day-bullets">
+          <li><strong>Morning:</strong> One last coffee run. Hit whatever you missed earlier in the trip.</li>
+          <li><strong>Flight:</strong> United UA 1596 · departs PDX 8:35 AM, arrives SFO 10:25 AM. Early start — set alarms.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- RIDES BANNER -->
+<div class="rides-banner full-bleed">
+  <div class="rides-banner-inner">
+    <div class="section-eyebrow">The Routes</div>
+    <h2>Three rides. All start and end at the Airbnb.</h2>
+    <p style="color:rgba(247,245,240,0.75); font-size:15px; margin-bottom:32px;">Routes courtesy of Rayco, modified by Sophia. All begin and end at 3917 NE 12th Ave. More routes at <a href="https://buckyrides.com/2019/06/30/classic-local-portland-routes/" target="_blank" rel="noopener" style="color:var(--gold); border-bottom-color:rgba(201,150,58,0.3);">buckyrides.com</a>.</p>
+
+    <div class="route-cards">
+      <div class="route-card">
+        <div class="route-badge">Thursday · Day 2</div>
+        <h3>Ant Farm</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">~80 mi</span></div>
+        </div>
+        <p>The big one. Meet at Grant Park at 9 AM. Grilled cheese in Sandy at mile 37, Sellwood food carts at mile 64. The full day ride.</p>
+      </div>
+
+      <div class="route-card">
+        <div class="route-badge">Friday · Day 3</div>
+        <h3>Portland City Tour</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">~30 mi</span></div>
+        </div>
+        <p>Rayco's Portland tour — neighborhoods, bridges, the river. Legs-friendly before the afternoon at Rooster Rock and evening Bike Play.</p>
+      </div>
+
+      <div class="route-card">
+        <div class="route-badge">Saturday · Day 4</div>
+        <h3>Zombie v2</h3>
+        <div class="route-stats">
+          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">~70 mi</span></div>
+        </div>
+        <p>Drops you downtown near the food carts. One brief gravel section and a short singletrack in Lake Oswego — both easy. Ends just in time for Eem Thai.</p>
+      </div>
+    </div>
+
+    <div class="rides-extra">
+      <div class="re-label">More Routes — If You Want More Miles</div>
+      <ul>
+        <li><a href="https://www.strava.com/routes/1353391" target="_blank" rel="noopener">KingKong Classic</a> — 55 miles, a Portland classic</li>
+        <li><a href="https://www.strava.com/routes/3136177599840488834" target="_blank" rel="noopener">KingKong + Sauvie Island</a> — extended version with a farmland loop</li>
+        <li><a href="https://www.strava.com/routes/3122250860424252634" target="_blank" rel="noopener">Southwest Uppers</a> — 33 miles, hillier southwest</li>
+        <li><a href="https://www.strava.com/routes/3482740110312676194" target="_blank" rel="noopener">Pas Normal Epic Route</a> — for those who want a big day</li>
+        <li>Larch Mountain — iconic Portland climb, ~35 miles round trip, stunning viewpoint at the top</li>
+        <li>Sauvie Island Loop — flat ~25-mile farmland loop, views of Mt. Hood, good recovery ride</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- COST BREAKDOWN -->
+<div class="cost-wrap full-bleed">
+  <div class="cost-inner">
+    <div class="section-eyebrow">What It Costs</div>
+    <h2>The numbers, per person.</h2>
+
+    <div class="cost-grid">
+      <div class="cost-cell header">Item</div>
+      <div class="cost-cell header">Cost</div>
+
+      <div class="cost-cell">
+        <div class="cost-label">Flight (SFO ⇄ PDX, nonstop)</div>
+        <div class="cost-value">$367</div>
+        <div class="cost-note">United UA 344 / UA 1596 · round trip per person</div>
+      </div>
+      <div class="cost-cell">
+        <div class="cost-label">Airbnb — 4 nights (Jun 17–21)</div>
+        <div class="cost-value good">$649 / person</div>
+        <div class="cost-note">$5,191.92 total · 5 beds, 3 bath, sleeps 8</div>
+      </div>
+
+      <div class="cost-cell">
+        <div class="cost-label">Rental Cars — 2 AVIS Minivans</div>
+        <div class="cost-value">$323 total</div>
+        <div class="cost-note">Booked by Stanley and Daylen · split across group</div>
+      </div>
+      <div class="cost-cell">
+        <div class="cost-label">Food, rides, events</div>
+        <div class="cost-value">~$200–300</div>
+        <div class="cost-note">Eem Thai + meals + Bike Play (~$20) + incidentals</div>
+      </div>
+
+      <div class="cost-total-row">
+        <span class="label">Estimated total per person (flight + Airbnb + extras)</span>
+        <span class="value">~$1,200–$1,400</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BIKE PLAY FEATURE -->
+<div class="event-banner full-bleed">
+  <div class="event-banner-inner">
+    <div>
+      <div class="section-eyebrow">Friday Night</div>
+      <h2>Bike Play. Half theater, half bike ride.</h2>
+      <p>This is a Portland original. Show up on your bike, ride together through the city, with live performance happening around you and along the route. Costumes encouraged — period-inspired is the brief. 3 to 8 miles depending on the route.</p>
+      <br>
+      <p>It's organized by <a href="https://www.shift2bikes.org/calendar/event-23419" target="_blank" rel="noopener" style="color:rgba(247,245,240,0.8); border-bottom-color:rgba(247,245,240,0.3);">Shift2Bikes</a> — Portland's community cycling collective. This kind of thing only happens here.</p>
+    </div>
+    <div>
+      <div class="event-details">
+        <div class="event-detail-item" style="padding: 8px 0 14px; border-bottom: 1px solid rgba(247,245,240,0.2); margin-bottom: 4px;">
+          <span style="color: rgba(247,245,240,0.7); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;">Bike Play</span>
+        </div>
+        <div class="event-detail-item"><span>Date</span><span>Friday, Jun 19</span></div>
+        <div class="event-detail-item"><span>Time</span><span>6:30 PM</span></div>
+        <div class="event-detail-item"><span>Location</span><span>NE Oregon St & NE 30th Ave</span></div>
+        <div class="event-detail-item"><span>Ride length</span><span>3–8 miles</span></div>
+        <div class="event-detail-item"><span>Bring</span><span>Bike + helmet</span></div>
+        <div class="event-detail-item"><span>Costumes</span><span>Period-inspired encouraged</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOD -->
+<section>
+  <div class="section-eyebrow">Eat Well</div>
+  <h2>Portland's food scene rewards curiosity.</h2>
+  <p>The city's food cart culture means great meals can happen mid-ride. These are the sit-down spots worth planning around, plus the essentials you shouldn't miss.</p>
+
+  <div class="food-category-label essential">Must-Do</div>
+  <ul class="food-list">
+    <li>
+      <span class="food-name">Pine State Biscuits</span>
+      <span class="food-cuisine">Southern Biscuits · Alberta</span>
+      <span class="food-desc">Friday breakfast. 7-minute ride from the Airbnb. Biscuit sandwiches, sausage gravy, honey butter. Order the Reggie.</span>
+    </li>
+    <li>
+      <span class="food-name"><a href="https://maps.app.goo.gl/zEcW2SQWDNuuyU9DA">Eem Thai</a></span>
+      <span class="food-cuisine">Thai BBQ · Saturday 6 PM</span>
+      <span class="food-desc">The Saturday night reservation. 10 people, booked under Sophia on OpenTable. 24-hour cancellation, $50/pp. 15-min walk from Airbnb.</span>
+    </li>
+    <li>
+      <span class="food-name">Ant Farm</span>
+      <span class="food-cuisine">Grilled Cheese · Sandy · Mile 37</span>
+      <span class="food-desc">Mid-ride stop on Thursday's Ant Farm ride. Grilled cheese in Sandy at roughly the halfway point. The reason the route has a name.</span>
+    </li>
+    <li>
+      <span class="food-name">Sellwood Food Cart Pod</span>
+      <span class="food-cuisine">Food Carts · Mile 64</span>
+      <span class="food-desc">Second stop on Thursday's ride. Multiple options, eat what looks good, fuel up for the final stretch home.</span>
+    </li>
+  </ul>
+
+  <div class="food-category-label nice">Worth Adding</div>
+  <ul class="food-list">
+    <li>
+      <span class="food-name"><a href="https://maps.app.goo.gl/as8vrgEnZHs6bWmU6">Jeju</a></span>
+      <span class="food-cuisine">Korean · NE Portland</span>
+      <span class="food-desc">Korean restaurant in NE. Good option for a group dinner if you want something different from Thai on one of the earlier nights.</span>
+    </li>
+    <li>
+      <span class="food-name"><a href="https://maps.app.goo.gl/TBw281Km3NQvXgmo7">Urdaneta</a></span>
+      <span class="food-cuisine">Basque Tapas</span>
+      <span class="food-desc">Pintxos and Basque small plates. Great for a group — order a lot of things, share everything. Good wine list.</span>
+    </li>
+    <li>
+      <span class="food-name">Rangoon Bistro</span>
+      <span class="food-cuisine">Burmese · Mississippi Ave</span>
+      <span class="food-desc">4.9 stars, 370+ reviews. The giant pork-and-cabbage dumpling in chili oil is the move. Open for lunch Fri–Sun.</span>
+    </li>
+    <li>
+      <span class="food-name">¿Por Qué No?</span>
+      <span class="food-cuisine">Tacos · Mississippi Ave</span>
+      <span class="food-desc">Classic Portland taco spot. Great patio, al pastor tacos, fun vibe for 8 people on a sunny afternoon.</span>
+    </li>
+  </ul>
+
+  <div class="food-category-label cafe">Coffee</div>
+  <ul class="food-list">
+    <li>
+      <span class="food-name"><a href="https://maps.app.goo.gl/3zdbBJP1qeXwvNL29">Bastion Coffee</a></span>
+      <span class="food-cuisine">Specialty Coffee</span>
+      <span class="food-desc">A Portland roaster worth going out of your way for. Good for a pre-ride morning stop.</span>
+    </li>
+    <li>
+      <span class="food-name">Portland Cà Phê</span>
+      <span class="food-cuisine">Vietnamese Coffee</span>
+      <span class="food-desc">Exclusively Vietnamese coffee: house-made ube syrup lattes, cheese foam drinks, cà phê muối (salted coffee). Distinctly Portland.</span>
+    </li>
+    <li>
+      <span class="food-name"><a href="https://maps.app.goo.gl/4eYAWTcz9tyjvHkUA">Paadee</a></span>
+      <span class="food-cuisine">Thai Café</span>
+      <span class="food-desc">More casual Thai option in the neighborhood. Good for lunch or an early dinner when you don't need a reservation.</span>
+    </li>
+    <li>
+      <span class="food-name"><a href="https://maps.app.goo.gl/kDa5Vz8PhZHCKHPh9">S'mores Bar</a></span>
+      <span class="food-cuisine">Dessert</span>
+      <span class="food-desc">Because obviously. Good group stop after dinner on a walk through the neighborhood.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- LOGISTICS -->
+<section style="padding-top: 0;">
+  <div class="section-eyebrow">Before You Go</div>
+  <h2>Logistics.</h2>
+
+  <div class="logistics-grid">
+    <div class="logistics-card">
+      <div class="logistics-icon">🏠</div>
+      <h3>The Airbnb</h3>
+      <ul class="logistics-list">
+        <li><strong>Address:</strong> 3917 NE 12th Avenue, Portland OR 97212</li>
+        <li><strong>Sleeps:</strong> 8 — 5 beds, 3 bath</li>
+        <li><strong>Location:</strong> NE Portland — walkable to Alberta Arts, Mississippi Ave, and Williams. Whole Foods within walking distance.</li>
+        <li><strong>Cost:</strong> $5,191.92 total · $649 per person for 4 nights</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">🚐</div>
+      <h3>Rental Cars</h3>
+      <ul class="logistics-list">
+        <li>2 AVIS minivans reserved — $323 each</li>
+        <li>Booked by <strong>Stanley</strong> and <strong>Daylen</strong></li>
+        <li>Pick up at PDX airport on arrival Wednesday</li>
+        <li>Fits bikes with rear seats folded — confirm with AVIS on pickup</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">✈️</div>
+      <h3>Flights</h3>
+      <ul class="logistics-list">
+        <li><strong>Outbound:</strong> United UA 344 · Wed Jun 17 · SFO 2:55 PM → PDX 4:47 PM</li>
+        <li><strong>Return:</strong> United UA 1596 · Sun Jun 21 · PDX 8:35 AM → SFO 10:25 AM</li>
+        <li><strong>Price:</strong> $367/person round trip</li>
+        <li>Early Sunday departure — plan to leave the Airbnb by 7 AM</li>
+      </ul>
+    </div>
+
+    <div class="logistics-card">
+      <div class="logistics-icon">🍽️</div>
+      <h3>The Eem Thai Reservation</h3>
+      <ul class="logistics-list">
+        <li>Saturday, Jun 20 at <strong>6:00 PM</strong></li>
+        <li>Reserved for <strong>10 people</strong> on OpenTable under Sophia</li>
+        <li style="color: var(--rust);"><strong>⚠️ 24-hour cancellation policy — $50/pp charge if not cancelled in time</strong></li>
+        <li>15-minute walk from the Airbnb — perfect post-ride dinner</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<div class="footer-cta full-bleed">
+  <h2>Let's go.</h2>
+  <p>80 miles on Thursday. Bike Play on Friday. 70 miles and Eem Thai on Saturday. Portland in June.</p>
+  <div class="dates-row">
+    <div class="date-block">
+      <div class="label">Arrive</div>
+      <div class="val">Wed Jun 17</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Bike Play</div>
+      <div class="val">Fri Jun 19</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Eem Thai</div>
+      <div class="val">Sat Jun 20, 6 PM</div>
+    </div>
+    <div class="date-block">
+      <div class="label">Fly Home</div>
+      <div class="val">Sun Jun 21</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const heroBg = document.getElementById('heroBg');
+  window.addEventListener('load', () => { heroBg.classList.add('loaded'); });
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    if (scrolled < window.innerHeight) {
+      heroBg.style.transform = `scale(1) translateY(${scrolled * 0.25}px)`;
+    }
+  });
+
+  document.querySelectorAll('section, .cost-wrap, .rides-banner, .event-banner, .quick-logistics, .footer-cta').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.06 }).observe(el);
+  });
+</script>
+</body>
+</html>
