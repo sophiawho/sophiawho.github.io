@@ -9,6 +9,7 @@ echo "→ Copying files..."
 
 cp "$PROJECTS/Leetcode/interview_training_plan.html"   "$REPO/Interview Prep/"
 cp "$PROJECTS/Leetcode/learning_journal.html"           "$REPO/Interview Prep/"
+cp "$PROJECTS/Leetcode/typescript-prep-plan.html"      "$REPO/Interview Prep/"
 cp "$PROJECTS/Trip-Planning/korea-october.html"         "$REPO/Trip-Planning/"
 cp "$PROJECTS/Trip-Planning/montreal-worlds-2026.html"  "$REPO/Trip-Planning/"
 cp "$PROJECTS/Cycling Training/DiabloTrainingPlanV3.html" "$REPO/Cycling Training/"

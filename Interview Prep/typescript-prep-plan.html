@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waymo Technical Phone Screen — 14-Day Plan</title>
+<style>
+  :root {
+    --ink: #1c2024;
+    --ink-soft: #4a5258;
+    --paper: #faf9f6;
+    --card: #ffffff;
+    --line: #e2e0da;
+    --accent: #2d5d4f;
+    --accent-soft: #e8f0ed;
+    --amber: #b5703a;
+    --amber-soft: #f5ebe0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 28px 100px;
+  }
+
+  header {
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 24px;
+  }
+
+  .eyebrow {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 34px;
+    margin: 0 0 8px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .subhead {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--ink-soft);
+    font-size: 15px;
+    max-width: 620px;
+  }
+
+  .scope {
+    margin-top: 24px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+  .scope strong { color: var(--accent); }
+
+  .phase {
+    margin-top: 44px;
+  }
+
+  .phase-label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .phase-label .days {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .phase-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .phase h2 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    font-weight: 700;
+  }
+
+  .phase .why {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+    max-width: 640px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 14px;
+  }
+
+  .card .day-tag {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    margin: 0;
+    font-size: 15.5px;
+  }
+
+  .problem-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 10px 0 0;
+    border-top: 1px dashed var(--line);
+    display: grid;
+    gap: 6px;
+  }
+
+  .problem-list li {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .problem-list li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  .problem-list a {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid var(--line);
+  }
+  .problem-list a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+
+  .stretch {
+    color: var(--ink-soft);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .resources {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .resources .res-label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .res-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .res-list li {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .res-list li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--amber);
+  }
+
+  .res-list a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid var(--accent-soft);
+  }
+  .res-list a:hover { border-bottom-color: var(--accent); }
+
+  .checklist-note {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .ask-box {
+    margin-top: 48px;
+    background: var(--amber-soft);
+    border: 1px solid #e0c4a3;
+    border-radius: 6px;
+    padding: 20px 24px;
+  }
+  .ask-box .phase-label { margin-bottom: 10px; }
+  .ask-box .phase-label::after { background: #e0c4a3; }
+  .ask-box h2 { font-size: 18px; margin: 0 0 8px; }
+  .ask-box p { font-size: 14.5px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; color: var(--ink); }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 600px) {
+    .wrap {
+      padding: 32px 18px 64px;
+    }
+
+    h1 {
+      font-size: 26px;
+    }
+
+    .subhead {
+      font-size: 14px;
+    }
+
+    .scope {
+      font-size: 13px;
+      padding: 12px 14px;
+    }
+
+    .phase h2 {
+      font-size: 19px;
+    }
+
+    .card {
+      padding: 16px 16px;
+    }
+
+    .card p {
+      font-size: 15px;
+    }
+
+    .phase-label {
+      font-size: 10px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .phase-label::after {
+      flex-basis: 100%;
+      height: 0;
+    }
+
+    .ask-box {
+      padding: 16px 18px;
+    }
+  }
+
+  @media print {
+    body { background: white; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Waymo · Software Engineer, Fleet Monitoring</div>
+    <h1>Technical Phone Screen — 14-Day Plan</h1>
+    <div class="subhead">Two hours a day, building from Python fluency toward live JavaScript problem-solving across UI implementation and core data structures.</div>
+    <div class="scope">
+      <strong>Per the official TPS guide:</strong> live coding in JavaScript/TypeScript, covering UI implementation (any framework or vanilla JS/TS), arrays/strings/objects/sets/maps, simple graph &amp; tree traversal (BFS/DFS), recursion, sorting/filtering logic, and time/space complexity discussion.
+    </div>
+  </header>
+
+  <div class="phase">
+    <div class="phase-label"><span class="days">Days 1–3</span> Foundation</div>
+    <h2>JS syntax via porting</h2>
+    <div class="why">Rewrite problems you've already solved in Python so you're learning syntax through familiar logic, not learning both at once.</div>
+
+    <div class="card">
+      <div class="day-tag">Day 1 — Arrays &amp; Strings</div>
+      <p>Port 3–4 sliding window / two-pointer problems from Python to JS. Get comfortable with <code>.slice()</code>, <code>.split()</code>, template literals.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a></li>
+        <li><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a></li>
+        <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 2 — Objects, Map, Set</div>
+      <p>Port hashmap-style problems (Two Sum and similar). Practice <code>Map</code>, <code>Set</code>, and plain object lookups as JS equivalents of Python dicts.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a></li>
+        <li><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a></li>
+        <li><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 3 — Sorting &amp; Filtering</div>
+      <p>Practice <code>.sort()</code> with custom comparators, <code>.filter()</code>, <code>.map()</code>, <code>.reduce()</code> chains. Explicitly called out in the TPS guide.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
+        <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a></li>
+      </ul>
+    </div>
+
+    <div class="resources">
+      <div class="res-label">Resources</div>
+      <ul class="res-list">
+        <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — switch your default language to JavaScript; re-solve problems you've already cleared in Python</li>
+        <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — JS &amp; browser fundamentals quiz questions for quick syntax checks</li>
+        <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — browser sandbox, zero setup, for testing snippets as you port them</li>
+        <li>MDN Web Docs — <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank">Array methods reference</a> when a method name slips your mind</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label"><span class="days">Days 4–6</span> Traversal</div>
+    <h2>Trees, graphs, recursion in JS</h2>
+    <div class="why">The part most different from pure UI work, and explicitly listed in the TPS guide as its own category.</div>
+
+    <div class="card">
+      <div class="day-tag">Day 4 — Recursion Basics</div>
+      <p>Factorial, Fibonacci, then simple tree problems. JS recursive syntax has small quirks (no tail-call optimization guarantee) worth a few reps.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a></li>
+        <li><a href="https://leetcode.com/problems/same-tree/" target="_blank">100. Same Tree</a></li>
+        <li><a href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">226. Invert Binary Tree</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 5 — BFS/DFS on Trees</div>
+      <p>Level order traversal, max depth, path sum — port problems you've already solved in Python.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a></li>
+        <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 6 — BFS/DFS on Graphs</div>
+      <p>Represent adjacency lists using <code>Map</code> or nested arrays. Practice queue-as-array (<code>.push()</code>/<code>.shift()</code>) and stack-as-array (<code>.push()</code>/<code>.pop()</code>) patterns.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
+        <li><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a></li>
+        <li><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="stretch">(stretch, if time allows)</span></li>
+      </ul>
+    </div>
+
+    <div class="resources">
+      <div class="res-label">Resources</div>
+      <ul class="res-list">
+        <li><a href="https://leetcode.com/tag/tree/" target="_blank">LeetCode — Tree tag</a> and <a href="https://leetcode.com/tag/graph/" target="_blank">Graph tag</a>, filtered to Easy/Medium</li>
+        <li><a href="https://www.greatfrontend.com/questions" target="_blank">GreatFrontEnd — coding questions</a> for JS-flavored DSA practice</li>
+        <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — keep building here so traversal code is testable immediately</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label"><span class="days">Days 7–9</span> UI Implementation</div>
+    <h2>Vanilla JS component builds</h2>
+    <div class="why">Layering in the UI-implementation half of the TPS guide. Vanilla JS/TS is explicitly acceptable — no need to learn Angular for this round.</div>
+
+    <div class="card">
+      <div class="day-tag">Day 7 — Filterable List + Debounced Search</div>
+      <p>Build a list with a text input that filters live (case-insensitive substring match), then add a 300ms debounce so filtering only fires after the user pauses typing.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">20. Valid Parentheses</a> <span class="stretch">(stack warmup before the UI build)</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 8 — Expandable Tree View</div>
+      <p>Render a nested object (folder structure) where each node expands/collapses on click. Deliberately combines recursion with UI rendering.</p>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 9 — Counter with Undo</div>
+      <p>Increment/decrement buttons plus an undo button that reverts the last action using a stack-based history array.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/min-stack/" target="_blank">155. Min Stack</a> <span class="stretch">(conceptually close to this build)</span></li>
+        <li><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank">232. Implement Queue using Stacks</a></li>
+      </ul>
+    </div>
+
+    <div class="resources">
+      <div class="res-label">Resources</div>
+      <ul class="res-list">
+        <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — built specifically for "build a UI component" interview questions</li>
+        <li><a href="https://javascript30.com" target="_blank">JavaScript30</a> (free, Wes Bos) — 30 vanilla JS UI builds, no framework</li>
+        <li><a href="https://codesandbox.io" target="_blank">CodeSandbox</a> or <a href="https://stackblitz.com" target="_blank">StackBlitz</a> — live sandbox closest to a real interview coding environment</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label"><span class="days">Days 10–11</span> Communication</div>
+    <h2>Time &amp; space complexity drilling</h2>
+    <div class="why">Explicitly its own bullet in the TPS guide — they'll expect you to state Big-O out loud, not just write working code.</div>
+
+    <div class="card">
+      <div class="day-tag">Day 10 — Narrate Days 1–6 Solutions</div>
+      <p>Go back through your DSA solutions and say the complexity out loud for each, including tradeoffs ("O(n) time, O(n) space with a hashmap, versus O(n²) brute force with no extra space").</p>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 11 — Narrate Days 7–9 Solutions</div>
+      <p>Same exercise for the UI builds — state the complexity of your filtering logic, debounce, and recursive tree rendering.</p>
+    </div>
+
+    <div class="resources">
+      <div class="res-label">Resources</div>
+      <ul class="res-list">
+        <li><a href="https://www.bigocheatsheet.com" target="_blank">Big-O Cheat Sheet</a> — quick reference while narrating</li>
+        <li>No new problems here — the resource is repetition, out loud, on what you've already built</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label"><span class="days">Days 12–13</span> Simulation</div>
+    <h2>Timed mocks</h2>
+    <div class="why">Closest rehearsal to the actual call: one DSA problem and one UI build per day, under time pressure, narrating the whole way through.</div>
+
+    <div class="card">
+      <div class="day-tag">Day 12 — Mock 1</div>
+      <p>One DSA problem (30–40 min) + one UI build (30–40 min), picked cold, no looking up syntax mid-problem.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a></li>
+        <li><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank">73. Set Matrix Zeroes</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="day-tag">Day 13 — Mock 2</div>
+      <p>Repeat with fresh problems. If a recruiter has shared their coding environment (CoderPad, CodeSandbox, shared doc), mock inside that same tool.</p>
+      <ul class="problem-list">
+        <li><a href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank">211. Design Add and Search Words Data Structure</a></li>
+        <li><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">295. Find Median from Data Stream</a> <span class="stretch">(harder, only if Days 1–11 felt comfortable)</span></li>
+      </ul>
+    </div>
+
+    <div class="resources">
+      <div class="res-label">Resources</div>
+      <ul class="res-list">
+        <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — pick random Easy/Medium problems untagged, to simulate not knowing what's coming</li>
+        <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — pull a UI question you haven't seen yet</li>
+        <li>Whatever environment the recruiter confirms they'll use for the actual round</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label"><span class="days">Day 14</span> Buffer</div>
+    <h2>Light review &amp; rest</h2>
+    <div class="why">Revisit anything that felt shaky during the mocks. If the call is scheduled close to this window, treat this as a rest day, not a cram day.</div>
+  </div>
+
+  <div class="ask-box">
+    <div class="phase-label">Before the call</div>
+    <h2>Confirm with the recruiter</h2>
+    <p>Ask directly: which round tests UI-building vs. DSA-in-JS (or both, per the guide), what coding environment they use (CoderPad, CodeSandbox, shared doc), and whether vanilla JS is genuinely fine or if they lean toward seeing a framework.</p>
+  </div>
+
+  <footer>
+    Prepared for Sophia · Waymo, Software Engineer, Fleet Monitoring
+  </footer>
+
+</div>
+</body>
+</html>
