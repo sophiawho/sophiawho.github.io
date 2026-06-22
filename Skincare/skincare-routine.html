@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sophia's Skincare Routine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f9f6f2;
+    color: #2a2118;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 32px auto;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+
+  .header {
+    background: #2a2118;
+    color: #f9f6f2;
+    padding: 20px 28px 16px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 2px;
+  }
+
+  .header p {
+    font-size: 11px;
+    opacity: 0.6;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .body {
+    padding: 20px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .section-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a0896e;
+    margin-bottom: 12px;
+  }
+
+  /* Morning steps */
+  .morning-steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .step {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: #faf8f5;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    background: #2a2118;
+    color: #f9f6f2;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  .step-content .product {
+    font-weight: 500;
+    font-size: 12px;
+    color: #2a2118;
+  }
+
+  .step-content .note {
+    font-size: 10.5px;
+    color: #7a6a58;
+    margin-top: 2px;
+  }
+
+  /* Night cards */
+  .night-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .night-card {
+    border: 1px solid #e8e0d6;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .night-card-header {
+    padding: 8px 12px;
+    background: #f4efe9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .night-type {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #2a2118;
+  }
+
+  .days {
+    font-size: 10px;
+    color: #a0896e;
+    font-weight: 500;
+  }
+
+  .night-card-body {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .night-step {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .night-num {
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+    border: 1.5px solid #c9b89a;
+    border-radius: 50%;
+    font-size: 8px;
+    font-weight: 600;
+    color: #a0896e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  .night-step .product {
+    font-size: 11px;
+    font-weight: 500;
+    color: #2a2118;
+    line-height: 1.35;
+  }
+
+  .night-step .note {
+    font-size: 10px;
+    color: #7a6a58;
+    margin-top: 1px;
+  }
+
+  /* ─── Print styles ─── */
+  @media print {
+    @page {
+      size: letter portrait;
+      margin: 0.5in;
+    }
+
+    body {
+      background: #fff;
+      font-size: 11px;
+    }
+
+    .page {
+      max-width: 100%;
+      margin: 0;
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    .header {
+      padding: 14px 20px 12px;
+    }
+
+    .body {
+      padding: 14px 20px 18px;
+      gap: 14px;
+    }
+
+    .night-card {
+      break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>Sophia's Skincare Routine</h1>
+    <p>Combination skin · Sensitive · Early sun damage</p>
+  </div>
+
+  <div class="body">
+
+    <!-- MORNING -->
+    <div>
+      <div class="section-title">Morning — Every day</div>
+      <div class="morning-steps">
+
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="product">Belif Aqua Bomb Jelly Cleanser</div>
+            <div class="note">Gentle cleanse, removes overnight oil</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="product">Timeless Vitamin C Serum</div>
+            <div class="note">Apply to dry skin, wait 1 min. Fades dark spots. Store away from light.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="product">Belif Moisturizing Bomb</div>
+            <div class="note">Locks in hydration</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="product">SPF 30–50 Broad Spectrum</div>
+            <div class="note">Essential with retinoid and BHA use</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- NIGHT -->
+    <div>
+      <div class="section-title">Night — Rotate 3 types, never combine actives</div>
+      <div class="night-grid">
+
+        <!-- BHA -->
+        <div class="night-card">
+          <div class="night-card-header">
+            <span class="night-type">BHA</span>
+            <span class="days">Mon · Wed · Fri</span>
+          </div>
+          <div class="night-card-body">
+            <div class="night-step">
+              <div class="night-num">1</div>
+              <div>
+                <div class="product">Anua Oil Cleanser</div>
+                <div class="note">then Belif Jelly Cleanser</div>
+              </div>
+            </div>
+            <div class="night-step">
+              <div class="night-num">2</div>
+              <div>
+                <div class="product">Paula's Choice 2% BHA</div>
+                <div class="note">Dissolves pore buildup, reduces texture</div>
+              </div>
+            </div>
+            <div class="night-step">
+              <div class="night-num">3</div>
+              <div>
+                <div class="product">Belif Moisturizing Bomb</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Retinoid -->
+        <div class="night-card">
+          <div class="night-card-header">
+            <span class="night-type">Retinoid</span>
+            <span class="days">Tue · Thu · Sat</span>
+          </div>
+          <div class="night-card-body">
+            <div class="night-step">
+              <div class="night-num">1</div>
+              <div>
+                <div class="product">Double cleanse</div>
+              </div>
+            </div>
+            <div class="night-step">
+              <div class="night-num">2</div>
+              <div>
+                <div class="product">Wait 20–30 min</div>
+                <div class="note">Skin must be fully dry</div>
+              </div>
+            </div>
+            <div class="night-step">
+              <div class="night-num">3</div>
+              <div>
+                <div class="product">The Ordinary Granactive Retinoid 2%</div>
+                <div class="note">Start 2x/wk, increase as tolerated</div>
+              </div>
+            </div>
+            <div class="night-step">
+              <div class="night-num">4</div>
+              <div>
+                <div class="product">Belif Moisturizing Bomb</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recovery -->
+        <div class="night-card">
+          <div class="night-card-header">
+            <span class="night-type">Recovery</span>
+            <span class="days">Sun</span>
+          </div>
+          <div class="night-card-body">
+            <div class="night-step">
+              <div class="night-num">1</div>
+              <div>
+                <div class="product">Double cleanse</div>
+              </div>
+            </div>
+            <div class="night-step">
+              <div class="night-num">2</div>
+              <div>
+                <div class="product">Belif Moisturizing Bomb only</div>
+                <div class="note">No actives — let your barrier recover</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
