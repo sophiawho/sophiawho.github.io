@@ -27,12 +27,69 @@
     line-height: 1.5;
   }
 
-  .wrap {
-    max-width: 880px;
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    align-items: flex-start;
+    max-width: 1120px;
     margin: 0 auto;
     padding: 56px 28px 100px;
+    gap: 36px;
   }
 
+  .main { flex: 1; min-width: 0; max-width: 860px; }
+
+  /* ── TOC Sidebar ── */
+  .toc {
+    width: 180px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 28px;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+
+  .toc-label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0 8px;
+    margin-bottom: 8px;
+  }
+
+  .toc-divider {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 8px 0;
+  }
+
+  .toc a {
+    display: block;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    text-decoration: none;
+    padding: 3px 8px;
+    border-radius: 5px;
+    line-height: 1.45;
+    transition: background 0.1s, color 0.1s;
+  }
+  .toc a:hover { background: #ede9e2; }
+  .toc a.active { background: var(--accent-soft); color: var(--accent) !important; font-weight: 600; }
+
+  .toc-phase { font-size: 12.5px; font-weight: 600; color: #222; }
+  .toc-sub   { font-size: 12px; color: #777; padding-left: 20px !important; }
+  .toc-ref   { font-size: 12.5px; color: #444; }
+
+  @media (max-width: 800px) {
+    .toc { display: none; }
+    .layout { padding: 32px 18px 64px; }
+  }
+
+  /* ── Header ── */
   header {
     margin-bottom: 40px;
     border-bottom: 2px solid var(--ink);
@@ -74,9 +131,8 @@
   }
   .scope strong { color: var(--accent); }
 
-  .phase {
-    margin-top: 44px;
-  }
+  /* ── Phase blocks ── */
+  .phase { margin-top: 44px; }
 
   .phase-label {
     font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -89,22 +145,10 @@
     gap: 10px;
     margin-bottom: 14px;
   }
-  .phase-label .days {
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .phase-label::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--line);
-  }
+  .phase-label .days { color: var(--accent); font-weight: 700; }
+  .phase-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
-  .phase h2 {
-    font-size: 21px;
-    margin: 0 0 4px;
-    font-weight: 700;
-  }
+  .phase h2 { font-size: 21px; margin: 0 0 4px; font-weight: 700; }
 
   .phase .why {
     font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -114,6 +158,7 @@
     max-width: 640px;
   }
 
+  /* ── Cards ── */
   .card {
     background: var(--card);
     border: 1px solid var(--line);
@@ -132,10 +177,7 @@
     margin-bottom: 6px;
   }
 
-  .card p {
-    margin: 0;
-    font-size: 15.5px;
-  }
+  .card p { margin: 0; font-size: 15.5px; }
 
   .problem-list {
     list-style: none;
@@ -169,12 +211,9 @@
   }
   .problem-list a:hover { border-bottom-color: var(--accent); color: var(--accent); }
 
-  .stretch {
-    color: var(--ink-soft);
-    font-weight: 400;
-    font-style: italic;
-  }
+  .stretch { color: var(--ink-soft); font-weight: 400; font-style: italic; }
 
+  /* ── Resources ── */
   .resources {
     margin-top: 14px;
     padding-top: 14px;
@@ -191,13 +230,7 @@
     margin-bottom: 8px;
   }
 
-  .res-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-  }
+  .res-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 
   .res-list li {
     font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -207,12 +240,7 @@
     position: relative;
   }
 
-  .res-list li::before {
-    content: "—";
-    position: absolute;
-    left: 0;
-    color: var(--amber);
-  }
+  .res-list li::before { content: "—"; position: absolute; left: 0; color: var(--amber); }
 
   .res-list a {
     color: var(--accent);
@@ -222,13 +250,7 @@
   }
   .res-list a:hover { border-bottom-color: var(--accent); }
 
-  .checklist-note {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin-top: 4px;
-  }
-
+  /* ── Ask box ── */
   .ask-box {
     margin-top: 48px;
     background: var(--amber-soft);
@@ -241,6 +263,131 @@
   .ask-box h2 { font-size: 18px; margin: 0 0 8px; }
   .ask-box p { font-size: 14.5px; margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; color: var(--ink); }
 
+  /* ── Cheatsheet & Drills sections ── */
+  .ref-section {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 2px solid var(--line);
+  }
+
+  .ref-section h2 { font-size: 21px; margin: 0 0 4px; font-weight: 700; }
+
+  .ref-section .why {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    max-width: 640px;
+  }
+
+  .code-block {
+    background: #f3f5f0;
+    border: 1px solid #d8ddd4;
+    border-radius: 7px;
+    padding: 16px 18px;
+    margin: 8px 0 14px;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    margin: 0;
+    font-size: 12.5px;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    line-height: 1.75;
+    color: var(--ink);
+    white-space: pre;
+  }
+
+  .code-comment { color: #7a8c7a; }
+  .code-gotcha  { color: #a03030; }
+  .code-ok      { color: #2d6e3e; }
+
+  .sub-label {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 24px 0 6px;
+  }
+
+  .drill-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+  }
+
+  .drill-problems {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 10px 0 0;
+    border-top: 1px dashed var(--line);
+    display: grid;
+    gap: 5px;
+  }
+
+  .drill-problems li {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .drill-problems li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); font-size: 11px; }
+
+  .drill-problems a {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid var(--line);
+  }
+  .drill-problems a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+
+  .diff-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 5px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    vertical-align: middle;
+  }
+  .diff-easy   { background: #e6f4ec; color: #1a7a40; }
+  .diff-medium { background: #fff4e0; color: #a06000; }
+  .diff-hard   { background: #fdecea; color: #c0392b; }
+
+  .signal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .signal-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .signal-table tr:last-child td { border-bottom: none; }
+  .signal-table td:first-child { color: var(--ink-soft); width: 52%; }
+  .signal-table td:last-child  { font-family: "SF Mono","Fira Code",monospace; font-size: 12px; color: var(--accent); }
+
+  .gotcha-box {
+    background: #fdf3f0;
+    border: 1px solid #f0cfc0;
+    border-left: 3px solid var(--amber);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    margin: 8px 0 14px;
+  }
+
+  /* ── Footer ── */
   footer {
     margin-top: 56px;
     padding-top: 18px;
@@ -250,261 +397,826 @@
     color: var(--ink-soft);
   }
 
+  /* ── Responsive ── */
   @media (max-width: 600px) {
-    .wrap {
-      padding: 32px 18px 64px;
-    }
-
-    h1 {
-      font-size: 26px;
-    }
-
-    .subhead {
-      font-size: 14px;
-    }
-
-    .scope {
-      font-size: 13px;
-      padding: 12px 14px;
-    }
-
-    .phase h2 {
-      font-size: 19px;
-    }
-
-    .card {
-      padding: 16px 16px;
-    }
-
-    .card p {
-      font-size: 15px;
-    }
-
-    .phase-label {
-      font-size: 10px;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .phase-label::after {
-      flex-basis: 100%;
-      height: 0;
-    }
-
-    .ask-box {
-      padding: 16px 18px;
-    }
+    h1 { font-size: 26px; }
+    .subhead { font-size: 14px; }
+    .scope { font-size: 13px; padding: 12px 14px; }
+    .phase h2 { font-size: 19px; }
+    .card { padding: 16px 16px; }
+    .card p { font-size: 15px; }
+    .phase-label { font-size: 10px; flex-wrap: wrap; gap: 6px; }
+    .phase-label::after { flex-basis: 100%; height: 0; }
+    .ask-box { padding: 16px 18px; }
   }
 
   @media print {
     body { background: white; }
-    .card { break-inside: avoid; }
+    .card, .drill-card { break-inside: avoid; }
+    .toc { display: none; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="layout">
 
-  <header>
-    <div class="eyebrow">Waymo · Software Engineer, Fleet Monitoring</div>
-    <h1>Technical Phone Screen — 14-Day Plan</h1>
-    <div class="subhead">Two hours a day, building from Python fluency toward live JavaScript problem-solving across UI implementation and core data structures.</div>
-    <div class="scope">
-      <strong>Per the official TPS guide:</strong> live coding in JavaScript/TypeScript, covering UI implementation (any framework or vanilla JS/TS), arrays/strings/objects/sets/maps, simple graph &amp; tree traversal (BFS/DFS), recursion, sorting/filtering logic, and time/space complexity discussion.
-    </div>
-  </header>
+  <!-- ── TOC Sidebar ── -->
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
 
-  <div class="phase">
-    <div class="phase-label"><span class="days">Days 1–3</span> Foundation</div>
-    <h2>JS syntax via porting</h2>
-    <div class="why">Rewrite problems you've already solved in Python so you're learning syntax through familiar logic, not learning both at once.</div>
+    <a class="toc-phase" href="#phase-foundation">Days 1–3</a>
+    <a class="toc-sub" href="#phase-foundation">Foundation</a>
 
-    <div class="card">
-      <div class="day-tag">Day 1 — Arrays &amp; Strings</div>
-      <p>Port 3–4 sliding window / two-pointer problems from Python to JS. Get comfortable with <code>.slice()</code>, <code>.split()</code>, template literals.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a></li>
-        <li><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a></li>
-        <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 2 — Objects, Map, Set</div>
-      <p>Port hashmap-style problems (Two Sum and similar). Practice <code>Map</code>, <code>Set</code>, and plain object lookups as JS equivalents of Python dicts.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a></li>
-        <li><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a></li>
-        <li><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 3 — Sorting &amp; Filtering</div>
-      <p>Practice <code>.sort()</code> with custom comparators, <code>.filter()</code>, <code>.map()</code>, <code>.reduce()</code> chains. Explicitly called out in the TPS guide.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
-        <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a></li>
-      </ul>
-    </div>
+    <a class="toc-phase" href="#phase-traversal">Days 4–6</a>
+    <a class="toc-sub" href="#phase-traversal">Traversal</a>
 
-    <div class="resources">
-      <div class="res-label">Resources</div>
-      <ul class="res-list">
-        <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — switch your default language to JavaScript; re-solve problems you've already cleared in Python</li>
-        <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — JS &amp; browser fundamentals quiz questions for quick syntax checks</li>
-        <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — browser sandbox, zero setup, for testing snippets as you port them</li>
-        <li>MDN Web Docs — <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank">Array methods reference</a> when a method name slips your mind</li>
-      </ul>
-    </div>
-  </div>
+    <a class="toc-phase" href="#phase-ui">Days 7–9</a>
+    <a class="toc-sub" href="#phase-ui">UI Implementation</a>
 
-  <div class="phase">
-    <div class="phase-label"><span class="days">Days 4–6</span> Traversal</div>
-    <h2>Trees, graphs, recursion in JS</h2>
-    <div class="why">The part most different from pure UI work, and explicitly listed in the TPS guide as its own category.</div>
+    <a class="toc-phase" href="#phase-comms">Days 10–11</a>
+    <a class="toc-sub" href="#phase-comms">Communication</a>
 
-    <div class="card">
-      <div class="day-tag">Day 4 — Recursion Basics</div>
-      <p>Factorial, Fibonacci, then simple tree problems. JS recursive syntax has small quirks (no tail-call optimization guarantee) worth a few reps.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a></li>
-        <li><a href="https://leetcode.com/problems/same-tree/" target="_blank">100. Same Tree</a></li>
-        <li><a href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">226. Invert Binary Tree</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 5 — BFS/DFS on Trees</div>
-      <p>Level order traversal, max depth, path sum — port problems you've already solved in Python.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a></li>
-        <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 6 — BFS/DFS on Graphs</div>
-      <p>Represent adjacency lists using <code>Map</code> or nested arrays. Practice queue-as-array (<code>.push()</code>/<code>.shift()</code>) and stack-as-array (<code>.push()</code>/<code>.pop()</code>) patterns.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
-        <li><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a></li>
-        <li><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="stretch">(stretch, if time allows)</span></li>
-      </ul>
-    </div>
+    <a class="toc-phase" href="#phase-mocks">Days 12–13</a>
+    <a class="toc-sub" href="#phase-mocks">Simulation</a>
 
-    <div class="resources">
-      <div class="res-label">Resources</div>
-      <ul class="res-list">
-        <li><a href="https://leetcode.com/tag/tree/" target="_blank">LeetCode — Tree tag</a> and <a href="https://leetcode.com/tag/graph/" target="_blank">Graph tag</a>, filtered to Easy/Medium</li>
-        <li><a href="https://www.greatfrontend.com/questions" target="_blank">GreatFrontEnd — coding questions</a> for JS-flavored DSA practice</li>
-        <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — keep building here so traversal code is testable immediately</li>
-      </ul>
-    </div>
-  </div>
+    <a class="toc-phase" href="#phase-buffer">Day 14</a>
+    <a class="toc-sub" href="#phase-buffer">Buffer</a>
 
-  <div class="phase">
-    <div class="phase-label"><span class="days">Days 7–9</span> UI Implementation</div>
-    <h2>Vanilla JS component builds</h2>
-    <div class="why">Layering in the UI-implementation half of the TPS guide. Vanilla JS/TS is explicitly acceptable — no need to learn Angular for this round.</div>
+    <hr class="toc-divider">
 
-    <div class="card">
-      <div class="day-tag">Day 7 — Filterable List + Debounced Search</div>
-      <p>Build a list with a text input that filters live (case-insensitive substring match), then add a 300ms debounce so filtering only fires after the user pauses typing.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">20. Valid Parentheses</a> <span class="stretch">(stack warmup before the UI build)</span></li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 8 — Expandable Tree View</div>
-      <p>Render a nested object (folder structure) where each node expands/collapses on click. Deliberately combines recursion with UI rendering.</p>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 9 — Counter with Undo</div>
-      <p>Increment/decrement buttons plus an undo button that reverts the last action using a stack-based history array.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/min-stack/" target="_blank">155. Min Stack</a> <span class="stretch">(conceptually close to this build)</span></li>
-        <li><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank">232. Implement Queue using Stacks</a></li>
-      </ul>
+    <a class="toc-ref" href="#confirm">Before the Call</a>
+
+    <hr class="toc-divider">
+
+    <a class="toc-ref" href="#js-cheatsheet">JS Cheatsheet</a>
+    <a class="toc-sub" href="#js-data-structures">Data Structures</a>
+    <a class="toc-sub" href="#js-iteration">Iteration</a>
+    <a class="toc-sub" href="#js-functional">Functional Methods</a>
+    <a class="toc-sub" href="#js-algo-templates">Algorithm Templates</a>
+    <a class="toc-sub" href="#js-gotchas">JS Gotchas</a>
+
+    <hr class="toc-divider">
+
+    <a class="toc-ref" href="#js-drills">JS Drills</a>
+    <a class="toc-sub" href="#drill-arrays">Arrays</a>
+    <a class="toc-sub" href="#drill-map-set">Map &amp; Set</a>
+    <a class="toc-sub" href="#drill-sort">Sorting</a>
+    <a class="toc-sub" href="#drill-bfs-dfs">BFS / DFS</a>
+    <a class="toc-sub" href="#drill-recursion">Recursion</a>
+    <a class="toc-sub" href="#drill-ui">UI Patterns</a>
+  </nav>
+
+  <!-- ── Main content ── -->
+  <div class="main">
+
+    <header>
+      <div class="eyebrow">Waymo · Software Engineer, Fleet Monitoring</div>
+      <h1>Technical Phone Screen — 14-Day Plan</h1>
+      <div class="subhead">Two hours a day, building from Python fluency toward live JavaScript problem-solving across UI implementation and core data structures.</div>
+      <div class="scope">
+        <strong>Per the official TPS guide:</strong> live coding in JavaScript/TypeScript, covering UI implementation (any framework or vanilla JS/TS), arrays/strings/objects/sets/maps, simple graph &amp; tree traversal (BFS/DFS), recursion, sorting/filtering logic, and time/space complexity discussion.
+      </div>
+    </header>
+
+    <!-- ── PHASE 1 ── -->
+    <div class="phase" id="phase-foundation">
+      <div class="phase-label"><span class="days">Days 1–3</span> Foundation</div>
+      <h2>JS syntax via porting</h2>
+      <div class="why">Rewrite problems you've already solved in Python so you're learning syntax through familiar logic, not learning both at once.</div>
+
+      <div class="card">
+        <div class="day-tag">Day 1 — Arrays &amp; Strings</div>
+        <p>Port 3–4 sliding window / two-pointer problems from Python to JS. Get comfortable with <code>.slice()</code>, <code>.split()</code>, template literals.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a></li>
+          <li><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a></li>
+          <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 2 — Objects, Map, Set</div>
+        <p>Port hashmap-style problems (Two Sum and similar). Practice <code>Map</code>, <code>Set</code>, and plain object lookups as JS equivalents of Python dicts.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a></li>
+          <li><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a></li>
+          <li><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 3 — Sorting &amp; Filtering</div>
+        <p>Practice <code>.sort()</code> with custom comparators, <code>.filter()</code>, <code>.map()</code>, <code>.reduce()</code> chains. Explicitly called out in the TPS guide.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
+          <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a></li>
+        </ul>
+      </div>
+
+      <div class="resources">
+        <div class="res-label">Resources</div>
+        <ul class="res-list">
+          <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — switch your default language to JavaScript; re-solve problems you've already cleared in Python</li>
+          <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — JS &amp; browser fundamentals quiz questions for quick syntax checks</li>
+          <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — browser sandbox, zero setup, for testing snippets as you port them</li>
+          <li>MDN Web Docs — <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank">Array methods reference</a> when a method name slips your mind</li>
+        </ul>
+      </div>
     </div>
 
-    <div class="resources">
-      <div class="res-label">Resources</div>
-      <ul class="res-list">
-        <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — built specifically for "build a UI component" interview questions</li>
-        <li><a href="https://javascript30.com" target="_blank">JavaScript30</a> (free, Wes Bos) — 30 vanilla JS UI builds, no framework</li>
-        <li><a href="https://codesandbox.io" target="_blank">CodeSandbox</a> or <a href="https://stackblitz.com" target="_blank">StackBlitz</a> — live sandbox closest to a real interview coding environment</li>
-      </ul>
-    </div>
-  </div>
+    <!-- ── PHASE 2 ── -->
+    <div class="phase" id="phase-traversal">
+      <div class="phase-label"><span class="days">Days 4–6</span> Traversal</div>
+      <h2>Trees, graphs, recursion in JS</h2>
+      <div class="why">The part most different from pure UI work, and explicitly listed in the TPS guide as its own category.</div>
 
-  <div class="phase">
-    <div class="phase-label"><span class="days">Days 10–11</span> Communication</div>
-    <h2>Time &amp; space complexity drilling</h2>
-    <div class="why">Explicitly its own bullet in the TPS guide — they'll expect you to state Big-O out loud, not just write working code.</div>
+      <div class="card">
+        <div class="day-tag">Day 4 — Recursion Basics</div>
+        <p>Factorial, Fibonacci, then simple tree problems. JS recursive syntax has small quirks (no tail-call optimization guarantee) worth a few reps.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a></li>
+          <li><a href="https://leetcode.com/problems/same-tree/" target="_blank">100. Same Tree</a></li>
+          <li><a href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">226. Invert Binary Tree</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 5 — BFS/DFS on Trees</div>
+        <p>Level order traversal, max depth, path sum — port problems you've already solved in Python.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a></li>
+          <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 6 — BFS/DFS on Graphs</div>
+        <p>Represent adjacency lists using <code>Map</code> or nested arrays. Practice queue-as-array (<code>.push()</code>/<code>.shift()</code>) and stack-as-array (<code>.push()</code>/<code>.pop()</code>) patterns.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
+          <li><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a></li>
+          <li><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="stretch">(stretch, if time allows)</span></li>
+        </ul>
+      </div>
 
-    <div class="card">
-      <div class="day-tag">Day 10 — Narrate Days 1–6 Solutions</div>
-      <p>Go back through your DSA solutions and say the complexity out loud for each, including tradeoffs ("O(n) time, O(n) space with a hashmap, versus O(n²) brute force with no extra space").</p>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 11 — Narrate Days 7–9 Solutions</div>
-      <p>Same exercise for the UI builds — state the complexity of your filtering logic, debounce, and recursive tree rendering.</p>
-    </div>
-
-    <div class="resources">
-      <div class="res-label">Resources</div>
-      <ul class="res-list">
-        <li><a href="https://www.bigocheatsheet.com" target="_blank">Big-O Cheat Sheet</a> — quick reference while narrating</li>
-        <li>No new problems here — the resource is repetition, out loud, on what you've already built</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="phase">
-    <div class="phase-label"><span class="days">Days 12–13</span> Simulation</div>
-    <h2>Timed mocks</h2>
-    <div class="why">Closest rehearsal to the actual call: one DSA problem and one UI build per day, under time pressure, narrating the whole way through.</div>
-
-    <div class="card">
-      <div class="day-tag">Day 12 — Mock 1</div>
-      <p>One DSA problem (30–40 min) + one UI build (30–40 min), picked cold, no looking up syntax mid-problem.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a></li>
-        <li><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank">73. Set Matrix Zeroes</a></li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="day-tag">Day 13 — Mock 2</div>
-      <p>Repeat with fresh problems. If a recruiter has shared their coding environment (CoderPad, CodeSandbox, shared doc), mock inside that same tool.</p>
-      <ul class="problem-list">
-        <li><a href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank">211. Design Add and Search Words Data Structure</a></li>
-        <li><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">295. Find Median from Data Stream</a> <span class="stretch">(harder, only if Days 1–11 felt comfortable)</span></li>
-      </ul>
+      <div class="resources">
+        <div class="res-label">Resources</div>
+        <ul class="res-list">
+          <li><a href="https://leetcode.com/tag/tree/" target="_blank">LeetCode — Tree tag</a> and <a href="https://leetcode.com/tag/graph/" target="_blank">Graph tag</a>, filtered to Easy/Medium</li>
+          <li><a href="https://www.greatfrontend.com/questions" target="_blank">GreatFrontEnd — coding questions</a> for JS-flavored DSA practice</li>
+          <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — keep building here so traversal code is testable immediately</li>
+        </ul>
+      </div>
     </div>
 
-    <div class="resources">
-      <div class="res-label">Resources</div>
-      <ul class="res-list">
-        <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — pick random Easy/Medium problems untagged, to simulate not knowing what's coming</li>
-        <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — pull a UI question you haven't seen yet</li>
-        <li>Whatever environment the recruiter confirms they'll use for the actual round</li>
-      </ul>
+    <!-- ── PHASE 3 ── -->
+    <div class="phase" id="phase-ui">
+      <div class="phase-label"><span class="days">Days 7–9</span> UI Implementation</div>
+      <h2>Vanilla JS component builds</h2>
+      <div class="why">Layering in the UI-implementation half of the TPS guide. Vanilla JS/TS is explicitly acceptable — no need to learn Angular for this round.</div>
+
+      <div class="card">
+        <div class="day-tag">Day 7 — Filterable List + Debounced Search</div>
+        <p>Build a list with a text input that filters live (case-insensitive substring match), then add a 300ms debounce so filtering only fires after the user pauses typing.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">20. Valid Parentheses</a> <span class="stretch">(stack warmup before the UI build)</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 8 — Expandable Tree View</div>
+        <p>Render a nested object (folder structure) where each node expands/collapses on click. Deliberately combines recursion with UI rendering.</p>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 9 — Counter with Undo</div>
+        <p>Increment/decrement buttons plus an undo button that reverts the last action using a stack-based history array.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/min-stack/" target="_blank">155. Min Stack</a> <span class="stretch">(conceptually close to this build)</span></li>
+          <li><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank">232. Implement Queue using Stacks</a></li>
+        </ul>
+      </div>
+
+      <div class="resources">
+        <div class="res-label">Resources</div>
+        <ul class="res-list">
+          <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — built specifically for "build a UI component" interview questions</li>
+          <li><a href="https://javascript30.com" target="_blank">JavaScript30</a> (free, Wes Bos) — 30 vanilla JS UI builds, no framework</li>
+          <li><a href="https://codesandbox.io" target="_blank">CodeSandbox</a> or <a href="https://stackblitz.com" target="_blank">StackBlitz</a> — live sandbox closest to a real interview coding environment</li>
+        </ul>
+      </div>
     </div>
-  </div>
 
-  <div class="phase">
-    <div class="phase-label"><span class="days">Day 14</span> Buffer</div>
-    <h2>Light review &amp; rest</h2>
-    <div class="why">Revisit anything that felt shaky during the mocks. If the call is scheduled close to this window, treat this as a rest day, not a cram day.</div>
-  </div>
+    <!-- ── PHASE 4 ── -->
+    <div class="phase" id="phase-comms">
+      <div class="phase-label"><span class="days">Days 10–11</span> Communication</div>
+      <h2>Time &amp; space complexity drilling</h2>
+      <div class="why">Explicitly its own bullet in the TPS guide — they'll expect you to state Big-O out loud, not just write working code.</div>
 
-  <div class="ask-box">
-    <div class="phase-label">Before the call</div>
-    <h2>Confirm with the recruiter</h2>
-    <p>Ask directly: which round tests UI-building vs. DSA-in-JS (or both, per the guide), what coding environment they use (CoderPad, CodeSandbox, shared doc), and whether vanilla JS is genuinely fine or if they lean toward seeing a framework.</p>
-  </div>
+      <div class="card">
+        <div class="day-tag">Day 10 — Narrate Days 1–6 Solutions</div>
+        <p>Go back through your DSA solutions and say the complexity out loud for each, including tradeoffs ("O(n) time, O(n) space with a hashmap, versus O(n²) brute force with no extra space").</p>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 11 — Narrate Days 7–9 Solutions</div>
+        <p>Same exercise for the UI builds — state the complexity of your filtering logic, debounce, and recursive tree rendering.</p>
+      </div>
 
-  <footer>
-    Prepared for Sophia · Waymo, Software Engineer, Fleet Monitoring
-  </footer>
+      <div class="resources">
+        <div class="res-label">Resources</div>
+        <ul class="res-list">
+          <li><a href="https://www.bigocheatsheet.com" target="_blank">Big-O Cheat Sheet</a> — quick reference while narrating</li>
+          <li>No new problems here — the resource is repetition, out loud, on what you've already built</li>
+        </ul>
+      </div>
+    </div>
 
-</div>
+    <!-- ── PHASE 5 ── -->
+    <div class="phase" id="phase-mocks">
+      <div class="phase-label"><span class="days">Days 12–13</span> Simulation</div>
+      <h2>Timed mocks</h2>
+      <div class="why">Closest rehearsal to the actual call: one DSA problem and one UI build per day, under time pressure, narrating the whole way through.</div>
+
+      <div class="card">
+        <div class="day-tag">Day 12 — Mock 1</div>
+        <p>One DSA problem (30–40 min) + one UI build (30–40 min), picked cold, no looking up syntax mid-problem.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a></li>
+          <li><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank">73. Set Matrix Zeroes</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="day-tag">Day 13 — Mock 2</div>
+        <p>Repeat with fresh problems. If a recruiter has shared their coding environment (CoderPad, CodeSandbox, shared doc), mock inside that same tool.</p>
+        <ul class="problem-list">
+          <li><a href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank">211. Design Add and Search Words Data Structure</a></li>
+          <li><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">295. Find Median from Data Stream</a> <span class="stretch">(harder, only if Days 1–11 felt comfortable)</span></li>
+        </ul>
+      </div>
+
+      <div class="resources">
+        <div class="res-label">Resources</div>
+        <ul class="res-list">
+          <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — pick random Easy/Medium problems untagged, to simulate not knowing what's coming</li>
+          <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — pull a UI question you haven't seen yet</li>
+          <li>Whatever environment the recruiter confirms they'll use for the actual round</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── PHASE 6 ── -->
+    <div class="phase" id="phase-buffer">
+      <div class="phase-label"><span class="days">Day 14</span> Buffer</div>
+      <h2>Light review &amp; rest</h2>
+      <div class="why">Revisit anything that felt shaky during the mocks. If the call is scheduled close to this window, treat this as a rest day, not a cram day.</div>
+    </div>
+
+    <!-- ── Before the call ── -->
+    <div class="ask-box" id="confirm">
+      <div class="phase-label">Before the call</div>
+      <h2>Confirm with the recruiter</h2>
+      <p>Ask directly: which round tests UI-building vs. DSA-in-JS (or both, per the guide), what coding environment they use (CoderPad, CodeSandbox, shared doc), and whether vanilla JS is genuinely fine or if they lean toward seeing a framework.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- ── JAVASCRIPT CHEATSHEET ── -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="ref-section" id="js-cheatsheet">
+      <div class="phase-label"><span class="days">Reference</span> Cheatsheet</div>
+      <h2>JavaScript Patterns Cheatsheet</h2>
+      <div class="why">Key syntax and patterns for every topic in the TPS guide — memorize these so you never pause mid-interview to look up a method name.</div>
+
+      <!-- ── Core Data Structures ── -->
+      <div class="sub-label" id="js-data-structures">Core Data Structures</div>
+      <div class="code-block"><pre><span class="code-comment">// Arrays</span>
+const arr = [1, 2, 3];
+arr.push(4);              <span class="code-comment">// add to end — O(1)</span>
+arr.pop();                <span class="code-comment">// remove from end — O(1)</span>
+arr.shift();              <span class="code-comment">// remove from front — O(n) ⚠️ not O(1) like Python deque</span>
+arr.unshift(0);           <span class="code-comment">// add to front — O(n)</span>
+arr.slice(1, 3);          <span class="code-comment">// [arr[1], arr[2]] — non-mutating, end-exclusive</span>
+arr.splice(1, 2);         <span class="code-comment">// removes 2 elements starting at index 1 — mutates!</span>
+arr.length;
+arr[arr.length - 1];      <span class="code-comment">// last element (no arr[-1] in JS)</span>
+[...arr].reverse();       <span class="code-comment">// reversed copy; arr.reverse() mutates in-place</span>
+
+<span class="code-comment">// Sets — O(1) average membership</span>
+const s = new Set([1, 2, 3]);
+s.add(4);
+s.delete(2);
+s.has(3);                 <span class="code-comment">// true</span>
+s.size;                   <span class="code-comment">// 3 (not .length)</span>
+[...s];                   <span class="code-comment">// convert to array</span>
+const unique = [...new Set(arr)];
+
+<span class="code-comment">// Map — ordered, any key type, better than plain objects for algo work</span>
+const mp = new Map();
+mp.set('a', 1);
+mp.get('a');              <span class="code-comment">// 1</span>
+mp.has('b');              <span class="code-comment">// false</span>
+mp.delete('a');
+mp.size;
+mp.get('missing');        <span class="code-comment">// undefined — no KeyError</span>
+<span class="code-comment">// safe default: mp.get(key) ?? 0</span>
+
+<span class="code-comment">// Plain objects — fine for string/int keys in interviews</span>
+const obj = { a: 1, b: 2 };
+obj['c'] = 3;
+delete obj['a'];
+'b' in obj;               <span class="code-comment">// true</span>
+Object.keys(obj);         <span class="code-comment">// ['b', 'c']</span>
+Object.values(obj);       <span class="code-comment">// [2, 3]</span>
+Object.entries(obj);      <span class="code-comment">// [['b',2], ['c',3]]</span></pre></div>
+
+      <!-- ── Iteration Patterns ── -->
+      <div class="sub-label" id="js-iteration">Iteration Patterns</div>
+      <div class="code-block"><pre><span class="code-comment">// for...of — iterates VALUES (use for arrays, sets, maps)</span>
+for (const x of arr) { ... }
+for (const x of s) { ... }       <span class="code-comment">// Set values</span>
+for (const [k, v] of mp) { ... } <span class="code-comment">// Map entries</span>
+
+<span class="code-comment">// for...in — iterates KEYS (avoid for arrays — iterates indices as strings)</span>
+for (const key in obj) { ... }   <span class="code-comment">// use only for plain objects</span>
+
+<span class="code-comment">// Index + value (equiv of enumerate)</span>
+for (let i = 0; i &lt; arr.length; i++) { ... }
+arr.forEach((val, i) => { ... });
+
+<span class="code-comment">// Object iteration</span>
+for (const [k, v] of Object.entries(obj)) { ... }
+
+<span class="code-comment">// Map iteration</span>
+for (const [k, v] of mp.entries()) { ... }
+mp.forEach((val, key) => { ... });</pre></div>
+
+      <!-- ── Functional Methods ── -->
+      <div class="sub-label" id="js-functional">Functional Methods (map / filter / reduce / sort)</div>
+      <div class="code-block"><pre><span class="code-comment">// map — transform each element, returns new array</span>
+const doubled = arr.map(x => x * 2);
+const lengths = words.map(w => w.length);
+
+<span class="code-comment">// filter — keep elements matching predicate</span>
+const evens = arr.filter(x => x % 2 === 0);
+
+<span class="code-comment">// reduce — fold to a single value</span>
+const sum = arr.reduce((acc, x) => acc + x, 0);
+const freq = arr.reduce((acc, x) => {
+  acc[x] = (acc[x] ?? 0) + 1;
+  return acc;
+}, {});
+
+<span class="code-comment">// find / findIndex</span>
+arr.find(x => x > 3);       <span class="code-comment">// first match, or undefined</span>
+arr.findIndex(x => x > 3);  <span class="code-comment">// first matching index, or -1</span>
+arr.includes(3);             <span class="code-comment">// true/false membership</span>
+arr.indexOf(3);              <span class="code-comment">// first index, or -1</span>
+
+<span class="code-comment">// sort — ⚠️ default sorts LEXICOGRAPHICALLY even for numbers!</span>
+[10, 9, 2].sort();                    <span class="code-gotcha">// [10, 2, 9] — WRONG</span>
+[10, 9, 2].sort((a, b) => a - b);    <span class="code-ok">// [2, 9, 10] — ascending</span>
+[10, 9, 2].sort((a, b) => b - a);    <span class="code-ok">// [10, 9, 2] — descending</span>
+words.sort((a, b) => a.localeCompare(b)); <span class="code-comment">// alphabetical strings</span>
+pairs.sort((a, b) => a[1] - b[1]);   <span class="code-comment">// sort by second element</span>
+<span class="code-comment">// .sort() mutates in-place AND returns the array</span>
+const sorted = [...arr].sort((a, b) => a - b); <span class="code-comment">// non-mutating copy</span>
+
+<span class="code-comment">// flat / flatMap</span>
+[[1,2],[3,4]].flat();          <span class="code-comment">// [1,2,3,4]</span>
+arr.flatMap(x => [x, x * 2]); <span class="code-comment">// map then flatten one level</span></pre></div>
+
+      <!-- ── Algorithm Templates ── -->
+      <div class="sub-label" id="js-algo-templates">Algorithm Templates</div>
+      <div class="code-block"><pre><span class="code-comment">// Two pointers</span>
+let l = 0, r = arr.length - 1;
+while (l &lt; r) { ... l++; r--; }
+
+<span class="code-comment">// Sliding window</span>
+const window = new Map();
+let l = 0;
+for (let r = 0; r &lt; s.length; r++) {
+  window.set(s[r], (window.get(s[r]) ?? 0) + 1);
+  while (isInvalid(window)) {
+    window.set(s[l], window.get(s[l]) - 1);
+    if (window.get(s[l]) === 0) window.delete(s[l]);
+    l++;
+  }
+}
+
+<span class="code-comment">// BFS — graph (array-as-queue; .shift() is O(n) but fine for interviews)</span>
+function bfs(graph, start) {
+  const queue = [start];
+  const visited = new Set([start]);
+  while (queue.length) {
+    const node = queue.shift();
+    for (const nei of (graph.get(node) ?? [])) {
+      if (!visited.has(nei)) {
+        visited.add(nei);
+        queue.push(nei);
+      }
+    }
+  }
+}
+
+<span class="code-comment">// BFS — 2D grid</span>
+function bfsGrid(grid, startR, startC) {
+  const rows = grid.length, cols = grid[0].length;
+  const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+  const inBounds = (r, c) => r >= 0 &amp;&amp; r &lt; rows &amp;&amp; c >= 0 &amp;&amp; c &lt; cols;
+  const queue = [[startR, startC]];
+  const visited = new Set([`${startR},${startC}`]);
+  while (queue.length) {
+    const [r, c] = queue.shift();
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      const key = `${nr},${nc}`;
+      if (inBounds(nr, nc) &amp;&amp; !visited.has(key)) {
+        visited.add(key);
+        queue.push([nr, nc]);
+      }
+    }
+  }
+}
+
+<span class="code-comment">// DFS — iterative</span>
+const stack = [start];
+const visited = new Set([start]);
+while (stack.length) {
+  const node = stack.pop();
+  for (const nei of graph.get(node) ?? []) {
+    if (!visited.has(nei)) {
+      visited.add(nei);
+      stack.push(nei);
+    }
+  }
+}
+
+<span class="code-comment">// DFS — recursive (tree)</span>
+function dfs(node) {
+  if (!node) return 0;
+  const left = dfs(node.left);
+  const right = dfs(node.right);
+  return 1 + Math.max(left, right);
+}
+
+<span class="code-comment">// Binary search</span>
+function binarySearch(arr, target) {
+  let lo = 0, hi = arr.length - 1;
+  while (lo &lt;= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (arr[mid] === target) return mid;
+    else if (arr[mid] &lt; target) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  return -1;
+}</pre></div>
+
+      <!-- ── JS Gotchas ── -->
+      <div class="sub-label" id="js-gotchas">JS Gotchas vs. Python</div>
+
+      <div class="gotcha-box">These are the most common Python-to-JS traps. Know them cold — interviewers notice when you accidentally use <code>==</code> or forget to pass a sort comparator.</div>
+
+      <div class="code-block"><pre><span class="code-comment">// 1. == vs === — ALWAYS use ===</span>
+0 == false   <span class="code-gotcha">// true  — type coercion</span>
+0 === false  <span class="code-ok">// false — strict, no coercion</span>
+'' == false  <span class="code-gotcha">// true</span>
+null == undefined  <span class="code-gotcha">// true</span>
+null === undefined <span class="code-ok">// false</span>
+<span class="code-comment">// Rule: use === everywhere; the only exception is null checks:</span>
+if (x == null) { ... } <span class="code-comment">// catches both null and undefined — intentional shortcut</span>
+
+<span class="code-comment">// 2. Reference equality — objects and arrays compare by REFERENCE</span>
+[1,2,3] === [1,2,3]  <span class="code-gotcha">// false — different objects in memory</span>
+{a:1} === {a:1}      <span class="code-gotcha">// false</span>
+<span class="code-comment">// Deep equality — no built-in; options:</span>
+JSON.stringify(a) === JSON.stringify(b)  <span class="code-comment">// works for simple objects, fragile for undefined/functions</span>
+<span class="code-comment">// In interviews: manually compare fields, or note you'd use _.isEqual(a, b)</span>
+
+<span class="code-comment">// 3. Sort without comparator is LEXICOGRAPHIC — even for numbers</span>
+[10, 9, 2].sort()                 <span class="code-gotcha">// [10, 2, 9] — "10" &lt; "2" alphabetically</span>
+[10, 9, 2].sort((a, b) => a - b) <span class="code-ok">// [2, 9, 10]</span>
+
+<span class="code-comment">// 4. Falsy values — all of these are falsy in JS</span>
+false, 0, -0, 0n, "", '', ``, null, undefined, NaN
+<span class="code-comment">// Note: empty array [] and empty object {} are TRUTHY</span>
+if ([]) console.log('truthy')   <span class="code-ok">// prints — unlike Python where [] is falsy</span>
+
+<span class="code-comment">// 5. NaN is not equal to itself</span>
+NaN === NaN  <span class="code-gotcha">// false</span>
+Number.isNaN(NaN)  <span class="code-ok">// true — use this to check</span>
+
+<span class="code-comment">// 6. null vs undefined</span>
+<span class="code-comment">// null   — intentional absence (you set it)</span>
+<span class="code-comment">// undefined — variable declared but not assigned, or missing property</span>
+typeof null       <span class="code-gotcha">// "object" — famous JS bug</span>
+typeof undefined  <span class="code-ok">// "undefined"</span>
+Array.isArray([]) <span class="code-ok">// true — use this, not typeof (which returns "object" for arrays)</span>
+
+<span class="code-comment">// 7. Type coercion with +</span>
+"5" + 3   <span class="code-gotcha">// "53" — string concatenation wins</span>
+"5" - 3   <span class="code-ok">// 2   — arithmetic (- forces numeric)</span>
++"5"      <span class="code-ok">// 5   — unary + converts to number</span>
+Number("5") <span class="code-ok">// 5</span>
+parseInt("5px") <span class="code-ok">// 5  — stops at non-numeric</span>
+
+<span class="code-comment">// 8. var vs let vs const</span>
+<span class="code-comment">// var   — function-scoped, hoisted, can redeclare — avoid</span>
+<span class="code-comment">// let   — block-scoped, can reassign</span>
+<span class="code-comment">// const — block-scoped, cannot reassign binding (but object contents are mutable)</span>
+const arr = [1, 2, 3];
+arr.push(4);    <span class="code-ok">// ok — mutating contents</span>
+arr = [5];      <span class="code-gotcha">// TypeError — can't reassign the binding</span>
+
+<span class="code-comment">// 9. Array .shift() is O(n) — use index pointer for performance-critical code</span>
+<span class="code-comment">// For interview BFS, .shift() is fine; just mention this tradeoff if asked</span>
+let head = 0;
+while (head &lt; queue.length) {
+  const node = queue[head++]; <span class="code-comment">// O(1) dequeue alternative</span>
+}
+
+<span class="code-comment">// 10. for...in on arrays — iterates string indices, not values; avoid</span>
+for (const i in [10, 20]) console.log(i);  <span class="code-gotcha">// "0", "1" — strings!</span>
+for (const x of [10, 20]) console.log(x);  <span class="code-ok">// 10, 20</span></pre></div>
+
+      <p style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; color:var(--ink-soft); margin:8px 0 0">Quick signal → tool lookup:</p>
+      <table class="signal-table">
+        <tr><td>"top K" / frequency count</td><td>Map + sort, or max-heap (implement with sorted array)</td></tr>
+        <tr><td>BFS / shortest path</td><td>array queue with .shift() or index pointer</td></tr>
+        <tr><td>membership check</td><td>Set (O(1)) — not array .includes() (O(n))</td></tr>
+        <tr><td>key-value store</td><td>Map — not plain object (avoids prototype key collisions)</td></tr>
+        <tr><td>graph adjacency / grouping</td><td>Map&lt;node, node[]&gt;</td></tr>
+        <tr><td>2D grid coordinates</td><td>encode as `${r},${c}` string key in a Set</td></tr>
+        <tr><td>sort by custom rule</td><td>.sort((a, b) => ...)</td></tr>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- ── JAVASCRIPT DRILLS ── -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="ref-section" id="js-drills">
+      <div class="phase-label"><span class="days">Reference</span> Drills</div>
+      <h2>JavaScript Syntax Drills</h2>
+      <div class="why">One pattern per section — code snippet to memorize, then the LeetCode problems that force you to use it. Do these in JS, not Python.</div>
+
+      <!-- Arrays -->
+      <div class="sub-label" id="drill-arrays">Array Methods</div>
+      <div class="drill-card">
+        <div class="day-tag">push / pop / slice / spread</div>
+        <div class="code-block"><pre>const arr = [3, 1, 4, 1, 5];
+arr.push(9);                  <span class="code-comment">// [3,1,4,1,5,9]</span>
+arr.pop();                    <span class="code-comment">// 9 (returns removed element)</span>
+arr.slice(1, 3);              <span class="code-comment">// [1, 4] — non-mutating</span>
+const copy = [...arr];        <span class="code-comment">// shallow copy</span>
+const merged = [...a, ...b];  <span class="code-comment">// concat without mutation
+
+// No Python arr[-1] — use arr[arr.length - 1] or arr.at(-1)</span>
+arr.at(-1);                   <span class="code-comment">// last element (modern JS)</span></pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a> <span class="diff-tag diff-medium">Medium</span></li>
+        </ul>
+      </div>
+
+      <!-- Map & Set -->
+      <div class="sub-label" id="drill-map-set">Map and Set</div>
+      <div class="drill-card">
+        <div class="day-tag">Map — frequency / adjacency list</div>
+        <div class="code-block"><pre><span class="code-comment">// Frequency count (Python Counter equivalent)</span>
+const freq = new Map();
+for (const c of s) {
+  freq.set(c, (freq.get(c) ?? 0) + 1);
+}
+
+<span class="code-comment">// Adjacency list (Python defaultdict(list) equivalent)</span>
+const graph = new Map();
+for (const [u, v] of edges) {
+  if (!graph.has(u)) graph.set(u, []);
+  if (!graph.has(v)) graph.set(v, []);
+  graph.get(u).push(v);
+  graph.get(v).push(u);
+}</pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">560. Subarray Sum Equals K</a> <span class="diff-tag diff-medium">Medium</span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">Set — dedup / visited tracking</div>
+        <div class="code-block"><pre><span class="code-comment">// Dedup</span>
+const unique = [...new Set(arr)];
+
+<span class="code-comment">// Visited set for BFS/DFS</span>
+const visited = new Set();
+visited.add(node);
+if (!visited.has(node)) { ... }
+
+<span class="code-comment">// 2D grid visited — encode coordinates as string</span>
+const seen = new Set();
+seen.add(`${r},${c}`);
+if (seen.has(`${r},${c}`)) { ... }</pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">217. Contains Duplicate</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">128. Longest Consecutive Sequence</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
+        </ul>
+      </div>
+
+      <!-- Sorting -->
+      <div class="sub-label" id="drill-sort">Sorting with Comparators</div>
+      <div class="drill-card">
+        <div class="day-tag">.sort((a, b) => ...) — always pass a comparator</div>
+        <div class="code-block"><pre><span class="code-comment">// Numbers ascending / descending</span>
+nums.sort((a, b) => a - b);
+nums.sort((a, b) => b - a);
+
+<span class="code-comment">// Sort objects by property</span>
+intervals.sort((a, b) => a[0] - b[0]);  <span class="code-comment">// by start</span>
+people.sort((a, b) => a.age - b.age);
+
+<span class="code-comment">// Multi-key sort</span>
+arr.sort((a, b) => a.len - b.len || a.name.localeCompare(b.name));
+
+<span class="code-comment">// Non-mutating sort</span>
+const sorted = [...arr].sort((a, b) => a - b);</pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a> <span class="diff-tag diff-easy">Easy</span></li>
+        </ul>
+      </div>
+
+      <!-- BFS / DFS -->
+      <div class="sub-label" id="drill-bfs-dfs">BFS and DFS</div>
+      <div class="drill-card">
+        <div class="day-tag">BFS — level order traversal</div>
+        <div class="code-block"><pre><span class="code-comment">// Binary tree level order</span>
+function levelOrder(root) {
+  if (!root) return [];
+  const result = [];
+  const queue = [root];
+  while (queue.length) {
+    const levelSize = queue.length;
+    const level = [];
+    for (let i = 0; i &lt; levelSize; i++) {
+      const node = queue.shift();
+      level.push(node.val);
+      if (node.left)  queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+    result.push(level);
+  }
+  return result;
+}</pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="diff-tag diff-medium">Medium</span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">DFS — recursive tree</div>
+        <div class="code-block"><pre><span class="code-comment">// Max depth (recursive DFS)</span>
+function maxDepth(root) {
+  if (!root) return 0;
+  return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+}
+
+<span class="code-comment">// DFS on 2D grid (recursive)</span>
+function dfs(grid, r, c, visited) {
+  const rows = grid.length, cols = grid[0].length;
+  if (r &lt; 0 || r >= rows || c &lt; 0 || c >= cols) return;
+  const key = `${r},${c}`;
+  if (visited.has(key) || grid[r][c] === '0') return;
+  visited.add(key);
+  dfs(grid, r+1, c, visited);
+  dfs(grid, r-1, c, visited);
+  dfs(grid, r, c+1, visited);
+  dfs(grid, r, c-1, visited);
+}</pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
+        </ul>
+      </div>
+
+      <!-- Recursion -->
+      <div class="sub-label" id="drill-recursion">Recursion</div>
+      <div class="drill-card">
+        <div class="day-tag">Backtracking template</div>
+        <div class="code-block"><pre><span class="code-comment">// Subsets / combinations (backtracking)</span>
+function subsets(nums) {
+  const result = [];
+  function backtrack(start, current) {
+    result.push([...current]);   <span class="code-comment">// spread to copy — don't push reference!</span>
+    for (let i = start; i &lt; nums.length; i++) {
+      current.push(nums[i]);
+      backtrack(i + 1, current);
+      current.pop();             <span class="code-comment">// undo choice</span>
+    }
+  }
+  backtrack(0, []);
+  return result;
+}</pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/permutations/" target="_blank">46. Permutations</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><a href="https://leetcode.com/problems/combination-sum/" target="_blank">39. Combination Sum</a> <span class="diff-tag diff-medium">Medium</span></li>
+        </ul>
+      </div>
+
+      <!-- UI Patterns -->
+      <div class="sub-label" id="drill-ui">UI Patterns — Vanilla JS</div>
+      <div class="drill-card">
+        <div class="day-tag">DOM manipulation + event handling</div>
+        <div class="code-block"><pre><span class="code-comment">// Select elements</span>
+document.getElementById('my-id');
+document.querySelector('.my-class');         <span class="code-comment">// first match</span>
+document.querySelectorAll('li');             <span class="code-comment">// NodeList (use [...] to get array)</span>
+
+<span class="code-comment">// Create and insert</span>
+const li = document.createElement('li');
+li.textContent = 'Item';
+li.classList.add('active');
+ul.appendChild(li);
+ul.insertBefore(li, ul.firstChild);         <span class="code-comment">// prepend</span>
+
+<span class="code-comment">// Remove</span>
+el.remove();
+parent.removeChild(child);
+
+<span class="code-comment">// Event listeners</span>
+btn.addEventListener('click', (e) => { ... });
+input.addEventListener('input', handler);   <span class="code-comment">// fires on every keystroke</span>
+input.addEventListener('change', handler);  <span class="code-comment">// fires on blur/enter</span>
+
+<span class="code-comment">// Debounce — delay execution until user pauses typing</span>
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+const debouncedFilter = debounce(filterList, 300);
+input.addEventListener('input', debouncedFilter);
+
+<span class="code-comment">// Render a list from data</span>
+function renderList(items) {
+  ul.innerHTML = '';   <span class="code-comment">// clear existing</span>
+  for (const item of items) {
+    const li = document.createElement('li');
+    li.textContent = item.name;
+    ul.appendChild(li);
+  }
+}
+
+<span class="code-comment">// Toggle expand/collapse</span>
+btn.addEventListener('click', () => {
+  const isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '▶' : '▼';
+});</pre></div>
+        <ul class="drill-problems">
+          <li>Day 7 build: filterable list with debounced search</li>
+          <li>Day 8 build: expandable tree view (recursive render)</li>
+          <li>Day 9 build: counter with stack-based undo history</li>
+        </ul>
+      </div>
+
+    </div><!-- /js-drills -->
+
+    <footer>
+      Prepared for Sophia · Waymo, Software Engineer, Fleet Monitoring
+    </footer>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  // ── Scroll spy ──
+  const tocIds = [
+    'phase-foundation','phase-traversal','phase-ui','phase-comms',
+    'phase-mocks','phase-buffer','confirm',
+    'js-cheatsheet','js-data-structures','js-iteration','js-functional',
+    'js-algo-templates','js-gotchas',
+    'js-drills','drill-arrays','drill-map-set','drill-sort',
+    'drill-bfs-dfs','drill-recursion','drill-ui'
+  ];
+
+  const tocLinks = {};
+  tocIds.forEach(id => {
+    const el = document.querySelector(`.toc a[href="#${id}"]`);
+    if (el) tocLinks[id] = el;
+  });
+
+  function onScroll() {
+    let active = tocIds[0];
+    for (const id of tocIds) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= 90) active = id;
+    }
+    Object.values(tocLinks).forEach(a => a.classList.remove('active'));
+    if (tocLinks[active]) tocLinks[active].classList.add('active');
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
 </body>
 </html>
