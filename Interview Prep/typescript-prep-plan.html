@@ -489,6 +489,7 @@
     <a class="toc-sub" href="#drill-functional">Functional</a>
     <a class="toc-sub" href="#drill-bfs-dfs">BFS / DFS</a>
     <a class="toc-sub" href="#drill-recursion">Recursion</a>
+    <a class="toc-sub" href="#drill-polyfills">GFE Polyfills</a>
     <a class="toc-sub" href="#drill-ui">UI Patterns</a>
   </nav>
 
@@ -544,6 +545,7 @@
           <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — JS &amp; browser fundamentals quiz questions for quick syntax checks</li>
           <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — browser sandbox, zero setup, for testing snippets as you port them</li>
           <li>MDN Web Docs — <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank">Array methods reference</a> when a method name slips your mind</li>
+          <li><a href="https://www.greatfrontend.com/front-end-interview-playbook" target="_blank">GFE Front-End Interview Playbook</a> — read this early; covers interview format, what to say, and how to structure solutions</li>
         </ul>
       </div>
     </div>
@@ -1211,6 +1213,172 @@ function subsets(nums) {
         </ul>
       </div>
 
+      <!-- GFE Polyfills -->
+      <div class="sub-label" id="drill-polyfills">GFE 1-Week Polyfills Track</div>
+      <div class="gotcha-box">From the <a href="https://www.greatfrontend.com/front-end-interview-playbook" target="_blank" style="color:var(--amber);font-weight:600">GFE Front-End Interview Playbook</a> 1-week plan. These are JS function implementation questions — not LeetCode DSA. Prioritize pattern recognition over deep mastery. Skip array polyfills beyond <code>filter</code>/<code>map</code>.</div>
+      <div class="drill-card">
+        <div class="day-tag">Day 1–2 — Debounce &amp; Throttle</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">Understand <code>leading</code>/<code>trailing</code> edges and how <code>this</code> is preserved. GFE has a Debounce 2 that adds <code>.cancel()</code> and <code>.flush()</code> — do that after the basics.</p>
+        <div class="code-block"><pre><span class="code-comment">// Debounce — delay until user stops</span>
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+<span class="code-comment">// Throttle — fire at most once per interval</span>
+function throttle(fn, interval) {
+  let lastTime = 0;
+  return function(...args) {
+    const now = Date.now();
+    if (now - lastTime >= interval) {
+      lastTime = now;
+      fn.apply(this, args);
+    }
+  };
+}</pre></div>
+        <ul class="drill-problems">
+          <li><input type="checkbox" class="build-cb" data-build="gfe-debounce"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/debounce" target="_blank">GFE: Debounce</a></span></li>
+          <li><input type="checkbox" class="build-cb" data-build="gfe-debounce2"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/debounce-ii" target="_blank">GFE: Debounce II</a> (with .cancel / .flush)</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="gfe-throttle"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/throttle" target="_blank">GFE: Throttle</a></span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">Day 3 — Promise.all &amp; Promise.any</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">Be confident with resolve/reject semantics. <code>Promise.all</code> rejects on first failure; <code>Promise.any</code> resolves on first success.</p>
+        <div class="code-block"><pre><span class="code-comment">// Promise.all — rejects if ANY rejects</span>
+function promiseAll(promises) {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    let remaining = promises.length;
+    if (remaining === 0) return resolve([]);
+    promises.forEach((p, i) => {
+      Promise.resolve(p).then(val => {
+        results[i] = val;
+        if (--remaining === 0) resolve(results);
+      }).catch(reject);
+    });
+  });
+}
+
+<span class="code-comment">// Promise.any — resolves if ANY resolves</span>
+function promiseAny(promises) {
+  return new Promise((resolve, reject) => {
+    const errors = [];
+    let remaining = promises.length;
+    if (remaining === 0) return reject(new AggregateError([], 'All promises were rejected'));
+    promises.forEach((p, i) => {
+      Promise.resolve(p).then(resolve).catch(err => {
+        errors[i] = err;
+        if (--remaining === 0) reject(new AggregateError(errors, 'All promises were rejected'));
+      });
+    });
+  });
+}</pre></div>
+        <ul class="drill-problems">
+          <li><input type="checkbox" class="build-cb" data-build="gfe-promise-all"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/promise-all" target="_blank">GFE: Promise.all</a></span></li>
+          <li><input type="checkbox" class="build-cb" data-build="gfe-promise-any"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/promise-any" target="_blank">GFE: Promise.any</a></span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">Day 4 — Curry &amp; Flatten</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">Both are recursion patterns. Curry uses <code>fn.length</code> to know when to stop collecting args. Flatten needs to handle arbitrary depth.</p>
+        <div class="code-block"><pre><span class="code-comment">// Curry — collect args until fn.length is satisfied</span>
+function curry(fn) {
+  return function curried(...args) {
+    if (args.length >= fn.length) return fn(...args);
+    return (...more) => curried(...args, ...more);
+  };
+}
+
+<span class="code-comment">// Flatten — recursive with depth</span>
+function flatten(arr, depth = Infinity) {
+  return arr.reduce((acc, val) => {
+    if (Array.isArray(val) && depth > 0) {
+      acc.push(...flatten(val, depth - 1));
+    } else {
+      acc.push(val);
+    }
+    return acc;
+  }, []);
+}</pre></div>
+        <ul class="drill-problems">
+          <li><input type="checkbox" class="build-cb" data-build="gfe-curry"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/curry" target="_blank">GFE: Curry</a></span></li>
+          <li><input type="checkbox" class="build-cb" data-build="gfe-flatten"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/flatten" target="_blank">GFE: Flatten</a></span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">Day 5 — Deep Clone</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">The hard part is handling circular references, <code>Date</code>, <code>Map</code>, and <code>Set</code>. <code>JSON.parse(JSON.stringify(x))</code> is not a valid answer — it drops functions, <code>undefined</code>, and <code>Date</code> objects.</p>
+        <div class="code-block"><pre>function deepClone(val, seen = new Map()) {
+  if (val === null || typeof val !== 'object') return val;
+  if (seen.has(val)) return seen.get(val);   <span class="code-comment">// circular ref guard</span>
+  if (val instanceof Date) return new Date(val);
+  if (val instanceof Set) {
+    const s = new Set();
+    seen.set(val, s);
+    val.forEach(v => s.add(deepClone(v, seen)));
+    return s;
+  }
+  if (val instanceof Map) {
+    const m = new Map();
+    seen.set(val, m);
+    val.forEach((v, k) => m.set(deepClone(k, seen), deepClone(v, seen)));
+    return m;
+  }
+  const clone = Array.isArray(val) ? [] : {};
+  seen.set(val, clone);
+  for (const key of Object.keys(val)) {
+    clone[key] = deepClone(val[key], seen);
+  }
+  return clone;
+}</pre></div>
+        <ul class="drill-problems">
+          <li><input type="checkbox" class="build-cb" data-build="gfe-deepclone"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/deep-clone" target="_blank">GFE: Deep Clone</a></span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">Day 6 — EventEmitter</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">OOP + method chaining. Implement <code>on</code>, <code>off</code>, <code>emit</code>. Common follow-up: <code>once</code> (fires exactly once, then auto-removes).</p>
+        <div class="code-block"><pre>class EventEmitter {
+  constructor() { this._events = {}; }
+
+  on(event, listener) {
+    (this._events[event] ??= []).push(listener);
+    return this;   <span class="code-comment">// enables chaining</span>
+  }
+
+  off(event, listener) {
+    if (!this._events[event]) return this;
+    this._events[event] = this._events[event].filter(l => l !== listener);
+    return this;
+  }
+
+  emit(event, ...args) {
+    (this._events[event] ?? []).forEach(l => l(...args));
+    return this;
+  }
+
+  once(event, listener) {
+    const wrapper = (...args) => { listener(...args); this.off(event, wrapper); };
+    return this.on(event, wrapper);
+  }
+}</pre></div>
+        <ul class="drill-problems">
+          <li><input type="checkbox" class="build-cb" data-build="gfe-eventemitter"><span class="build-label"><a href="https://www.greatfrontend.com/questions/javascript/event-emitter" target="_blank">GFE: EventEmitter</a></span></li>
+        </ul>
+      </div>
+      <div class="drill-card">
+        <div class="day-tag">Day 7 — Timed Retry</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">Pick your weakest problem from Days 1–6. Set a 35-minute timer. Solve it without looking at the solution. Then review carefully.</p>
+        <ul class="drill-problems">
+          <li><input type="checkbox" class="build-cb" data-build="gfe-retry"><span class="build-label">Timed retry — weakest problem from above (35 min, no peeking)</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="gfe-playbook"><span class="build-label"><a href="https://www.greatfrontend.com/front-end-interview-playbook" target="_blank">Read: GFE Front-End Interview Playbook</a></span></li>
+        </ul>
+      </div>
+
       <!-- UI Patterns -->
       <div class="sub-label" id="drill-ui">UI Patterns — Vanilla JS</div>
       <div class="drill-card">
@@ -1344,7 +1512,7 @@ btn.addEventListener('click', () => {
     'js-cheatsheet','js-data-structures','js-iteration','js-functional',
     'js-algo-templates','js-gotchas',
     'js-drills','drill-arrays','drill-map-set','drill-sort','drill-functional',
-    'drill-bfs-dfs','drill-recursion','drill-ui'
+    'drill-bfs-dfs','drill-recursion','drill-polyfills','drill-ui'
   ];
 
   const tocLinks = {};
