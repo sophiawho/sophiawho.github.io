@@ -180,28 +180,37 @@
 
   .card p { margin: 0; font-size: 15.5px; }
 
+  /* ── Problem lists (phase cards) ── */
   .problem-list {
     list-style: none;
     margin: 12px 0 0;
     padding: 10px 0 0;
     border-top: 1px dashed var(--line);
     display: grid;
-    gap: 6px;
+    gap: 5px;
   }
 
   .problem-list li {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 13.5px;
-    padding-left: 16px;
-    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
   }
 
-  .problem-list li::before {
-    content: "▸";
-    position: absolute;
-    left: 0;
-    color: var(--accent);
-    font-size: 11px;
+  .problem-list li input[type=checkbox] {
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+    margin-top: 1px;
+  }
+
+  .problem-list li.done a {
+    text-decoration: line-through;
+    color: #aaa;
+    border-bottom-color: #ddd;
   }
 
   .problem-list a {
@@ -321,6 +330,7 @@
     margin-bottom: 16px;
   }
 
+  /* ── Drill problem lists ── */
   .drill-problems {
     list-style: none;
     margin: 12px 0 0;
@@ -333,11 +343,25 @@
   .drill-problems li {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 13px;
-    padding-left: 16px;
-    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
   }
 
-  .drill-problems li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); font-size: 11px; }
+  .drill-problems li input[type=checkbox] {
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+    margin-top: 1px;
+  }
+
+  .drill-problems li.done a,
+  .drill-problems li.done span.build-label {
+    text-decoration: line-through;
+    color: #aaa;
+  }
 
   .drill-problems a {
     color: var(--ink);
@@ -490,26 +514,26 @@
         <div class="day-tag">Day 1 — Arrays &amp; Strings</div>
         <p>Port 3–4 sliding window / two-pointer problems from Python to JS. Get comfortable with <code>.slice()</code>, <code>.split()</code>, template literals.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a></li>
-          <li><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a></li>
-          <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="3"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="121"><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="11"><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a></li>
         </ul>
       </div>
       <div class="card">
         <div class="day-tag">Day 2 — Objects, Map, Set</div>
         <p>Port hashmap-style problems (Two Sum and similar). Practice <code>Map</code>, <code>Set</code>, and plain object lookups as JS equivalents of Python dicts.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a></li>
-          <li><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a></li>
-          <li><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="1"><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="49"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="242"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a></li>
         </ul>
       </div>
       <div class="card">
         <div class="day-tag">Day 3 — Sorting &amp; Filtering</div>
         <p>Practice <code>.sort()</code> with custom comparators, <code>.filter()</code>, <code>.map()</code>, <code>.reduce()</code> chains. Explicitly called out in the TPS guide.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
-          <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="238"><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="347"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a></li>
         </ul>
       </div>
 
@@ -534,26 +558,26 @@
         <div class="day-tag">Day 4 — Recursion Basics</div>
         <p>Factorial, Fibonacci, then simple tree problems. JS recursive syntax has small quirks (no tail-call optimization guarantee) worth a few reps.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a></li>
-          <li><a href="https://leetcode.com/problems/same-tree/" target="_blank">100. Same Tree</a></li>
-          <li><a href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">226. Invert Binary Tree</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="104"><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="100"><a href="https://leetcode.com/problems/same-tree/" target="_blank">100. Same Tree</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="226"><a href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">226. Invert Binary Tree</a></li>
         </ul>
       </div>
       <div class="card">
         <div class="day-tag">Day 5 — BFS/DFS on Trees</div>
         <p>Level order traversal, max depth, path sum — port problems you've already solved in Python.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a></li>
-          <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="102"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="543"><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a></li>
         </ul>
       </div>
       <div class="card">
         <div class="day-tag">Day 6 — BFS/DFS on Graphs</div>
         <p>Represent adjacency lists using <code>Map</code> or nested arrays. Practice queue-as-array (<code>.push()</code>/<code>.shift()</code>) and stack-as-array (<code>.push()</code>/<code>.pop()</code>) patterns.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
-          <li><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a></li>
-          <li><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="stretch">(stretch, if time allows)</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="stretch">(stretch, if time allows)</span></li>
         </ul>
       </div>
 
@@ -577,7 +601,7 @@
         <div class="day-tag">Day 7 — Filterable List + Debounced Search</div>
         <p>Build a list with a text input that filters live (case-insensitive substring match), then add a 300ms debounce so filtering only fires after the user pauses typing.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">20. Valid Parentheses</a> <span class="stretch">(stack warmup before the UI build)</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="20"><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">20. Valid Parentheses</a> <span class="stretch">(stack warmup before the UI build)</span></li>
         </ul>
       </div>
       <div class="card">
@@ -588,8 +612,8 @@
         <div class="day-tag">Day 9 — Counter with Undo</div>
         <p>Increment/decrement buttons plus an undo button that reverts the last action using a stack-based history array.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/min-stack/" target="_blank">155. Min Stack</a> <span class="stretch">(conceptually close to this build)</span></li>
-          <li><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank">232. Implement Queue using Stacks</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="155"><a href="https://leetcode.com/problems/min-stack/" target="_blank">155. Min Stack</a> <span class="stretch">(conceptually close to this build)</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="232"><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank">232. Implement Queue using Stacks</a></li>
         </ul>
       </div>
 
@@ -637,16 +661,16 @@
         <div class="day-tag">Day 12 — Mock 1</div>
         <p>One DSA problem (30–40 min) + one UI build (30–40 min), picked cold, no looking up syntax mid-problem.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a></li>
-          <li><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank">73. Set Matrix Zeroes</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="56"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="73"><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank">73. Set Matrix Zeroes</a></li>
         </ul>
       </div>
       <div class="card">
         <div class="day-tag">Day 13 — Mock 2</div>
         <p>Repeat with fresh problems. If a recruiter has shared their coding environment (CoderPad, CodeSandbox, shared doc), mock inside that same tool.</p>
         <ul class="problem-list">
-          <li><a href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank">211. Design Add and Search Words Data Structure</a></li>
-          <li><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">295. Find Median from Data Stream</a> <span class="stretch">(harder, only if Days 1–11 felt comfortable)</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="211"><a href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank">211. Design Add and Search Words Data Structure</a></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="295"><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">295. Find Median from Data Stream</a> <span class="stretch">(harder, only if Days 1–11 felt comfortable)</span></li>
         </ul>
       </div>
 
@@ -991,9 +1015,9 @@ const merged = [...a, ...b];  <span class="code-comment">// concat without mutat
 // No Python arr[-1] — use arr[arr.length - 1] or arr.at(-1)</span>
 arr.at(-1);                   <span class="code-comment">// last element (modern JS)</span></pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="121"><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="238"><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="11"><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a> <span class="diff-tag diff-medium">Medium</span></li>
         </ul>
       </div>
 
@@ -1016,9 +1040,9 @@ for (const [u, v] of edges) {
   graph.get(v).push(u);
 }</pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">560. Subarray Sum Equals K</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="1"><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="49"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="560"><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">560. Subarray Sum Equals K</a> <span class="diff-tag diff-medium">Medium</span></li>
         </ul>
       </div>
       <div class="drill-card">
@@ -1036,9 +1060,9 @@ const seen = new Set();
 seen.add(`${r},${c}`);
 if (seen.has(`${r},${c}`)) { ... }</pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">217. Contains Duplicate</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">128. Longest Consecutive Sequence</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="217"><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">217. Contains Duplicate</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="128"><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">128. Longest Consecutive Sequence</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
         </ul>
       </div>
 
@@ -1060,9 +1084,9 @@ arr.sort((a, b) => a.len - b.len || a.name.localeCompare(b.name));
 <span class="code-comment">// Non-mutating sort</span>
 const sorted = [...arr].sort((a, b) => a - b);</pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="56"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="347"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="242"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a> <span class="diff-tag diff-easy">Easy</span></li>
         </ul>
       </div>
 
@@ -1101,9 +1125,9 @@ const freq = arr.reduce((acc, x) => {
 vehicles.some(v => v.faultCode !== null);  <span class="code-comment">// any fault?</span>
 vehicles.every(v => v.batteryPct > 20);   <span class="code-comment">// all above threshold?</span></pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span> — filter + sort on a frequency map</li>
-          <li><a href="https://leetcode.com/problems/sort-characters-by-frequency/" target="_blank">451. Sort Characters By Frequency</a> <span class="diff-tag diff-medium">Medium</span> — reduce to freq, then sort</li>
-          <li><a href="https://leetcode.com/problems/find-all-anagrams-in-a-string/" target="_blank">438. Find All Anagrams in a String</a> <span class="diff-tag diff-medium">Medium</span> — sliding window + map comparison</li>
+          <li><input type="checkbox" class="prob-cb" data-problem="347"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span> — filter + sort on a frequency map</li>
+          <li><input type="checkbox" class="prob-cb" data-problem="451"><a href="https://leetcode.com/problems/sort-characters-by-frequency/" target="_blank">451. Sort Characters By Frequency</a> <span class="diff-tag diff-medium">Medium</span> — reduce to freq, then sort</li>
+          <li><input type="checkbox" class="prob-cb" data-problem="438"><a href="https://leetcode.com/problems/find-all-anagrams-in-a-string/" target="_blank">438. Find All Anagrams in a String</a> <span class="diff-tag diff-medium">Medium</span> — sliding window + map comparison</li>
         </ul>
       </div>
 
@@ -1130,9 +1154,9 @@ function levelOrder(root) {
   return result;
 }</pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="102"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="diff-tag diff-medium">Medium</span></li>
         </ul>
       </div>
       <div class="drill-card">
@@ -1156,9 +1180,9 @@ function dfs(grid, r, c, visited) {
   dfs(grid, r, c-1, visited);
 }</pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="104"><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="543"><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
         </ul>
       </div>
 
@@ -1181,9 +1205,9 @@ function subsets(nums) {
   return result;
 }</pre></div>
         <ul class="drill-problems">
-          <li><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/permutations/" target="_blank">46. Permutations</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><a href="https://leetcode.com/problems/combination-sum/" target="_blank">39. Combination Sum</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="78"><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="46"><a href="https://leetcode.com/problems/permutations/" target="_blank">46. Permutations</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="39"><a href="https://leetcode.com/problems/combination-sum/" target="_blank">39. Combination Sum</a> <span class="diff-tag diff-medium">Medium</span></li>
         </ul>
       </div>
 
@@ -1240,9 +1264,9 @@ btn.addEventListener('click', () => {
   btn.textContent = isOpen ? '▶' : '▼';
 });</pre></div>
         <ul class="drill-problems">
-          <li>Day 7 build: filterable list with debounced search</li>
-          <li>Day 8 build: expandable tree view (recursive render)</li>
-          <li>Day 9 build: counter with stack-based undo history</li>
+          <li><input type="checkbox" class="build-cb" data-build="d7"><span class="build-label">Day 7 build: filterable list with debounced search</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="d8"><span class="build-label">Day 8 build: expandable tree view (recursive render)</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="d9"><span class="build-label">Day 9 build: counter with stack-based undo history</span></li>
         </ul>
       </div>
 
@@ -1256,6 +1280,63 @@ btn.addEventListener('click', () => {
 </div><!-- /layout -->
 
 <script>
+  // ── Checkbox persistence ──
+  const STORAGE_KEY = 'waymo-plan-checks';
+
+  function saveChecks() {
+    const state = {};
+    document.querySelectorAll('.prob-cb').forEach(cb => {
+      if (cb.checked) state['p' + cb.dataset.problem] = true;
+    });
+    document.querySelectorAll('.build-cb').forEach(cb => {
+      if (cb.checked) state['b' + cb.dataset.build] = true;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function loadChecks() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    document.querySelectorAll('.prob-cb').forEach(cb => {
+      if (state['p' + cb.dataset.problem]) {
+        cb.checked = true;
+        cb.closest('li').classList.add('done');
+      }
+    });
+    document.querySelectorAll('.build-cb').forEach(cb => {
+      if (state['b' + cb.dataset.build]) {
+        cb.checked = true;
+        cb.closest('li').classList.add('done');
+      }
+    });
+  }
+
+  // Sync all checkboxes for the same problem number across the page
+  function onProblemChange(cb) {
+    const num = cb.dataset.problem;
+    const checked = cb.checked;
+    document.querySelectorAll(`.prob-cb[data-problem="${num}"]`).forEach(el => {
+      el.checked = checked;
+      el.closest('li').classList.toggle('done', checked);
+    });
+    saveChecks();
+  }
+
+  function onBuildChange(cb) {
+    cb.closest('li').classList.toggle('done', cb.checked);
+    saveChecks();
+  }
+
+  document.querySelectorAll('.prob-cb').forEach(cb => {
+    cb.addEventListener('change', () => onProblemChange(cb));
+  });
+  document.querySelectorAll('.build-cb').forEach(cb => {
+    cb.addEventListener('change', () => onBuildChange(cb));
+  });
+
+  loadChecks();
+
   // ── Scroll spy ──
   const tocIds = [
     'phase-foundation','phase-traversal','phase-ui','phase-comms',
