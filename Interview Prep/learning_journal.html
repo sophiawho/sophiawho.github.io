@@ -133,6 +133,13 @@
     .fn   { color: #0369a1; }
     .str  { color: #b45309; }
 
+    /* math expression styling */
+    .math {
+      font-family: "Latin Modern Math", "STIX Two Math", Georgia, serif;
+      font-style: italic;
+      font-size: 0.95em;
+    }
+
     /* ── Tag chips ───────────────────────────────────────── */
     .tags {
       display: flex;
@@ -208,6 +215,42 @@
       color: #065f46;
       line-height: 1.6;
     }
+
+    /* ── Todo section ────────────────────────────────────── */
+    .todo-section {
+      max-width: 820px;
+      margin: 0 auto 40px auto;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+
+    .todo-section h2 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #92400e;
+      margin-bottom: 14px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: #78350f;
+      line-height: 1.55;
+    }
+
+    .todo-item::before {
+      content: "☐";
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
   </style>
 </head>
 <body>
@@ -217,7 +260,149 @@
   <p>Daily notes from LeetCode practice and algorithm study</p>
 </header>
 
+<div class="todo-section">
+  <h2>Up Next</h2>
+  <div class="todo-item">
+    <span><strong>#787 Cheapest Flights Within K Stops</strong> — looks like Dijkstra but the K-stops constraint breaks the greedy assumption, so plain Dijkstra gives wrong answers. Better solved with Bellman-Ford or BFS with state <code>(node, stops_used)</code>. Do this right after #743 to see concretely why Dijkstra fails here.</span>
+  </div>
+</div>
+
 <div class="journal">
+
+
+  <!-- ══════════════════════ June 23, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">June 23, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- CONCEPTS LEARNED -->
+    <div class="section">
+      <div class="section-title">Concepts Learned</div>
+
+      <div class="concept-card">
+        <h3>Dijkstra's Algorithm</h3>
+        <p>Finds shortest paths from a source node in a weighted graph with non-negative edges. Push <code>(distance, node)</code> tuples onto a min-heap.</p>
+        <ul style="margin-top:10px; padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem; color:#3d6b55; line-height:1.6;">
+          <li><strong>Early exit on target:</strong> if you only need the distance to one node, return as soon as you pop it. The first time a node is popped, its distance is finalized — the heap always gives you the globally smallest unvisited distance, and all future paths can only be longer. So the first pop of the target is guaranteed optimal.</li>
+          <li><strong>Path reconstruction:</strong> track a <code>prev</code> dict updated on every edge relaxation, then walk backward from target to source. For distance-only problems a <code>dist[]</code> array is enough.</li>
+          <li><strong>Complexity — <span class="math">O((N+E) log N)</span>:</strong> Each node is popped from the heap once: <span class="math">N</span> pops × <span class="math">O(log N)</span> each = <span class="math">O(N log N)</span>. Each edge can trigger one heap push: <span class="math">E</span> pushes × <span class="math">O(log N)</span> each = <span class="math">O(E log N)</span>. Total: <span class="math">O((N+E) log N)</span>. The <span class="math">log N</span> comes from heap operations — push and pop are both <span class="math">O(log n)</span> where <span class="math">n</span> is the heap size, and the heap holds at most <span class="math">N</span> nodes.</li>
+          <li><strong>Staleness check</strong> (<code>if cur_dist &gt; dist[cur_node]: continue</code>): skips outdated heap entries. Without it you'd re-expand neighbors with a worse distance — wasted work but not wrong, since the downstream <code>if new_dist &lt; dist[neighbor]</code> guard prevents bad overwrites.</li>
+
+        </ul>
+        <div class="code-block"><pre><span class="kw">def</span> <span class="fn">dijkstra</span>(graph, start):
+    dist = {node: <span class="fn">float</span>(<span class="str">'inf'</span>) <span class="kw">for</span> node <span class="kw">in</span> graph}
+    dist[start] = 0
+    heap = [(0, start)]
+
+    <span class="kw">while</span> heap:
+        cur_dist, cur_node = heapq.<span class="fn">heappop</span>(heap)
+
+        <span class="kw">if</span> cur_dist > dist[cur_node]:
+            <span class="kw">continue</span>
+
+        <span class="kw">for</span> neighbor, weight <span class="kw">in</span> graph[cur_node]:
+            new_dist = cur_dist + weight
+            <span class="kw">if</span> new_dist < dist[neighbor]:
+                dist[neighbor] = new_dist
+                heapq.<span class="fn">heappush</span>(heap, (new_dist, neighbor))
+
+    <span class="kw">return</span> dist</pre></div>
+        <div class="tags">
+          <span class="tag">Graph</span>
+          <span class="tag">Shortest Path</span>
+          <span class="tag purple">heapq</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Min Heap and Max Heap in Python</h3>
+        <p>Python's <code>heapq</code> module is a min-heap only. For a max-heap, negate values on push and un-negate on pop. Push tuples to sort by multiple keys — <code>heapq</code> compares element by element, so <code>(priority, value)</code> naturally sorts by priority first. If two tuples tie and the second element is non-comparable (e.g. a custom object), add a counter as a tiebreaker.</p>
+        <div class="code-block"><pre><span class="kw">import</span> heapq
+
+<span class="cm"># Min-heap</span>
+heap = []
+heapq.<span class="fn">heappush</span>(heap, 5)
+smallest = heapq.<span class="fn">heappop</span>(heap)  <span class="cm"># 5</span>
+
+<span class="cm"># Max-heap: negate values</span>
+max_heap = []
+heapq.<span class="fn">heappush</span>(max_heap, -5)
+largest = -heapq.<span class="fn">heappop</span>(max_heap)  <span class="cm"># 5</span>
+
+<span class="cm"># Tuple unpacking (no parens needed on left side)</span>
+cur_dist, cur_node = heapq.<span class="fn">heappop</span>(min_heap)</pre></div>
+        <div class="tags">
+          <span class="tag">Heap</span>
+          <span class="tag purple">heapq</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROBLEMS SOLVED -->
+    <div class="section">
+      <div class="section-title">Problems Solved</div>
+
+      <div class="problem-card">
+        <div class="problem-number">#347</div>
+        <div class="problem-info">
+          <h3>Top K Frequent Elements</h3>
+          <p>Three approaches. The heap approach (push all unique elements negated onto a max-heap, pop k times) is O(n log n) — not O(n log k), because the heap holds all unique elements, not just k. The sort approach has the same complexity. The optimal approach is bucket sort: since frequency is bounded by <code>len(nums)</code>, bucket elements by frequency and walk buckets from highest to lowest, stopping at k. O(n) throughout.</p>
+          <div class="code-block"><pre><span class="cm"># Bucket sort — O(n)</span>
+buckets = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums) + 1)]
+<span class="kw">for</span> num, count <span class="kw">in</span> freq.<span class="fn">items</span>():
+    buckets[count].<span class="fn">append</span>(num)
+
+result = []
+<span class="kw">for</span> count <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(buckets) - 1, 0, -1):
+    <span class="kw">for</span> num <span class="kw">in</span> buckets[count]:
+        result.<span class="fn">append</span>(num)
+        <span class="kw">if</span> <span class="fn">len</span>(result) == k:
+            <span class="kw">return</span> result</pre></div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Heap</span>
+            <span class="tag">Bucket Sort</span>
+            <span class="tag">Hash Map</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#743</div>
+        <div class="problem-info">
+          <h3>Network Delay Time</h3>
+          <p>Canonical Dijkstra. Find the minimum time for a signal to reach all nodes from source <code>k</code> — equivalent to finding shortest distances from <code>k</code> to every node, then returning the max. If any node is unreachable, return -1.</p>
+          <div class="note">Python ternary: <code>return -1 if max_distance == float('inf') else max_distance</code> — C-style <code>cond ? a : b</code> doesn't exist in Python.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Graph</span>
+            <span class="tag">Dijkstra</span>
+            <span class="tag">Heap</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#1514</div>
+        <div class="problem-info">
+          <h3>Path with Maximum Probability</h3>
+          <p>Dijkstra variant — maximize probability instead of minimizing distance. Use a max-heap (negate probabilities). Multiply edge weights instead of adding. The early-exit on <code>end_node</code> is valid for the same reason as standard Dijkstra: probabilities only shrink as more edges are multiplied (each prob ≤ 1), so the first pop of the target is guaranteed maximal.</p>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Graph</span>
+            <span class="tag">Dijkstra</span>
+            <span class="tag">Heap</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  <!-- ══════════════════════ end June 23 ══════════════════════ -->
 
 
   <!-- ══════════════════════ June 16, 2026 ══════════════════════ -->
