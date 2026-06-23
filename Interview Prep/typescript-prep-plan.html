@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Waymo Technical Phone Screen — 14-Day Plan</title>
+<title>Front End — 14-Day Plan</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
 <style>
   :root {
     --ink: #1c2024;
@@ -461,6 +462,7 @@
     <a class="toc-sub" href="#drill-arrays">Arrays</a>
     <a class="toc-sub" href="#drill-map-set">Map &amp; Set</a>
     <a class="toc-sub" href="#drill-sort">Sorting</a>
+    <a class="toc-sub" href="#drill-functional">Functional</a>
     <a class="toc-sub" href="#drill-bfs-dfs">BFS / DFS</a>
     <a class="toc-sub" href="#drill-recursion">Recursion</a>
     <a class="toc-sub" href="#drill-ui">UI Patterns</a>
@@ -744,39 +746,63 @@ for (const [k, v] of mp.entries()) { ... }
 mp.forEach((val, key) => { ... });</pre></div>
 
       <!-- ── Functional Methods ── -->
-      <div class="sub-label" id="js-functional">Functional Methods (map / filter / reduce / sort)</div>
-      <div class="code-block"><pre><span class="code-comment">// map — transform each element, returns new array</span>
-const doubled = arr.map(x => x * 2);
-const lengths = words.map(w => w.length);
+      <div class="sub-label" id="js-functional">Functional Methods</div>
+      <div class="gotcha-box">These aren't a primary TPS topic, but you'll use them constantly as tools. Using <code>.filter().map()</code> over a manual for-loop signals JS fluency. Waymo context: expect questions framed around vehicle/fleet data (filtering by status, grouping by type, transforming telemetry) where these are the natural fit.</div>
 
-<span class="code-comment">// filter — keep elements matching predicate</span>
-const evens = arr.filter(x => x % 2 === 0);
+      <div class="code-block"><pre><span class="code-comment">// ── map ── transforms every element, returns a NEW array (same length)</span>
+const doubled  = arr.map(x => x * 2);
+const lengths  = words.map(w => w.length);
+const ids      = vehicles.map(v => v.id);
 
-<span class="code-comment">// reduce — fold to a single value</span>
-const sum = arr.reduce((acc, x) => acc + x, 0);
+<span class="code-comment">// ── filter ── keeps elements where the test returns true, returns NEW array</span>
+const evens    = arr.filter(x => x % 2 === 0);
+const stopped  = vehicles.filter(v => v.stationarySeconds > 300);
+<span class="code-comment">// does NOT mutate the original array</span>
+
+<span class="code-comment">// ── reduce ── folds the array into a single value (number, object, Map, etc.)</span>
+<span class="code-comment">// reduce(callback, initialValue) — always provide the initial value</span>
+const sum  = arr.reduce((acc, x) => acc + x, 0);
 const freq = arr.reduce((acc, x) => {
   acc[x] = (acc[x] ?? 0) + 1;
-  return acc;
+  return acc;            <span class="code-comment">// must return accumulator each iteration</span>
 }, {});
+<span class="code-comment">// build a Map with reduce</span>
+const byId = vehicles.reduce((acc, v) => {
+  acc.set(v.id, v);
+  return acc;
+}, new Map());
 
-<span class="code-comment">// find / findIndex</span>
-arr.find(x => x > 3);       <span class="code-comment">// first match, or undefined</span>
-arr.findIndex(x => x > 3);  <span class="code-comment">// first matching index, or -1</span>
-arr.includes(3);             <span class="code-comment">// true/false membership</span>
-arr.indexOf(3);              <span class="code-comment">// first index, or -1</span>
+<span class="code-comment">// ── chaining — the real power; each method returns a new array</span>
+<span class="code-comment">// "IDs of vehicles stopped > 5 min, sorted longest-stopped first"</span>
+const result = vehicles
+  .filter(v => v.stationarySeconds > 300)
+  .sort((a, b) => b.stationarySeconds - a.stationarySeconds)
+  .map(v => v.id);
 
-<span class="code-comment">// sort — ⚠️ default sorts LEXICOGRAPHICALLY even for numbers!</span>
-[10, 9, 2].sort();                    <span class="code-gotcha">// [10, 2, 9] — WRONG</span>
-[10, 9, 2].sort((a, b) => a - b);    <span class="code-ok">// [2, 9, 10] — ascending</span>
-[10, 9, 2].sort((a, b) => b - a);    <span class="code-ok">// [10, 9, 2] — descending</span>
-words.sort((a, b) => a.localeCompare(b)); <span class="code-comment">// alphabetical strings</span>
-pairs.sort((a, b) => a[1] - b[1]);   <span class="code-comment">// sort by second element</span>
-<span class="code-comment">// .sort() mutates in-place AND returns the array</span>
-const sorted = [...arr].sort((a, b) => a - b); <span class="code-comment">// non-mutating copy</span>
+<span class="code-comment">// ── forEach ── like map but returns undefined; use when you only want side effects</span>
+arr.forEach((val, i) => console.log(i, val));
+<span class="code-comment">// don't chain off forEach — it returns nothing</span>
 
-<span class="code-comment">// flat / flatMap</span>
-[[1,2],[3,4]].flat();          <span class="code-comment">// [1,2,3,4]</span>
-arr.flatMap(x => [x, x * 2]); <span class="code-comment">// map then flatten one level</span></pre></div>
+<span class="code-comment">// ── find / findIndex ── return the first match (or undefined / -1)</span>
+arr.find(x => x > 3);            <span class="code-comment">// first value matching, or undefined</span>
+arr.findIndex(x => x > 3);       <span class="code-comment">// first index matching, or -1</span>
+vehicles.find(v => v.id === 42); <span class="code-comment">// lookup by field</span>
+
+<span class="code-comment">// ── some / every ── short-circuit boolean checks</span>
+arr.some(x => x > 10);    <span class="code-comment">// true if ANY element matches (like Python any())</span>
+arr.every(x => x > 0);    <span class="code-comment">// true if ALL elements match (like Python all())</span>
+vehicles.some(v => v.faultCode !== null);  <span class="code-comment">// any vehicle has a fault?</span>
+
+<span class="code-comment">// ── flat / flatMap ── flatten nested arrays</span>
+[[1,2],[3,4]].flat();               <span class="code-comment">// [1,2,3,4] — one level</span>
+[[[1]],[[2]]].flat(2);              <span class="code-comment">// [1,2] — two levels (or Infinity)</span>
+arr.flatMap(x => [x, x * 2]);      <span class="code-comment">// map then flatten one level — more efficient than .map().flat()</span>
+
+<span class="code-comment">// ── Array.from ── create array from iterables or with a fill function</span>
+Array.from('hello');               <span class="code-comment">// ['h','e','l','l','o']</span>
+Array.from(new Set([1,2,3]));      <span class="code-comment">// [1,2,3]</span>
+Array.from({length: 5}, (_, i) => i);  <span class="code-comment">// [0,1,2,3,4] — like range(5)</span>
+Array.from({length: m}, () => new Array(n).fill(0)); <span class="code-comment">// 2D grid init</span></pre></div>
 
       <!-- ── Algorithm Templates ── -->
       <div class="sub-label" id="js-algo-templates">Algorithm Templates</div>
@@ -1040,6 +1066,47 @@ const sorted = [...arr].sort((a, b) => a - b);</pre></div>
         </ul>
       </div>
 
+      <!-- Functional -->
+      <div class="sub-label" id="drill-functional">Functional Programming</div>
+      <div class="drill-card">
+        <div class="day-tag">map / filter / reduce — chaining pattern</div>
+        <p style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:13.5px; margin:0 0 12px">
+          <strong>map</strong> transforms every element into something else (same length).
+          <strong>filter</strong> removes elements that don't pass a test (shorter or equal length).
+          <strong>reduce</strong> collapses the array into one value — a number, object, Map, or anything else.
+          Chain them: filter first (smaller array), then sort, then map.
+        </p>
+        <div class="code-block"><pre><span class="code-comment">// Waymo-style example:
+// "Return the IDs of vehicles stopped over 5 min, sorted longest-stopped first."</span>
+const result = vehicles
+  .filter(v => v.stationarySeconds > 300)          <span class="code-comment">// keep stopped vehicles</span>
+  .sort((a, b) => b.stationarySeconds - a.stationarySeconds) <span class="code-comment">// longest first</span>
+  .map(v => v.id);                                  <span class="code-comment">// extract IDs only</span>
+
+<span class="code-comment">// Equivalent for-loop version — valid, just less idiomatic in JS:</span>
+const result2 = [];
+for (const v of vehicles) {
+  if (v.stationarySeconds > 300) result2.push(v);
+}
+result2.sort((a, b) => b.stationarySeconds - a.stationarySeconds);
+const ids = result2.map(v => v.id);
+
+<span class="code-comment">// reduce to build a frequency map</span>
+const freq = arr.reduce((acc, x) => {
+  acc[x] = (acc[x] ?? 0) + 1;
+  return acc;
+}, {});
+
+<span class="code-comment">// some / every for early-exit boolean checks</span>
+vehicles.some(v => v.faultCode !== null);  <span class="code-comment">// any fault?</span>
+vehicles.every(v => v.batteryPct > 20);   <span class="code-comment">// all above threshold?</span></pre></div>
+        <ul class="drill-problems">
+          <li><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span> — filter + sort on a frequency map</li>
+          <li><a href="https://leetcode.com/problems/sort-characters-by-frequency/" target="_blank">451. Sort Characters By Frequency</a> <span class="diff-tag diff-medium">Medium</span> — reduce to freq, then sort</li>
+          <li><a href="https://leetcode.com/problems/find-all-anagrams-in-a-string/" target="_blank">438. Find All Anagrams in a String</a> <span class="diff-tag diff-medium">Medium</span> — sliding window + map comparison</li>
+        </ul>
+      </div>
+
       <!-- BFS / DFS -->
       <div class="sub-label" id="drill-bfs-dfs">BFS and DFS</div>
       <div class="drill-card">
@@ -1195,7 +1262,7 @@ btn.addEventListener('click', () => {
     'phase-mocks','phase-buffer','confirm',
     'js-cheatsheet','js-data-structures','js-iteration','js-functional',
     'js-algo-templates','js-gotchas',
-    'js-drills','drill-arrays','drill-map-set','drill-sort',
+    'js-drills','drill-arrays','drill-map-set','drill-sort','drill-functional',
     'drill-bfs-dfs','drill-recursion','drill-ui'
   ];
 
