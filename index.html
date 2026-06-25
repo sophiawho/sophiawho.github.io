@@ -77,8 +77,76 @@
       text-align: center;
     }
   </style>
+  <style>
+    #auth-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 32px;
+      width: 100%; max-width: 320px;
+      text-align: center;
+    }
+    #auth-box h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
+    #auth-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+    #auth-input {
+      width: 100%; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 0.95rem; background: var(--bg); color: var(--text);
+      outline: none; margin-bottom: 10px;
+    }
+    #auth-input:focus { border-color: var(--accent); }
+    #auth-btn {
+      width: 100%; padding: 10px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    }
+    #auth-btn:hover { background: var(--accent-hover); }
+    #auth-error {
+      font-size: 0.8rem; color: #e53935;
+      margin-top: 8px; min-height: 1em;
+    }
+  </style>
 </head>
 <body>
+  <div id="auth-overlay">
+    <div id="auth-box">
+      <h2>sophia's notes</h2>
+      <p>enter password to continue</p>
+      <input id="auth-input" type="password" placeholder="password" autofocus />
+      <button id="auth-btn">enter</button>
+      <div id="auth-error"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var overlay = document.getElementById('auth-overlay');
+      if (localStorage.getItem('auth') === 'true') {
+        overlay.remove();
+        return;
+      }
+      document.getElementById('auth-btn').addEventListener('click', attempt);
+      document.getElementById('auth-input').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') attempt();
+      });
+      function attempt() {
+        if (document.getElementById('auth-input').value === 'scooty') {
+          localStorage.setItem('auth', 'true');
+          overlay.remove();
+        } else {
+          document.getElementById('auth-error').textContent = 'incorrect password';
+          document.getElementById('auth-input').value = '';
+        }
+      }
+    })();
+  </script>
+
   <div class="container">
     <header>
       <h1>sophia's notes</h1>
