@@ -254,6 +254,72 @@
       <div class="day-divider"></div>
     </div>
 
+    <!-- debounce / throttle / lodash -->
+    <div class="section">
+      <div class="section-title">Debounce, Throttle &amp; Lodash</div>
+
+      <div class="concept-card">
+        <h3>debounce — wait until the user stops</h3>
+        <p>Not native to JS — comes from <strong>lodash</strong> (or write the polyfill). Fires the function only after <em>N ms of silence</em>. Every new call resets the timer. Use for search inputs, autocomplete, form validation.</p>
+        <div class="code-block"><pre><span class="cm">// import (not native — needs lodash)</span>
+import { debounce, throttle } from 'lodash';
+<span class="cm">// CDN: &lt;script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"&gt;&lt;/script&gt;</span>
+
+<span class="cm">// debounce(fn, delayMs) — fires fn only after 300ms of no new calls</span>
+const debouncedSearch = debounce((query) => {
+  fetchResults(query);
+}, 300);
+
+searchInput.addEventListener('input', (e) => {
+  debouncedSearch(e.target.value);
+});</pre></div>
+        <div class="note">The <code>debouncedSearch</code> variable holds a <strong>closure</strong> — one shared <code>timeoutId</code> across all calls. Every keystroke cancels the previous timer and starts a new one. When the user stops, the last timer fires.</div>
+        <div class="tags">
+          <span class="tag">debounce</span>
+          <span class="tag">search bar</span>
+          <span class="tag">high priority</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>throttle — fire at most once per N ms</h3>
+        <p>Unlike debounce, throttle doesn't wait for silence — it fires immediately, then <em>ignores calls</em> until the delay has passed. Use for scroll handlers, resize, mousemove.</p>
+        <div class="code-block"><pre><span class="cm">// throttle(fn, limitMs)
+// fires at most once every 200ms no matter how often scroll fires</span>
+const throttledScroll = throttle(() => {
+  updateScrollPosition();
+}, 200);
+
+window.addEventListener('scroll', throttledScroll);
+
+<span class="cm">// debounce on scroll = only fires AFTER user stops scrolling (bad UX)
+// throttle on scroll = fires steadily while scrolling (good UX)</span></pre></div>
+        <div class="compare">
+          <div class="compare-col pros">
+            <h4>Use debounce when</h4>
+            <ul>
+              <li>Search / autocomplete inputs</li>
+              <li>Form field validation</li>
+              <li>Window resize (recalculate layout after done)</li>
+            </ul>
+          </div>
+          <div class="compare-col cons">
+            <h4>Use throttle when</h4>
+            <ul>
+              <li>Scroll position tracking</li>
+              <li>Mouse move / drag</li>
+              <li>Rate-limiting button clicks</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tags">
+          <span class="tag">throttle</span>
+          <span class="tag">scroll</span>
+        </div>
+      </div>
+
+    </div>
+
     <!-- reduce -->
     <div class="section">
       <div class="section-title">Array.prototype.reduce</div>
