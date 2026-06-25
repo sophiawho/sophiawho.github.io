@@ -904,6 +904,62 @@ mp.forEach((val, key) => { ... });</pre></div>
       <div class="sub-label" id="js-functional">Functional Methods</div>
       <div class="gotcha-box">These aren't a primary TPS topic, but you'll use them constantly as tools. Using <code>.filter().map()</code> over a manual for-loop signals JS fluency. Waymo context: expect questions framed around vehicle/fleet data (filtering by status, grouping by type, transforming telemetry) where these are the natural fit.</div>
 
+      <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin:16px 0 6px">Explicit patterns — memorise these</p>
+      <div class="code-block"><pre><span class="code-comment">// ── map(callback) ──────────────────────────────────────────────────────────
+// callback receives: (currentItem, index, originalArray)
+// must RETURN the new value for each item
+// result: NEW array, same length as input</span>
+const result = array.map((currentItem, index) => {
+  return <em>/* transformed version of currentItem */</em>;
+});
+
+<span class="code-comment">// one-line arrow: implicit return (no curly braces needed)</span>
+const ids = vehicles.map(vehicle => vehicle.id);
+
+
+<span class="code-comment">// ── filter(callback) ───────────────────────────────────────────────────────
+// callback receives: (currentItem, index, originalArray)
+// must RETURN true (keep) or false (discard)
+// result: NEW array, same length or shorter</span>
+const result = array.filter((currentItem, index) => {
+  return <em>/* true to keep, false to drop */</em>;
+});
+
+<span class="code-comment">// one-line arrow: implicit return</span>
+const stopped = vehicles.filter(vehicle => vehicle.stationarySeconds > 300);
+
+
+<span class="code-comment">// ── reduce(callback, initialValue) ────────────────────────────────────────
+// callback receives: (accumulator, currentItem, index, originalArray)
+// must RETURN the accumulator — this becomes the input for the next step
+// result: ONE value (number, string, object, Map, array — anything)
+//
+// Two levels of arguments:
+//   outer: reduce(callbackFn,  initialValue)
+//                 ↑ the whole    ↑ starting
+//                   function       value of accumulator
+//   inner: (accumulator, currentItem) — parameters INSIDE the callback</span>
+const result = array.reduce((accumulator, currentItem) => {
+  <span class="code-comment">// update accumulator using currentItem</span>
+  return accumulator;  <span class="code-comment">// ALWAYS return it, or next step gets undefined</span>
+}, startingValue);
+
+<span class="code-comment">// one-line: implicit return works when it fits</span>
+const sum = arr.reduce((accumulator, item) => accumulator + item, 0);
+
+<span class="code-comment">// reduce is great for building a Map — Map is technically "one value"</span>
+const byId = vehicles.reduce((accumulator, vehicle) => {
+  accumulator.set(vehicle.id, vehicle);
+  return accumulator;
+}, new Map());
+
+<span class="code-comment">// reduce for frequency count — object is also "one value"</span>
+const freq = arr.reduce((accumulator, item) => {
+  accumulator[item] = (accumulator[item] ?? 0) + 1;
+  return accumulator;
+}, {});</pre></div>
+
+      <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin:16px 0 6px">Full examples</p>
       <div class="code-block"><pre><span class="code-comment">// ── map ── transforms every element, returns a NEW array (same length)</span>
 const doubled  = arr.map(x => x * 2);
 const lengths  = words.map(w => w.length);
@@ -915,16 +971,15 @@ const stopped  = vehicles.filter(v => v.stationarySeconds > 300);
 <span class="code-comment">// does NOT mutate the original array</span>
 
 <span class="code-comment">// ── reduce ── folds the array into a single value (number, object, Map, etc.)</span>
-<span class="code-comment">// reduce(callback, initialValue) — always provide the initial value</span>
-const sum  = arr.reduce((acc, x) => acc + x, 0);
-const freq = arr.reduce((acc, x) => {
-  acc[x] = (acc[x] ?? 0) + 1;
-  return acc;            <span class="code-comment">// must return accumulator each iteration</span>
+const sum  = arr.reduce((accumulator, x) => accumulator + x, 0);
+const freq = arr.reduce((accumulator, x) => {
+  accumulator[x] = (accumulator[x] ?? 0) + 1;
+  return accumulator;
 }, {});
-<span class="code-comment">// build a Map with reduce</span>
-const byId = vehicles.reduce((acc, v) => {
-  acc.set(v.id, v);
-  return acc;
+<span class="code-comment">// build a Map with reduce — Map is one object, so reduce is the right tool</span>
+const byId = vehicles.reduce((accumulator, v) => {
+  accumulator.set(v.id, v);
+  return accumulator;
 }, new Map());
 
 <span class="code-comment">// ── chaining — the real power; each method returns a new array</span>
