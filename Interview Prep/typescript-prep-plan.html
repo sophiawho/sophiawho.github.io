@@ -132,6 +132,100 @@
   }
   .scope strong { color: var(--accent); }
 
+  /* ── Priority box ── */
+  .priority-box {
+    margin-top: 20px;
+    background: #fff9f0;
+    border: 1.5px solid var(--amber);
+    border-radius: 6px;
+    padding: 20px 24px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .priority-box .prio-header {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .priority-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 600px) { .priority-grid { grid-template-columns: 1fr; } }
+  .prio-col h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .prio-col ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 3px;
+  }
+  .prio-col ul li {
+    font-size: 13px;
+    color: var(--ink);
+    padding-left: 16px;
+    position: relative;
+  }
+  .prio-col.high ul li::before { content: "▲"; position: absolute; left: 0; color: var(--accent); font-size: 10px; top: 2px; }
+  .prio-col.low  ul li::before { content: "▽"; position: absolute; left: 0; color: #bbb; font-size: 10px; top: 2px; }
+  .prio-col.low  ul li { color: var(--ink-soft); }
+  .example-problem {
+    border-top: 1px dashed #e0c4a3;
+    padding-top: 14px;
+    margin-top: 2px;
+  }
+  .example-problem h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .example-problem p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .example-problem code {
+    background: #f0ece4;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono","Fira Code",monospace;
+    font-size: 12px;
+  }
+
+  /* ── Skip tag ── */
+  .skip-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 5px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    vertical-align: middle;
+    background: #f0f0f0;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── deprioritized drill card ── */
+  .drill-card.deprio {
+    opacity: 0.6;
+    border-style: dashed;
+  }
+  .drill-card.deprio .day-tag { color: #aaa; }
+
   /* ── Phase blocks ── */
   .phase { margin-top: 44px; }
 
@@ -503,6 +597,41 @@
       <div class="scope">
         <strong>Per the official TPS guide:</strong> live coding in JavaScript/TypeScript, covering UI implementation (any framework or vanilla JS/TS), arrays/strings/objects/sets/maps, simple graph &amp; tree traversal (BFS/DFS), recursion, sorting/filtering logic, and time/space complexity discussion.
       </div>
+
+      <div class="priority-box">
+        <div class="prio-header">Waymo TPS — What Actually Matters</div>
+        <div class="priority-grid">
+          <div class="prio-col high">
+            <h4>High priority (70% of your time)</h4>
+            <ul>
+              <li>Fleet data manipulation — <code>filter</code>, <code>sort</code>, <code>reduce</code>, <code>Map</code></li>
+              <li>UI component builds — filterable list, debounced search, tree view</li>
+              <li>DOM manipulation — <code>createElement</code>, <code>addEventListener</code>, render from data</li>
+              <li>Light BFS/DFS — level order, grid traversal, simple tree recursion</li>
+              <li>Narrating Big-O out loud for every solution</li>
+            </ul>
+          </div>
+          <div class="prio-col low">
+            <h4>Low priority — skip for this role</h4>
+            <ul>
+              <li>Hard graph problems (clone graph, topological sort)</li>
+              <li>Backtracking — subsets, permutations, combination sum</li>
+              <li>GFE polyfills track (debounce/curry/deep clone) — useful but not Waymo-specific</li>
+              <li>Heap / priority queue</li>
+              <li>Dynamic programming</li>
+            </ul>
+          </div>
+        </div>
+        <div class="example-problem">
+          <h4>Example problem they could give</h4>
+          <p>
+            "You have an array of vehicle objects: <code>{ id, status, stoppedSeconds, zoneId }</code>. Build a UI that renders the list, lets the user filter by <code>status</code> via a dropdown, and sorts by <code>stoppedSeconds</code> descending. Add a debounced text input that filters by <code>id</code>."
+          </p>
+          <p style="color:var(--ink-soft); font-size:12.5px; margin:0">
+            This hits every bullet on the TPS guide: arrays/maps, sorting/filtering, UI implementation, and you'd state O(n log n) for the sort. Do this build before the interview.
+          </p>
+        </div>
+      </div>
     </header>
 
     <!-- ── PHASE 1 ── -->
@@ -578,8 +707,8 @@
         <p>Represent adjacency lists using <code>Map</code> or nested arrays. Practice queue-as-array (<code>.push()</code>/<code>.shift()</code>) and stack-as-array (<code>.push()</code>/<code>.pop()</code>) patterns.</p>
         <ul class="problem-list">
           <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="stretch">(stretch, if time allows)</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="skip-tag">skip</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="skip-tag">skip</span></li>
         </ul>
       </div>
 
@@ -1157,8 +1286,8 @@ function levelOrder(root) {
 }</pre></div>
         <ul class="drill-problems">
           <li><input type="checkbox" class="prob-cb" data-problem="102"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
         </ul>
       </div>
       <div class="drill-card">
@@ -1189,8 +1318,8 @@ function dfs(grid, r, c, visited) {
       </div>
 
       <!-- Recursion -->
-      <div class="sub-label" id="drill-recursion">Recursion</div>
-      <div class="drill-card">
+      <div class="sub-label" id="drill-recursion">Recursion <span class="skip-tag" style="vertical-align:middle">low priority for Waymo</span></div>
+      <div class="drill-card deprio">
         <div class="day-tag">Backtracking template</div>
         <div class="code-block"><pre><span class="code-comment">// Subsets / combinations (backtracking)</span>
 function subsets(nums) {
@@ -1207,15 +1336,15 @@ function subsets(nums) {
   return result;
 }</pre></div>
         <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="78"><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="46"><a href="https://leetcode.com/problems/permutations/" target="_blank">46. Permutations</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="39"><a href="https://leetcode.com/problems/combination-sum/" target="_blank">39. Combination Sum</a> <span class="diff-tag diff-medium">Medium</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="78"><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="46"><a href="https://leetcode.com/problems/permutations/" target="_blank">46. Permutations</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
+          <li><input type="checkbox" class="prob-cb" data-problem="39"><a href="https://leetcode.com/problems/combination-sum/" target="_blank">39. Combination Sum</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
         </ul>
       </div>
 
       <!-- GFE Polyfills -->
-      <div class="sub-label" id="drill-polyfills">GFE 1-Week Polyfills Track</div>
-      <div class="gotcha-box">From the <a href="https://www.greatfrontend.com/front-end-interview-playbook" target="_blank" style="color:var(--amber);font-weight:600">GFE Front-End Interview Playbook</a> 1-week plan. These are JS function implementation questions — not LeetCode DSA. Prioritize pattern recognition over deep mastery. Skip array polyfills beyond <code>filter</code>/<code>map</code>.</div>
+      <div class="sub-label" id="drill-polyfills">GFE 1-Week Polyfills Track <span class="skip-tag" style="vertical-align:middle">low priority for Waymo</span></div>
+      <div class="gotcha-box">From the <a href="https://www.greatfrontend.com/front-end-interview-playbook" target="_blank" style="color:var(--amber);font-weight:600">GFE Front-End Interview Playbook</a> 1-week plan. Good JS fundamentals practice but <strong>not Waymo-specific</strong> — do the UI builds and data manipulation drills first. Come back here if you have time.</div>
       <div class="drill-card">
         <div class="day-tag">Day 1–2 — Debounce &amp; Throttle</div>
         <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;margin:0 0 10px">Understand <code>leading</code>/<code>trailing</code> edges and how <code>this</code> is preserved. GFE has a Debounce 2 that adds <code>.cancel()</code> and <code>.flush()</code> — do that after the basics.</p>
