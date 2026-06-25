@@ -13,7 +13,6 @@ cp "$PROJECTS/Leetcode/typescript-prep-plan.html"      "$REPO/Interview Prep/"
 cp "$PROJECTS/Trip-Planning/korea-october.html"         "$REPO/Trip-Planning/"
 cp "$PROJECTS/Trip-Planning/montreal-worlds-2026.html"  "$REPO/Trip-Planning/"
 cp "$PROJECTS/Cycling Training/DiabloTrainingPlanV3.html" "$REPO/Cycling Training/"
-cp "$PROJECTS/Skincare/skincare-routine.html"             "$REPO/Skincare/"
 cp "$PROJECTS/Roommate-Search/site/single-room.html"      "$REPO/Roommate-Search/"
 rsync -a --delete "$PROJECTS/Roommate-Search/site/assets/" "$REPO/Roommate-Search/assets/"
 
