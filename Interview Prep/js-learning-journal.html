@@ -246,6 +246,132 @@
 
 <div class="journal">
 
+  <!-- ══════════════════════ June 26, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">June 26, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- React controlled inputs -->
+    <div class="section">
+      <div class="section-title">React — Controlled Inputs &amp; Re-renders</div>
+
+      <div class="concept-card">
+        <h3>Controlled input — value + onChange are required together</h3>
+        <p>A controlled input means React owns the value via state. Without <code>onChange</code>, the input is read-only and React warns you.</p>
+        <div class="code-block"><pre><span class="cm">// controlled — React owns the value</span>
+const [celsius, setCelsius] = useState("");
+
+&lt;input
+  type="number"        <span class="cm">// not "string" — "string" isn't a valid type</span>
+  value={celsius}      <span class="cm">// curly braces, not quotes — quotes = literal string</span>
+  onChange={(e) => setCelsius(e.target.value)}
+/&gt;</pre></div>
+        <div class="note"><code>&lt;input /&gt;</code> is self-closing because <code>input</code> is a <strong>void element</strong> — it can never have children. Same for <code>&lt;br /&gt;</code>, <code>&lt;img /&gt;</code>. In JSX you must use <code>/&gt;</code>.</div>
+        <div class="gotcha"><code>inputFor</code> is wrong — React renames it to <code>htmlFor</code>. The HTML attribute <code>for</code> is a reserved word in JS, so React uses <code>htmlFor</code> instead.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">controlled input</span>
+          <span class="tag">JSX</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Re-renders — every setState call triggers one</h3>
+        <p>Every <code>useState</code> setter re-runs the component function top to bottom. So every keystroke → <code>setCelsius()</code> → re-render. Anything defined inside the component is recreated on each render.</p>
+        <div class="code-block"><pre><span class="cm">// GOOD — useCallback with empty dependency array, debounce defined outside</span>
+function debounce(fn, delay) { <span class="ok">// pure utility, define outside component</span>
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+}
+
+function App() {
+  const debouncedFn = useCallback(
+    debounce(myFn, 300),
+    [] <span class="ok">// [] = only create once on mount</span>
+  );
+}</pre></div>
+        <div class="note">useState setters (<code>setCelsius</code>, etc.) are guaranteed stable by React — they never change between renders. This is why a stale closure from <code>[]</code> still works correctly here.</div>
+        <div class="tags">
+          <span class="tag">re-render</span>
+          <span class="tag">useCallback</span>
+          <span class="tag">debounce</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TypeScript enums -->
+    <div class="section">
+      <div class="section-title">TypeScript — Enums &amp; Types</div>
+
+      <div class="concept-card">
+        <h3>TypeScript is JavaScript + types/enums/interfaces</h3>
+        <p>Everything valid in JS is valid in TS. It compiles down to plain JS. In CoderPad and GFE you can pick TypeScript from the language dropdown.</p>
+        <div class="code-block"><pre><span class="cm">// TS enum — preferred over Object.freeze in TypeScript</span>
+enum InputType {
+  CELSIUS = "celsius",
+  FAHRENHEIT = "fahrenheit",
+}
+
+<span class="cm">// JS equivalent with Object.freeze (when TS isn't available)</span>
+const InputType = Object.freeze({
+  CELSIUS: "celsius",
+  FAHRENHEIT: "fahrenheit",
+});
+
+<span class="cm">// usage — same either way</span>
+convertTemperature(e.target.value, InputType.CELSIUS);
+
+<span class="cm">// TS function signature</span>
+function convertTemperature(value: string, fromUnit: InputType): void { ... }</pre></div>
+        <div class="note"><code>Object.freeze</code> prevents mutation — trying to reassign a property silently fails (or throws in strict mode). It's the JS idiom for constants that should never change.</div>
+        <div class="tags">
+          <span class="tag purple">TypeScript</span>
+          <span class="tag">enum</span>
+          <span class="tag">Object.freeze</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event loop -->
+    <div class="section">
+      <div class="section-title">The JavaScript Event Loop</div>
+
+      <div class="concept-card">
+        <h3>Call stack → Web APIs → Event queue → Event loop</h3>
+        <p>JS is single-threaded. The event loop coordinates what runs and when.</p>
+        <div class="code-block"><pre><span class="cm">// Execution order</span>
+setTimeout(() => console.log('timeout'), 0);
+Promise.resolve().then(() => console.log('promise'));
+console.log('sync');
+
+<span class="cm">// Output:</span>
+<span class="ok">// sync       ← call stack runs first</span>
+<span class="ok">// promise    ← microtask queue (Promises) drains before event queue</span>
+<span class="ok">// timeout    ← event queue, even with 0ms delay</span></pre></div>
+        <div class="note">
+          <strong>Call stack</strong> — where JS runs now, one function at a time.<br>
+          <strong>Web APIs</strong> — browser handles setTimeout, fetch, DOM events outside JS.<br>
+          <strong>Microtask queue</strong> — Promises go here; drained completely after each task.<br>
+          <strong>Event queue</strong> — setTimeout callbacks wait here until stack is empty.<br>
+          <strong>Event loop</strong> — checks "is stack empty? pull next from queue."
+        </div>
+        <div class="gotcha"><code>setTimeout(fn, 0)</code> doesn't mean "run immediately" — it means "run after current stack + all microtasks are done, at the earliest."</div>
+        <div class="tags">
+          <span class="tag">event loop</span>
+          <span class="tag">microtask</span>
+          <span class="tag">setTimeout</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /day June 26 -->
+
   <!-- ══════════════════════ June 25, 2026 ══════════════════════ -->
   <div class="day">
 
