@@ -305,6 +305,131 @@ function App() {
       </div>
     </div>
 
+    <!-- React state & list rendering -->
+    <div class="section">
+      <div class="section-title">React — IDs, State &amp; List Rendering</div>
+
+      <div class="concept-card">
+        <h3>A plain <code>let counter</code> resets on every render — use state or a ref</h3>
+        <p>React re-runs the whole component function top to bottom on every render. A plain variable declared inside the component is recreated each time, so <code>let counter = 0</code> resets to 0 on every re-render. Adding a task triggers a re-render → counter goes back to 0 → every task gets the same id.</p>
+        <div class="code-block"><pre><span class="cm">// BROKEN — resets to 0 on every render</span>
+function App() {
+  let counter = 0;
+  function addTask(summary) {
+    setTasks([...tasks, { summary, id: counter }]);
+    counter++; <span class="ok">// re-render wipes this back to 0</span>
+  }
+}</pre></div>
+        <div class="gotcha">Duplicate ids break two things: <code>tasks.filter(t =&gt; t.id !== deletedId)</code> deletes <strong>every</strong> matching task at once, and React's <code>key={'{'}task.id{'}'}</code> sees duplicate keys and loses track of which row is which.</div>
+        <div class="note"><strong>Why hooks fix it:</strong> <code>useState</code> and <code>useRef</code> persist values <em>across</em> renders — that's the whole point of hooks. A normal variable lives only for one render.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">re-render</span>
+          <span class="tag">keys</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Three ways to make a unique id</h3>
+        <p>Any unique value works for a list key. For an interview, know why the plain counter fails and pick any of these.</p>
+        <div class="code-block"><pre><span class="cm">// 1. useRef — best for a counter (changing it does NOT trigger a re-render)</span>
+import { useRef } from "react";
+
+function App() {
+  const idRef = useRef(0); <span class="ok">// instantiate: useRef(initialValue)</span>
+
+  function addTask(summary) {
+    setTasks([...tasks, { summary, id: idRef.current }]); <span class="ok">// read with .current</span>
+    idRef.current++; <span class="ok">// increment via .current — survives re-renders</span>
+  }
+}
+
+<span class="cm">// 2. Date.now() — timestamp in ms, fine for a click-driven demo</span>
+id: Date.now()  <span class="ok">// tiny collision risk only if 2 adds hit the same ms</span>
+
+<span class="cm">// 3. crypto.randomUUID() — clean built-in, globally unique string</span>
+id: crypto.randomUUID()  <span class="ok">// e.g. "a3f9c1e2-..." — no setup needed</span></pre></div>
+        <div class="note"><strong>useRef in one line:</strong> <code>const idRef = useRef(0)</code> creates it, <code>idRef.current</code> reads it, <code>idRef.current++</code> updates it. Unlike state, updating a ref does <em>not</em> re-render — perfect for an id counter that's only bookkeeping. Index as a key is a last resort: say out loud "index breaks if the list reorders or items get deleted."</div>
+        <div class="tags">
+          <span class="tag">useRef</span>
+          <span class="tag">Date.now</span>
+          <span class="tag">crypto.randomUUID</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Render an array with <code>.map()</code> — the standard React pattern</h3>
+        <p>To turn an array into a list of elements, call <code>.map()</code> inside <code>{'{ }'}</code> in your JSX. <code>.map()</code> returns a <em>new array of JSX elements</em>, one per item, and React renders that array. This is the idiomatic way — not <code>forEach</code> (which returns nothing) or a manual loop.</p>
+        <div class="code-block"><pre><span class="cm">// map each data item → one JSX element. Needs a unique key.</span>
+&lt;ul&gt;
+  {'{'}tasks.map((task) =&gt; (
+    &lt;li key={'{'}task.id{'}'}&gt;
+      &lt;span&gt;{'{'}task.summary{'}'}&lt;/span&gt;
+      &lt;button onClick={'{'}() =&gt; removeTask(task.id){'}'}&gt;Delete&lt;/button&gt;
+    &lt;/li&gt;
+  )){'}'}
+&lt;/ul&gt;</pre></div>
+        <div class="note"><strong>Why map, not forEach:</strong> <code>forEach</code> returns <code>undefined</code> — it's for side effects, not building values. JSX needs an array of elements, and <code>.map()</code> produces exactly that. Your earlier code comment "<code>// To render list, use a forEach</code>" was the wrong instinct.</div>
+        <div class="note"><strong>Always add <code>key</code>:</strong> React uses <code>key</code> to track which item is which across re-renders. Use a stable unique id, not the array index.</div>
+        <div class="gotcha"><strong>Blank list?</strong> Curly braces after the arrow are a function <em>body</em>, not an implicit return. <code>(task) =&gt; {'{ <li>... </li> }'}</code> with no <code>return</code> gives <code>undefined</code> for every item → nothing renders. Use parentheses <code>(task) =&gt; ( ... )</code> for an implicit return, or add an explicit <code>return</code>.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">map</span>
+          <span class="tag">list rendering</span>
+          <span class="tag">keys</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HTML lists -->
+    <div class="section">
+      <div class="section-title">HTML — Lists (&lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;)</div>
+
+      <div class="concept-card">
+        <h3>&lt;ul&gt; / &lt;ol&gt; are the container, &lt;li&gt; is each row</h3>
+        <p><code>&lt;ul&gt;</code> = unordered list (bullets). <code>&lt;ol&gt;</code> = ordered list (numbered). <code>&lt;li&gt;</code> = list item. Each <code>&lt;li&gt;</code> must be a <strong>direct child</strong> of a <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code> — never wrapped in its own <code>&lt;div&gt;</code>.</p>
+        <div class="code-block"><pre><span class="cm">// unordered — order doesn't matter</span>
+&lt;ul&gt;
+  &lt;li&gt;Buy milk&lt;/li&gt;
+  &lt;li&gt;Walk dog&lt;/li&gt;
+&lt;/ul&gt;
+
+<span class="cm">// ordered — steps, rankings (renders 1, 2, 3)</span>
+&lt;ol&gt;
+  &lt;li&gt;First&lt;/li&gt;
+  &lt;li&gt;Second&lt;/li&gt;
+&lt;/ol&gt;</pre></div>
+        <div class="gotcha">Wrapping each <code>&lt;li&gt;</code> in a <code>&lt;div&gt;</code> is invalid HTML — the <code>&lt;ul&gt;</code> is already the grouping container. Interviewers notice.</div>
+        <div class="note"><code>&lt;ul&gt;</code> when order is irrelevant; <code>&lt;ol&gt;</code> when it matters (steps, rankings).</div>
+        <div class="tags">
+          <span class="tag">HTML</span>
+          <span class="tag">ul / ol / li</span>
+          <span class="tag">semantic</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Bullets vanish when you put <code>display: flex</code> on the &lt;li&gt;</h3>
+        <p>The bullet marker comes from the <code>list-item</code> display type. Setting <code>display: flex</code> replaces it, so the marker disappears. To space the text and a button apart while keeping bullets, move flex to an inner wrapper.</p>
+        <div class="code-block"><pre><span class="cm">// KEEPS bullets — flex on an inner div, li stays semantic</span>
+&lt;li key={'{'}task.id{'}'}&gt;
+  &lt;div style={'{{'} display: "flex", gap: "4px" {'}}'}&gt;
+    &lt;span&gt;{'{'}task.summary{'}'}&lt;/span&gt;
+    &lt;button onClick={'{'}() =&gt; removeTask(task.id){'}'}&gt;Delete&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/li&gt;
+
+<span class="cm">// OR keep flex on the li and add the marker back</span>
+&lt;li style={'{{'} display: "flex", gap: "4px", listStyle: "inside" {'}}'}&gt;</pre></div>
+        <div class="note">This is a legit reason <code>&lt;div&gt;</code>s exist — the div does the layout work so the <code>&lt;li&gt;</code> stays semantic.</div>
+        <div class="tags">
+          <span class="tag">CSS</span>
+          <span class="tag">flexbox</span>
+          <span class="tag">list-style</span>
+        </div>
+      </div>
+    </div>
+
     <!-- TypeScript enums -->
     <div class="section">
       <div class="section-title">TypeScript — Enums &amp; Types</div>
