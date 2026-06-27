@@ -228,6 +228,45 @@
 
     .compare-col.pros ul li::before { content: "+"; position: absolute; left: 0; color: #166534; font-weight: 700; }
     .compare-col.cons ul li::before { content: "−"; position: absolute; left: 0; color: #b45309; font-weight: 700; }
+
+    /* ── TODO list ── */
+    .todo-list {
+      max-width: 820px;
+      margin: 0 auto 32px;
+      background: #fff;
+      border: 1px solid #c8eedd;
+      border-radius: 10px;
+      padding: 18px 22px;
+    }
+
+    .todo-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #5a8a72;
+      margin-bottom: 12px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: #3d6b55;
+      line-height: 1.6;
+      cursor: pointer;
+    }
+
+    .todo-item input[type="checkbox"] {
+      margin-top: 3px;
+      flex-shrink: 0;
+      accent-color: #2d7a55;
+      width: 15px;
+      height: 15px;
+    }
+
+    .todo-item a { color: #2d7a55; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -236,6 +275,13 @@
   <h1>JS Learning Journal</h1>
   <p>Concepts learned during Waymo TPS prep — June 2026</p>
 </header>
+
+<div class="todo-list">
+  <div class="todo-title">TODO</div>
+  <label class="todo-item">
+    <input type="checkbox"> Try the <a href="https://app.coderpad.io/sandbox" target="_blank">CoderPad sandbox</a> — test auto-close brackets, right-click Format Document, and <code>⌘+Shift+P</code> command palette before the interview
+  </label>
+</div>
 
 <div class="journal">
 
@@ -271,6 +317,49 @@
           <span class="tag">forms</span>
           <span class="tag">onSubmit</span>
           <span class="tag">high priority</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- window.confirm / modal -->
+    <div class="section">
+      <div class="section-title">Confirmation Before Destructive Actions</div>
+
+      <div class="concept-card">
+        <h3>Two ways to confirm before deleting</h3>
+        <p><code>window.confirm</code> is the zero-code option. A custom modal gives you full control over styling and UX, and is what interviewers expect in a UI build.</p>
+        <div class="code-block"><pre><span class="cm">// 1. window.confirm — native browser dialog, instant</span>
+function removeTask(id) {
+  if (window.confirm("Delete this task?")) {
+    setTasks(tasks.filter(t => t.id !== id));
+  }
+}
+
+<span class="cm">// 2. Custom modal — store which task is pending deletion</span>
+const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+<span class="cm">// delete button just opens the modal</span>
+&lt;button onClick={() => setPendingDeleteId(task.id)}&gt;Delete&lt;/button&gt;
+
+<span class="cm">// modal renders conditionally</span>
+{pendingDeleteId !== null && (
+  &lt;div className="modal-overlay" onClick={() => setPendingDeleteId(null)}&gt;
+    &lt;div className="modal" onClick={(e) => e.stopPropagation()}&gt;
+      &lt;p&gt;Delete this task?&lt;/p&gt;
+      &lt;button onClick={() => {
+        setTasks(tasks.filter(t => t.id !== pendingDeleteId));
+        setPendingDeleteId(null);
+      }}&gt;Confirm&lt;/button&gt;
+      &lt;button onClick={() => setPendingDeleteId(null)}&gt;Cancel&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+)}</pre></div>
+        <div class="note"><strong>stopPropagation:</strong> clicking inside the modal box would bubble up to the overlay and close it. <code>e.stopPropagation()</code> on the inner div prevents that.</div>
+        <div class="note"><strong>Two divs, not one:</strong> the overlay handles full-screen dimming and click-outside-to-close. The modal is just the small centered box. Separating them keeps styling clean and makes stopPropagation work correctly.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">modal</span>
+          <span class="tag">window.confirm</span>
         </div>
       </div>
     </div>
