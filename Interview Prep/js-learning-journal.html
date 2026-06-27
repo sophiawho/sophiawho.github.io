@@ -356,7 +356,6 @@ function updateCell(row, col) {
   }
 }</pre></div>
         <div class="note"><strong>Why you must pass derived values around:</strong> <code>setBoard(alteredBoard)</code> doesn't update <code>board</code> immediately — it schedules the update for the next render. So <code>board</code> is still the old value for the rest of the function. Always read from local variables, not state, after a set call.</div>
-        <div class="note"><strong>When to extract a helper:</strong> keep logic as a separate function if it has enough complexity to be worth naming and testing in isolation (e.g. <code>gameHasWinner</code> with 6 checks). Don't extract just to split one thought across two places.</div>
         <div class="tags">
           <span class="tag">React</span>
           <span class="tag">state</span>
@@ -427,6 +426,127 @@ const [pendingDeleteId, setPendingDeleteId] = useState(null);
     </div>
 
   </div><!-- /day June 27 -->
+
+  <!-- ══════════════════════ June 27, 2026 (Tic Tac Toe) ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">June 27, 2026 — Tic Tac Toe</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">React — Key Lessons from Tic Tac Toe</div>
+
+      <div class="concept-card">
+        <h3>Never mutate state directly — always create a new array</h3>
+        <div class="code-block"><pre><span class="cm">// ✗ mutates in place — React won't detect change, no re-render</span>
+board[row][col] = "X";
+
+<span class="cm">// ✓ create a new 2D array</span>
+const alteredBoard = board.map((r, rIdx) =>
+  r.map((cell, cIdx) => rIdx === row && cIdx === col ? "X" : cell)
+);
+setBoard(alteredBoard);</pre></div>
+        <div class="tags"><span class="tag">state</span><span class="tag">immutability</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Derive values from state instead of storing them as state</h3>
+        <p>If a value can be computed from existing state, don't make it state. Over-stating causes sync bugs and more reset logic.</p>
+        <div class="code-block"><pre><span class="cm">// ✗ storing derived values as state — gets out of sync with board</span>
+const [winner, setWinner] = useState(null);
+const [draw, setDraw] = useState(false);
+
+<span class="cm">// ✓ derive them fresh every render from board</span>
+const winner = gameHasWinner(board, "X") ? "Player X"
+             : gameHasWinner(board, "O") ? "Player O"
+             : null;
+const draw = !winner && noAvailableCells(board);
+const isGameOver = winner !== null || draw;</pre></div>
+        <div class="note">Minimal state = just <code>board</code>, <code>isXTurn</code>, <code>isComputerThinking</code>. Everything else follows from the board.</div>
+        <div class="tags"><span class="tag">state</span><span class="tag">derived values</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>setBoard doesn't update board immediately — read from local variables</h3>
+        <div class="code-block"><pre>setBoard(alteredBoard);
+console.log(board); <span class="cm">// still the OLD board — updates on next render</span>
+
+<span class="cm">// pass alteredBoard directly to functions that need the new state</span>
+const hasWinner = gameHasWinner(alteredBoard, newCellValue);</pre></div>
+        <div class="tags"><span class="tag">state</span><span class="tag amber">gotcha</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Props are a single object — destructure with {}</h3>
+        <div class="code-block"><pre><span class="cm">// ✗ wrong — value is the whole props object, rest are undefined</span>
+const CellButton = (value, hoveredValue, onClick) => { ... }
+
+<span class="cm">// ✓ correct — destructure the props object</span>
+const CellButton = ({ value, hoveredValue, onClick }) => {
+  return &lt;button onClick={onClick}&gt;{value}&lt;/button&gt;;
+};</pre></div>
+        <div class="tags"><span class="tag">props</span><span class="tag">destructuring</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Object {} vs array [] destructuring</h3>
+        <div class="code-block"><pre><span class="cm">// object — matches by NAME</span>
+const { value, hoveredValue } = props;
+
+<span class="cm">// array — matches by POSITION, name it whatever you want</span>
+const [board, setBoard] = useState(...);
+const [isXTurn, setIsXTurn] = useState(...);</pre></div>
+        <div class="note">useState returns a tuple so you can name state and setter whatever makes sense. If it returned an object you'd have to write <code>const {'{'} state: board, setState: setBoard {'}'}</code> every time.</div>
+        <div class="tags"><span class="tag">destructuring</span><span class="tag">useState</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>setTimeout is async — put follow-up code inside the callback</h3>
+        <div class="code-block"><pre><span class="cm">// ✗ setIsComputerThinking runs immediately, not after delay</span>
+setTimeout(randomThinkingInterval);
+setIsComputerThinking(false);
+
+<span class="cm">// ✓ everything after the delay goes inside the callback</span>
+timeoutId.current = setTimeout(() => {
+  setIsComputerThinking(false);
+  updateCell(random.row, random.col);
+}, randomThinkingInterval);</pre></div>
+        <div class="note">Store the timeout id in a <code>useRef</code> so you can <code>clearTimeout(timeoutId.current)</code> on reset — otherwise the callback fires on the fresh board.</div>
+        <div class="tags"><span class="tag">setTimeout</span><span class="tag">async</span><span class="tag">useRef</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Rules of Hooks — hooks only in function components, not regular functions</h3>
+        <div class="code-block"><pre><span class="cm">// ✗ calling useState inside a helper function called in .map() — React error</span>
+const renderedCell = (value, rowIdx, colIdx) => {
+  const [isHovered, setIsHovered] = useState(false); <span class="cm">// INVALID</span>
+};
+
+<span class="cm">// ✓ extract as a proper React component with capital letter</span>
+const CellButton = ({ value, onClick }) => {
+  const [isHovered, setIsHovered] = useState(false); <span class="cm">// valid</span>
+  return &lt;button onClick={onClick}&gt;{value}&lt;/button&gt;;
+};</pre></div>
+        <div class="tags"><span class="tag amber">gotcha</span><span class="tag">hooks</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card">
+        <h3>flatMap — map + flat in one step</h3>
+        <p>Returning <code>[item]</code> includes it, returning <code>[]</code> skips it. Useful for filter+map on nested arrays in one pass.</p>
+        <div class="code-block"><pre><span class="cm">// get all empty cells from a 2D board</span>
+const availableCells = board.flatMap((row, rowIdx) =>
+  row.flatMap((cell, colIdx) =>
+    cell === "_" ? [{ row: rowIdx, col: colIdx }] : []
+  )
+);</pre></div>
+        <div class="note">In practice <code>.filter().map()</code> is more readable. Reach for <code>flatMap</code> when you're already working with nested arrays.</div>
+        <div class="tags"><span class="tag">flatMap</span><span class="tag">array</span></div>
+      </div>
+
+    </div>
+  </div><!-- /day June 27 Tic Tac Toe -->
 
   <!-- ══════════════════════ June 26, 2026 ══════════════════════ -->
   <div class="day">
