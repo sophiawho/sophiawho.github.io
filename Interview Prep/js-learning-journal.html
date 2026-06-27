@@ -339,6 +339,8 @@
     <hr class="toc-divider">
 
     <a class="toc-section" href="#html-css">HTML / CSS</a>
+    <a class="toc-sub" href="#css-cheatsheet">Cheat Sheet</a>
+    <a class="toc-sub" href="#inline-vs-file">Inline vs File</a>
     <a class="toc-sub" href="#lists">Lists</a>
   </nav>
 
@@ -733,7 +735,94 @@ input.addEventListener('input', (e) =&gt; debouncedSearch(e.target.value));</pre
     <!-- ══════════════════════════════════════════════ -->
     <div class="chapter" id="html-css">
       <div class="chapter-label">HTML / CSS</div>
-      <h2>Lists &amp; Layout</h2>
+      <h2>CSS</h2>
+
+      <div class="concept-card" id="css-cheatsheet">
+        <h3>Most-used CSS properties</h3>
+        <div class="code-block"><pre><span class="cm">/* spacing */</span>
+margin: 16px;              <span class="cm">// outside (transparent)</span>
+margin: 8px 16px;          <span class="cm">// top/bottom  left/right</span>
+padding: 16px;             <span class="cm">// inside (background shows)</span>
+
+<span class="cm">/* sizing */</span>
+width: 80px;
+height: 100%;
+width: fit-content;        <span class="cm">// shrink-wrap to content</span>
+max-width: 600px;
+
+<span class="cm">/* flexbox (apply to parent) */</span>
+display: flex;
+flex-direction: column;    <span class="cm">// row (default) | column</span>
+justify-content: center;   <span class="cm">// main axis: flex-start | center | space-between</span>
+align-items: center;       <span class="cm">// cross axis: flex-start | center | stretch</span>
+gap: 12px;
+flex-wrap: wrap;
+
+<span class="cm">/* positioning */</span>
+position: relative;        <span class="cm">// offset from normal flow, still takes up space</span>
+position: absolute;        <span class="cm">// pinned to nearest relative ancestor</span>
+position: fixed;           <span class="cm">// pinned to viewport (modals, navbars)</span>
+position: sticky;          <span class="cm">// sticks at scroll threshold: top: 0</span>
+top: 0; right: 0;
+
+<span class="cm">/* text */</span>
+font-size: 24px;
+font-weight: 600;
+color: #333;
+text-align: center;
+text-decoration: none;     <span class="cm">// remove underline from links</span>
+
+<span class="cm">/* box */</span>
+background: white;
+background-color: #f0f0f0;
+border: 1px solid #ccc;
+border-radius: 8px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+opacity: 0.5;
+
+<span class="cm">/* misc */</span>
+cursor: pointer;
+overflow: hidden;          <span class="cm">// clip content that exceeds the box</span>
+z-index: 100;              <span class="cm">// stacking order (higher = on top)</span>
+display: none;             <span class="cm">// remove from layout entirely</span>
+visibility: hidden;        <span class="cm">// invisible but still takes up space</span></pre></div>
+        <div class="tags"><span class="tag">CSS</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="inline-vs-file">
+        <h3>Inline style vs CSS file</h3>
+        <p>In React, inline styles use camelCase keys and string values. CSS files use kebab-case and no quotes. In interviews on CoderPad (single file), inline is faster and totally fine.</p>
+        <div class="code-block"><pre><span class="cm">// inline — camelCase, string values, double braces (outer = JSX, inner = object)</span>
+&lt;button style={{ fontSize: "24px", backgroundColor: "white", marginTop: "8px" }}&gt;
+
+<span class="cm">// CSS file — kebab-case, no quotes on values</span>
+.cell-button {
+  font-size: 24px;
+  background-color: white;
+  margin-top: 8px;
+}
+&lt;button className="cell-button"&gt;  <span class="cm">// className not class in JSX</span></pre></div>
+        <div class="compare">
+          <div class="compare-col pros">
+            <h4>Inline</h4>
+            <ul>
+              <li>Fast in single-file interviews</li>
+              <li>Co-located with the element</li>
+              <li>Easy to make dynamic: <code>style={{ color: isError ? "red" : "black" }}</code></li>
+            </ul>
+          </div>
+          <div class="compare-col cons">
+            <h4>CSS file</h4>
+            <ul>
+              <li>Reusable across components</li>
+              <li>Supports hover, focus, media queries (inline can't)</li>
+              <li>Cleaner JSX</li>
+            </ul>
+          </div>
+        </div>
+        <div class="gotcha">Inline styles can't express <code>:hover</code>, <code>:focus</code>, or <code>@media</code> queries — those require a CSS class.</div>
+        <div class="tags"><span class="tag">CSS</span><span class="tag">interview</span><span class="tag">high priority</span></div>
+      </div>
 
       <div class="concept-card" id="lists">
         <h3>&lt;ul&gt; / &lt;ol&gt; wrap &lt;li&gt; directly — no extra divs</h3>
@@ -760,7 +849,7 @@ input.addEventListener('input', (e) =&gt; debouncedSearch(e.target.value));</pre
     'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
-    'html-css','lists'
+    'html-css','css-cheatsheet','inline-vs-file','lists'
   ];
 
   const tocLinks = {};
