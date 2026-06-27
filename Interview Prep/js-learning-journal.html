@@ -321,6 +321,68 @@
       </div>
     </div>
 
+    <!-- Compute first, set state at the end -->
+    <div class="section">
+      <div class="section-title">React — State Update Patterns</div>
+
+      <div class="concept-card">
+        <h3>Compute everything first, set state at the end</h3>
+        <p>Because state updates don't apply immediately, derive all new values using local variables first. Then commit all the state updates together at the end of the function. This makes the data flow read top to bottom like a recipe.</p>
+        <div class="code-block"><pre><span class="cm">// ✗ avoid — splitting logic across helper functions forces you to pass</span>
+<span class="cm">// derived values around and obscures what one event actually does</span>
+function updateCell(row, col) {
+  const alteredBoard = computeBoard(...);
+  setBoard(alteredBoard);
+  checkForWinner(alteredBoard);  <span class="cm">// must pass in — can't read board, it's stale</span>
+  updateTurn();
+}
+
+<span class="cm">// ✓ idiomatic — compute everything, then set state at the end</span>
+function updateCell(row, col) {
+  <span class="cm">// 1. derive all new values using local variables</span>
+  const newState = isXTurn ? 1 : 2;
+  const alteredBoard = board.map((r, rIdx) =>
+    r.map((cell, cIdx) => rIdx === row && cIdx === col ? newState : cell)
+  );
+  const hasWinner = gameHasWinner(alteredBoard, newState);
+  const playerName = isXTurn ? "Player X" : "Player O";
+
+  <span class="cm">// 2. commit all state updates together at the end</span>
+  setBoard(alteredBoard);
+  setIsXTurn(!isXTurn);
+  if (hasWinner) {
+    setWinner(playerName);
+    setMessage(`${playerName} wins!`);
+  }
+}</pre></div>
+        <div class="note"><strong>Why you must pass derived values around:</strong> <code>setBoard(alteredBoard)</code> doesn't update <code>board</code> immediately — it schedules the update for the next render. So <code>board</code> is still the old value for the rest of the function. Always read from local variables, not state, after a set call.</div>
+        <div class="note"><strong>When to extract a helper:</strong> keep logic as a separate function if it has enough complexity to be worth naming and testing in isolation (e.g. <code>gameHasWinner</code> with 6 checks). Don't extract just to split one thought across two places.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">state</span>
+          <span class="tag">pattern</span>
+          <span class="tag">high priority</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>React batches multiple state updates into one re-render</h3>
+        <p>Multiple <code>set</code> calls in the same event handler don't each trigger a re-render. React waits until the function finishes, then re-renders once with all updates applied.</p>
+        <div class="code-block"><pre>function updateCell() {
+  setBoard(alteredBoard);   <span class="cm">// doesn't re-render yet</span>
+  setIsXTurn(!isXTurn);    <span class="cm">// doesn't re-render yet</span>
+  setMessage("X wins!");   <span class="cm">// doesn't re-render yet</span>
+                            <span class="cm">// → React re-renders ONCE here, all updates applied</span>
+}</pre></div>
+        <div class="note">This is automatic in React 18+ everywhere — including inside <code>setTimeout</code> and promises. In React 17 and below, batching only happened inside React event handlers.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">batching</span>
+          <span class="tag">re-render</span>
+        </div>
+      </div>
+    </div>
+
     <!-- window.confirm / modal -->
     <div class="section">
       <div class="section-title">Confirmation Before Destructive Actions</div>
