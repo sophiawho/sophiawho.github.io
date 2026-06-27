@@ -42,7 +42,6 @@
       gap: 40px;
     }
 
-    /* ── Day entry ── */
     .day {
       border-left: 3px solid #a7dfc4;
       padding-left: 24px;
@@ -73,7 +72,6 @@
       background: #c8eedd;
     }
 
-    /* ── Section ── */
     .section {
       margin-bottom: 28px;
     }
@@ -87,7 +85,6 @@
       margin-bottom: 14px;
     }
 
-    /* ── Concept card ── */
     .concept-card {
       background: #ffffff;
       border: 1px solid #c8eedd;
@@ -114,7 +111,6 @@
       margin-top: 8px;
     }
 
-    /* ── Code block ── */
     .code-block {
       background: #e8f8f0;
       border: 1px solid #b8e8d0;
@@ -136,7 +132,6 @@
     .ok  { color: #166534; font-weight: 600; }
     .bad { color: #991b1b; }
 
-    /* ── Tags ── */
     .tags {
       display: flex;
       flex-wrap: wrap;
@@ -166,7 +161,6 @@
       border-color: #d8b4fe;
     }
 
-    /* ── Note ── */
     .note {
       background: #e8f8f0;
       border-left: 3px solid #34d399;
@@ -198,7 +192,6 @@
       color: #065f46;
     }
 
-    /* ── Two-column comparison ── */
     .compare {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -246,6 +239,44 @@
 
 <div class="journal">
 
+  <!-- ══════════════════════ June 27, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">June 27, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- Forms -->
+    <div class="section">
+      <div class="section-title">React — Forms</div>
+
+      <div class="concept-card">
+        <h3>Wrap inputs in a &lt;form&gt; so Enter key submits</h3>
+        <p>A <code>&lt;form&gt;</code> with <code>onSubmit</code> handles both button clicks and Enter key — no extra keydown listener needed. The form wraps all related inputs as children; each input still manages its own state independently.</p>
+        <div class="code-block"><pre><span class="cm">// wrap inputs in a form — Enter OR button click both trigger onSubmit</span>
+&lt;form onSubmit={(e) => {
+  e.preventDefault();   <span class="cm">// required — prevents full page reload</span>
+  handleSubmit();
+}}&gt;
+  &lt;input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" /&gt;
+  &lt;input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" /&gt;
+  &lt;textarea value={notes} onChange={(e) => setNotes(e.target.value)} /&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</pre></div>
+        <div class="gotcha"><code>e.preventDefault()</code> is required. Without it the form triggers a full page reload on submit — the browser's default behavior for forms.</div>
+        <div class="note"><strong>button type matters:</strong> <code>type="submit"</code> triggers <code>onSubmit</code>. A button with <code>type="button"</code> inside the form does NOT. The default type for a button inside a form is <code>submit</code>, so you can omit it — but being explicit is clearer.</div>
+        <div class="tags">
+          <span class="tag">React</span>
+          <span class="tag">forms</span>
+          <span class="tag">onSubmit</span>
+          <span class="tag">high priority</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /day June 27 -->
+
   <!-- ══════════════════════ June 26, 2026 ══════════════════════ -->
   <div class="day">
 
@@ -281,8 +312,8 @@ const [celsius, setCelsius] = useState("");
       <div class="concept-card">
         <h3>Re-renders — every setState call triggers one</h3>
         <p>Every <code>useState</code> setter re-runs the component function top to bottom. So every keystroke → <code>setCelsius()</code> → re-render. Anything defined inside the component is recreated on each render.</p>
-        <div class="code-block"><pre><span class="cm">// GOOD — useCallback with empty dependency array, debounce defined outside</span>
-function debounce(fn, delay) { <span class="ok">// pure utility, define outside component</span>
+        <div class="code-block"><pre><span class="cm">// define debounce outside the component, wrap with useCallback inside</span>
+function debounce(fn, delay) {
   let timeoutId;
   return (...args) => {
     clearTimeout(timeoutId);
@@ -293,10 +324,10 @@ function debounce(fn, delay) { <span class="ok">// pure utility, define outside 
 function App() {
   const debouncedFn = useCallback(
     debounce(myFn, 300),
-    [] <span class="ok">// [] = only create once on mount</span>
+    [] <span class="cm">// [] = only create once on mount</span>
   );
 }</pre></div>
-        <div class="note">useState setters (<code>setCelsius</code>, etc.) are guaranteed stable by React — they never change between renders. This is why a stale closure from <code>[]</code> still works correctly here.</div>
+        <div class="note">useState setters are guaranteed stable by React — they never change between renders. This is why a stale closure from <code>[]</code> still works correctly here.</div>
         <div class="tags">
           <span class="tag">re-render</span>
           <span class="tag">useCallback</span>
@@ -311,45 +342,20 @@ function App() {
 
       <div class="concept-card">
         <h3>A plain <code>let counter</code> resets on every render — use state or a ref</h3>
-        <p>React re-runs the whole component function top to bottom on every render. A plain variable declared inside the component is recreated each time, so <code>let counter = 0</code> resets to 0 on every re-render. Adding a task triggers a re-render → counter goes back to 0 → every task gets the same id.</p>
-        <div class="code-block"><pre><span class="cm">// BROKEN — resets to 0 on every render</span>
-function App() {
-  let counter = 0;
-  function addTask(summary) {
-    setTasks([...tasks, { summary, id: counter }]);
-    counter++; <span class="ok">// re-render wipes this back to 0</span>
-  }
-}</pre></div>
-        <div class="gotcha">Duplicate ids break two things: <code>tasks.filter(t =&gt; t.id !== deletedId)</code> deletes <strong>every</strong> matching task at once, and React's <code>key={'{'}task.id{'}'}</code> sees duplicate keys and loses track of which row is which.</div>
-        <div class="note"><strong>Why hooks fix it:</strong> <code>useState</code> and <code>useRef</code> persist values <em>across</em> renders — that's the whole point of hooks. A normal variable lives only for one render.</div>
-        <div class="tags">
-          <span class="tag">React</span>
-          <span class="tag">re-render</span>
-          <span class="tag">keys</span>
-        </div>
-      </div>
-
-      <div class="concept-card">
-        <h3>Three ways to make a unique id</h3>
-        <p>Any unique value works for a list key. For an interview, know why the plain counter fails and pick any of these.</p>
-        <div class="code-block"><pre><span class="cm">// 1. useRef — best for a counter (changing it does NOT trigger a re-render)</span>
-import { useRef } from "react";
-
-function App() {
-  const idRef = useRef(0); <span class="ok">// instantiate: useRef(initialValue)</span>
-
-  function addTask(summary) {
-    setTasks([...tasks, { summary, id: idRef.current }]); <span class="ok">// read with .current</span>
-    idRef.current++; <span class="ok">// increment via .current — survives re-renders</span>
-  }
+        <p>React re-runs the whole component function on every render. A plain variable inside the component is recreated each time, so <code>let counter = 0</code> resets to 0 on every re-render → every task gets the same id.</p>
+        <div class="code-block"><pre><span class="cm">// 1. useRef — best for a counter (doesn't trigger a re-render)</span>
+const idRef = useRef(0);
+function addTask(summary) {
+  setTasks([...tasks, { summary, id: idRef.current }]);
+  idRef.current++;
 }
 
-<span class="cm">// 2. Date.now() — timestamp in ms, fine for a click-driven demo</span>
-id: Date.now()  <span class="ok">// tiny collision risk only if 2 adds hit the same ms</span>
+<span class="cm">// 2. Date.now() — fine for click-driven demos</span>
+id: Date.now()
 
-<span class="cm">// 3. crypto.randomUUID() — clean built-in, globally unique string</span>
-id: crypto.randomUUID()  <span class="ok">// e.g. "a3f9c1e2-..." — no setup needed</span></pre></div>
-        <div class="note"><strong>useRef in one line:</strong> <code>const idRef = useRef(0)</code> creates it, <code>idRef.current</code> reads it, <code>idRef.current++</code> updates it. Unlike state, updating a ref does <em>not</em> re-render — perfect for an id counter that's only bookkeeping. Index as a key is a last resort: say out loud "index breaks if the list reorders or items get deleted."</div>
+<span class="cm">// 3. crypto.randomUUID() — cleanest, no setup</span>
+id: crypto.randomUUID()</pre></div>
+        <div class="gotcha">Duplicate ids break two things: <code>tasks.filter(t =&gt; t.id !== deletedId)</code> deletes every matching task at once, and React's <code>key={'{'}task.id{'}'}</code> loses track of which row is which.</div>
         <div class="tags">
           <span class="tag">useRef</span>
           <span class="tag">Date.now</span>
@@ -359,9 +365,8 @@ id: crypto.randomUUID()  <span class="ok">// e.g. "a3f9c1e2-..." — no setup ne
 
       <div class="concept-card">
         <h3>Render an array with <code>.map()</code> — the standard React pattern</h3>
-        <p>To turn an array into a list of elements, call <code>.map()</code> inside <code>{'{ }'}</code> in your JSX. <code>.map()</code> returns a <em>new array of JSX elements</em>, one per item, and React renders that array. This is the idiomatic way — not <code>forEach</code> (which returns nothing) or a manual loop.</p>
-        <div class="code-block"><pre><span class="cm">// map each data item → one JSX element. Needs a unique key.</span>
-&lt;ul&gt;
+        <p><code>.map()</code> returns a new array of JSX elements, one per item, and React renders that array. Not <code>forEach</code> (returns nothing).</p>
+        <div class="code-block"><pre>&lt;ul&gt;
   {'{'}tasks.map((task) =&gt; (
     &lt;li key={'{'}task.id{'}'}&gt;
       &lt;span&gt;{'{'}task.summary{'}'}&lt;/span&gt;
@@ -369,9 +374,7 @@ id: crypto.randomUUID()  <span class="ok">// e.g. "a3f9c1e2-..." — no setup ne
     &lt;/li&gt;
   )){'}'}
 &lt;/ul&gt;</pre></div>
-        <div class="note"><strong>Why map, not forEach:</strong> <code>forEach</code> returns <code>undefined</code> — it's for side effects, not building values. JSX needs an array of elements, and <code>.map()</code> produces exactly that. Your earlier code comment "<code>// To render list, use a forEach</code>" was the wrong instinct.</div>
-        <div class="note"><strong>Always add <code>key</code>:</strong> React uses <code>key</code> to track which item is which across re-renders. Use a stable unique id, not the array index.</div>
-        <div class="gotcha"><strong>Blank list?</strong> Curly braces after the arrow are a function <em>body</em>, not an implicit return. <code>(task) =&gt; {'{ <li>... </li> }'}</code> with no <code>return</code> gives <code>undefined</code> for every item → nothing renders. Use parentheses <code>(task) =&gt; ( ... )</code> for an implicit return, or add an explicit <code>return</code>.</div>
+        <div class="gotcha"><strong>Blank list?</strong> Curly braces after the arrow are a function body, not an implicit return. <code>(task) =&gt; {'{ <li>...</li> }'}</code> with no <code>return</code> gives <code>undefined</code> for every item. Use parentheses <code>(task) =&gt; ( ... )</code> for implicit return.</div>
         <div class="tags">
           <span class="tag">React</span>
           <span class="tag">map</span>
@@ -387,41 +390,24 @@ id: crypto.randomUUID()  <span class="ok">// e.g. "a3f9c1e2-..." — no setup ne
 
       <div class="concept-card">
         <h3>&lt;ul&gt; / &lt;ol&gt; are the container, &lt;li&gt; is each row</h3>
-        <p><code>&lt;ul&gt;</code> = unordered list (bullets). <code>&lt;ol&gt;</code> = ordered list (numbered). <code>&lt;li&gt;</code> = list item. Each <code>&lt;li&gt;</code> must be a <strong>direct child</strong> of a <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code> — never wrapped in its own <code>&lt;div&gt;</code>.</p>
-        <div class="code-block"><pre><span class="cm">// unordered — order doesn't matter</span>
-&lt;ul&gt;
+        <p><code>&lt;li&gt;</code> must be a <strong>direct child</strong> of <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>. Use <code>&lt;ul&gt;</code> when order is irrelevant, <code>&lt;ol&gt;</code> for steps or rankings.</p>
+        <div class="code-block"><pre>&lt;ul&gt;
   &lt;li&gt;Buy milk&lt;/li&gt;
   &lt;li&gt;Walk dog&lt;/li&gt;
-&lt;/ul&gt;
-
-<span class="cm">// ordered — steps, rankings (renders 1, 2, 3)</span>
-&lt;ol&gt;
-  &lt;li&gt;First&lt;/li&gt;
-  &lt;li&gt;Second&lt;/li&gt;
-&lt;/ol&gt;</pre></div>
-        <div class="gotcha">Wrapping each <code>&lt;li&gt;</code> in a <code>&lt;div&gt;</code> is invalid HTML — the <code>&lt;ul&gt;</code> is already the grouping container. Interviewers notice.</div>
-        <div class="note"><code>&lt;ul&gt;</code> when order is irrelevant; <code>&lt;ol&gt;</code> when it matters (steps, rankings).</div>
-        <div class="tags">
-          <span class="tag">HTML</span>
-          <span class="tag">ul / ol / li</span>
-          <span class="tag">semantic</span>
-        </div>
+&lt;/ul&gt;</pre></div>
+        <div class="gotcha">Wrapping each <code>&lt;li&gt;</code> in a <code>&lt;div&gt;</code> is invalid HTML. The <code>&lt;ul&gt;</code> is already the grouping container. Interviewers notice.</div>
       </div>
 
       <div class="concept-card">
         <h3>Bullets vanish when you put <code>display: flex</code> on the &lt;li&gt;</h3>
-        <p>The bullet marker comes from the <code>list-item</code> display type. Setting <code>display: flex</code> replaces it, so the marker disappears. To space the text and a button apart while keeping bullets, move flex to an inner wrapper.</p>
-        <div class="code-block"><pre><span class="cm">// KEEPS bullets — flex on an inner div, li stays semantic</span>
+        <p>The bullet marker comes from the <code>list-item</code> display type. Setting <code>display: flex</code> replaces it. Move flex to an inner wrapper instead.</p>
+        <div class="code-block"><pre><span class="cm">// keeps bullets — flex on inner div, li stays semantic</span>
 &lt;li key={'{'}task.id{'}'}&gt;
   &lt;div style={'{{'} display: "flex", gap: "4px" {'}}'}&gt;
     &lt;span&gt;{'{'}task.summary{'}'}&lt;/span&gt;
     &lt;button onClick={'{'}() =&gt; removeTask(task.id){'}'}&gt;Delete&lt;/button&gt;
   &lt;/div&gt;
-&lt;/li&gt;
-
-<span class="cm">// OR keep flex on the li and add the marker back</span>
-&lt;li style={'{{'} display: "flex", gap: "4px", listStyle: "inside" {'}}'}&gt;</pre></div>
-        <div class="note">This is a legit reason <code>&lt;div&gt;</code>s exist — the div does the layout work so the <code>&lt;li&gt;</code> stays semantic.</div>
+&lt;/li&gt;</pre></div>
         <div class="tags">
           <span class="tag">CSS</span>
           <span class="tag">flexbox</span>
@@ -449,12 +435,8 @@ const InputType = Object.freeze({
   FAHRENHEIT: "fahrenheit",
 });
 
-<span class="cm">// usage — same either way</span>
-convertTemperature(e.target.value, InputType.CELSIUS);
-
 <span class="cm">// TS function signature</span>
 function convertTemperature(value: string, fromUnit: InputType): void { ... }</pre></div>
-        <div class="note"><code>Object.freeze</code> prevents mutation — trying to reassign a property silently fails (or throws in strict mode). It's the JS idiom for constants that should never change.</div>
         <div class="tags">
           <span class="tag purple">TypeScript</span>
           <span class="tag">enum</span>
@@ -469,24 +451,15 @@ function convertTemperature(value: string, fromUnit: InputType): void { ... }</p
 
       <div class="concept-card">
         <h3>Call stack → Web APIs → Event queue → Event loop</h3>
-        <p>JS is single-threaded. The event loop coordinates what runs and when.</p>
-        <div class="code-block"><pre><span class="cm">// Execution order</span>
-setTimeout(() => console.log('timeout'), 0);
+        <p>JS is single-threaded. Promises (microtasks) drain before setTimeout callbacks (event queue), even with 0ms delay.</p>
+        <div class="code-block"><pre>setTimeout(() => console.log('timeout'), 0);
 Promise.resolve().then(() => console.log('promise'));
 console.log('sync');
 
 <span class="cm">// Output:</span>
-<span class="ok">// sync       ← call stack runs first</span>
-<span class="ok">// promise    ← microtask queue (Promises) drains before event queue</span>
-<span class="ok">// timeout    ← event queue, even with 0ms delay</span></pre></div>
-        <div class="note">
-          <strong>Call stack</strong> — where JS runs now, one function at a time.<br>
-          <strong>Web APIs</strong> — browser handles setTimeout, fetch, DOM events outside JS.<br>
-          <strong>Microtask queue</strong> — Promises go here; drained completely after each task.<br>
-          <strong>Event queue</strong> — setTimeout callbacks wait here until stack is empty.<br>
-          <strong>Event loop</strong> — checks "is stack empty? pull next from queue."
-        </div>
-        <div class="gotcha"><code>setTimeout(fn, 0)</code> doesn't mean "run immediately" — it means "run after current stack + all microtasks are done, at the earliest."</div>
+<span class="ok">// sync     ← call stack runs first</span>
+<span class="ok">// promise  ← microtask queue drains before event queue</span>
+<span class="ok">// timeout  ← event queue, even with 0ms</span></pre></div>
         <div class="tags">
           <span class="tag">event loop</span>
           <span class="tag">microtask</span>
@@ -505,18 +478,14 @@ console.log('sync');
       <div class="day-divider"></div>
     </div>
 
-    <!-- debounce / throttle / lodash -->
+    <!-- debounce / throttle -->
     <div class="section">
-      <div class="section-title">Debounce, Throttle &amp; Lodash</div>
+      <div class="section-title">Debounce &amp; Throttle</div>
 
       <div class="concept-card">
         <h3>debounce — wait until the user stops</h3>
-        <p>Not native to JS — comes from <strong>lodash</strong> (or write the polyfill). Fires the function only after <em>N ms of silence</em>. Every new call resets the timer. Use for search inputs, autocomplete, form validation.</p>
-        <div class="code-block"><pre><span class="cm">// import (not native — needs lodash)</span>
-import { debounce, throttle } from 'lodash';
-<span class="cm">// CDN: &lt;script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"&gt;&lt;/script&gt;</span>
-
-<span class="cm">// debounce(fn, delayMs) — fires fn only after 300ms of no new calls</span>
+        <p>Fires the function only after <em>N ms of silence</em>. Every new call resets the timer. Use for search inputs, autocomplete, form validation.</p>
+        <div class="code-block"><pre><span class="cm">// debounce(fn, delayMs) — fires fn only after 300ms of no new calls</span>
 const debouncedSearch = debounce((query) => {
   fetchResults(query);
 }, 300);
@@ -524,7 +493,7 @@ const debouncedSearch = debounce((query) => {
 searchInput.addEventListener('input', (e) => {
   debouncedSearch(e.target.value);
 });</pre></div>
-        <div class="note">The <code>debouncedSearch</code> variable holds a <strong>closure</strong> — one shared <code>timeoutId</code> across all calls. Every keystroke cancels the previous timer and starts a new one. When the user stops, the last timer fires.</div>
+        <div class="note">The <code>debouncedSearch</code> variable holds a closure — one shared <code>timeoutId</code> across all calls. Every keystroke cancels the previous timer and starts a new one.</div>
         <div class="tags">
           <span class="tag">debounce</span>
           <span class="tag">search bar</span>
@@ -534,24 +503,14 @@ searchInput.addEventListener('input', (e) => {
 
       <div class="concept-card">
         <h3>throttle — fire at most once per N ms</h3>
-        <p>Unlike debounce, throttle doesn't wait for silence — it fires immediately, then <em>ignores calls</em> until the delay has passed. Use for scroll handlers, resize, mousemove.</p>
-        <div class="code-block"><pre><span class="cm">// throttle(fn, limitMs)
-// fires at most once every 200ms no matter how often scroll fires</span>
-const throttledScroll = throttle(() => {
-  updateScrollPosition();
-}, 200);
-
-window.addEventListener('scroll', throttledScroll);
-
-<span class="cm">// debounce on scroll = only fires AFTER user stops scrolling (bad UX)
-// throttle on scroll = fires steadily while scrolling (good UX)</span></pre></div>
+        <p>Doesn't wait for silence — fires immediately, then ignores calls until the delay has passed. Use for scroll handlers, resize, mousemove.</p>
         <div class="compare">
           <div class="compare-col pros">
             <h4>Use debounce when</h4>
             <ul>
               <li>Search / autocomplete inputs</li>
               <li>Form field validation</li>
-              <li>Window resize (recalculate layout after done)</li>
+              <li>Window resize</li>
             </ul>
           </div>
           <div class="compare-col cons">
@@ -568,7 +527,6 @@ window.addEventListener('scroll', throttledScroll);
           <span class="tag">scroll</span>
         </div>
       </div>
-
     </div>
 
     <!-- reduce -->
@@ -576,76 +534,56 @@ window.addEventListener('scroll', throttledScroll);
       <div class="section-title">Array.prototype.reduce</div>
 
       <div class="concept-card">
-        <h3>What reduce does</h3>
-        <p>Collapses an array down to <strong>one value</strong>. That value can be a number, string, object, or Map — anything. Unlike <code>map</code> (same length) or <code>filter</code> (shorter), reduce always returns a single thing.</p>
-        <p>Think of a cashier tallying a receipt: starts at $0, adds each item one by one, hands you one number at the end.</p>
+        <h3>Collapses an array to one value — number, object, Map, anything</h3>
         <div class="code-block"><pre><span class="cm">// reduce(callbackFn, initialValue)
-// Two levels:
-//   outer — reduce's own two args: the callback function + starting value
-//   inner — callback's own args:   accumulator + currentItem</span>
+// callback args: (accumulator, currentItem) — must return accumulator</span>
+const sum = [1,2,3,4].reduce((acc, item) => acc + item, 0);  <span class="cm">// 10</span>
 
-const result = array.reduce((accumulator, currentItem) => {
-  <span class="cm">// update accumulator using currentItem</span>
-  return accumulator;  <span class="cm">// ALWAYS return it, or next step gets undefined</span>
-}, startingValue);
+<span class="cm">// frequency map</span>
+const freq = fruits.reduce((acc, item) => {
+  acc[item] = (acc[item] ?? 0) + 1;
+  return acc;
+}, {});
 
-<span class="cm">// one-liner: arrow function with no braces = implicit return</span>
-const sum = [1,2,3,4].reduce((accumulator, item) => accumulator + item, 0);
-<span class="cm">// step by step: 0+1=1 → 1+2=3 → 3+3=6 → 6+4=10</span></pre></div>
+<span class="cm">// build a Map — Map is "one value"</span>
+const byId = vehicles.reduce((acc, v) => {
+  acc.set(v.id, v);
+  return acc;
+}, new Map());</pre></div>
+        <div class="gotcha">Always <code>return acc</code> inside the callback. Forgetting it means the next step gets <code>undefined</code>.</div>
         <div class="tags">
           <span class="tag">array</span>
           <span class="tag">functional</span>
           <span class="tag">high priority</span>
         </div>
       </div>
-
-      <div class="concept-card">
-        <h3>reduce to build a frequency map (plain object)</h3>
-        <p>One of the most common interview patterns. The accumulator starts as <code>{}</code> and gets built up key by key.</p>
-        <div class="code-block"><pre>const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];
-
-const freq = fruits.reduce((accumulator, item) => {
-  accumulator[item] = (accumulator[item] ?? 0) + 1;
-  return accumulator;  <span class="cm">// must return or next step gets undefined</span>
-}, {});
-
-<span class="cm">// { apple: 3, banana: 2, orange: 1 }</span></pre></div>
-        <div class="note">The accumulator starts as <code>{}</code> so the result is a plain object. Start with <code>new Map()</code> and use <code>.set()</code> instead if you need Map features.</div>
-      </div>
-
-      <div class="concept-card">
-        <h3>reduce to build a Map — Map is technically "one value"</h3>
-        <p>Map is a single object, so reduce is the right tool. Great for O(1) lookups by ID.</p>
-        <div class="code-block"><pre>const byId = vehicles.reduce((accumulator, vehicle) => {
-  accumulator.set(vehicle.id, vehicle);
-  return accumulator;
-}, new Map());
-
-byId.get('v1');  <span class="cm">// { id: 'v1', status: 'stopped' }</span></pre></div>
-      </div>
     </div>
 
-    <!-- map & filter callback signatures -->
+    <!-- map / filter / reduce signatures -->
     <div class="section">
       <div class="section-title">map, filter, reduce — callback signatures</div>
 
       <div class="concept-card">
         <h3>All three pass (value, index, array) to their callback</h3>
-        <p>The third argument — the original array — is almost never used. In practice just use <code>(item)</code> or <code>(item, index)</code>. Use <code>_</code> to signal "intentionally unused."</p>
-        <div class="code-block"><pre><span class="cm">// map(callback) — must return transformed value, same length output</span>
-array.map((currentItem, index) => { return <span class="cm">/* new value */</span>; });
-vehicles.map(vehicle => vehicle.id);  <span class="cm">// one-liner, implicit return</span>
+        <div class="code-block"><pre><span class="cm">// map — must return transformed value, same-length output</span>
+vehicles.map(v => v.id);
 
-<span class="cm">// filter(callback) — must return true/false, shorter or equal output</span>
-array.filter((currentItem, index) => { return <span class="cm">/* boolean */</span>; });
+<span class="cm">// filter — must return boolean, shorter or equal output</span>
 vehicles.filter(v => v.stationarySeconds > 300);
 
-<span class="cm">// third arg exists but almost never needed</span>
-arr.filter((item, index, array) => array.indexOf(item) === index); <span class="cm">// dedup</span>
+<span class="cm">// chaining — filter first (smaller array), then sort, then map</span>
+const result = vehicles
+  .filter(v => v.stationarySeconds > 300)
+  .sort((a, b) => b.stationarySeconds - a.stationarySeconds)
+  .map(v => v.id);
 
 <span class="cm">// _ convention — "I don't care about this parameter"</span>
-arr.findIndex((_, i) => Object.hasOwn(arr, i));</pre></div>
-        <div class="note">The original array is passed as a convenience in case you need to look back at the full array mid-callback. In practice <code>new Set(arr)</code> or other methods handle those edge cases more cleanly.</div>
+arr.map((_, index) => index * 2);</pre></div>
+        <div class="tags">
+          <span class="tag">map</span>
+          <span class="tag">filter</span>
+          <span class="tag">high priority</span>
+        </div>
       </div>
     </div>
 
@@ -655,21 +593,15 @@ arr.findIndex((_, i) => Object.hasOwn(arr, i));</pre></div>
 
       <div class="concept-card">
         <h3>Always use for...of. Avoid for...in on arrays.</h3>
-        <p><code>for...of</code> iterates <strong>values</strong>. <code>for...in</code> iterates <strong>keys</strong> — and on arrays those keys are string indices (<code>"0"</code>, <code>"1"</code>…), which is almost never what you want.</p>
-        <div class="code-block"><pre>const arr = [10, 20, 30];
+        <p><code>for...of</code> iterates <strong>values</strong>. <code>for...in</code> iterates <strong>keys</strong> — on arrays those keys are string indices (<code>"0"</code>, <code>"1"</code>…).</p>
+        <div class="code-block"><pre>for (const x of arr) console.log(x);   <span class="ok">// 10, 20, 30 ✓</span>
+for (const i in arr) console.log(i);   <span class="bad">// "0", "1", "2" — strings ✗</span>
 
-for (const x of arr) console.log(x);   <span class="ok">// 10, 20, 30  ← values ✓</span>
-for (const i in arr) console.log(i);   <span class="bad">// "0", "1", "2" ← string keys ✗</span>
+<span class="cm">// for plain objects — use Object.keys/values/entries</span>
+for (const [key, value] of Object.entries(freq)) { ... }
 
-<span class="cm">// for plain objects: Object.keys() preferred over for...in
-// (avoids inherited prototype keys)</span>
-for (const key of Object.keys(freq))            { ... }  <span class="ok">// keys only ✓</span>
-for (const value of Object.values(freq))        { ... }  <span class="cm">// values only</span>
-for (const [key, value] of Object.entries(freq)){ ... }  <span class="cm">// both</span>
-
-<span class="cm">// for Map — just use for...of directly</span>
+<span class="cm">// for Map — for...of directly</span>
 for (const [key, value] of myMap) { ... }</pre></div>
-        <div class="gotcha"><strong>Gotcha:</strong> <code>for...in</code> on objects <em>works</em> but can pick up inherited prototype keys. <code>Object.keys()</code> only returns the object's own keys — safer habit.</div>
         <div class="tags">
           <span class="tag">iteration</span>
           <span class="tag amber">gotcha</span>
@@ -679,7 +611,7 @@ for (const [key, value] of myMap) { ... }</pre></div>
 
     <!-- plain object vs Map -->
     <div class="section">
-      <div class="section-title">Plain object {} vs Map for frequency counting</div>
+      <div class="section-title">Plain object {} vs Map</div>
 
       <div class="concept-card">
         <h3>Which one to reach for</h3>
@@ -687,9 +619,9 @@ for (const [key, value] of myMap) { ... }</pre></div>
           <div class="compare-col pros">
             <h4>Plain object {}</h4>
             <ul>
-              <li>Simpler syntax, less to type</li>
+              <li>Simpler syntax</li>
               <li>Fine for string/number keys</li>
-              <li>Bracket notation works: <code>obj[key]</code></li>
+              <li>Bracket notation: <code>obj[key]</code></li>
             </ul>
           </div>
           <div class="compare-col cons">
@@ -697,135 +629,21 @@ for (const [key, value] of myMap) { ... }</pre></div>
             <ul>
               <li>Keys can be anything (objects, arrays)</li>
               <li>Numbers stay numbers — no coercion</li>
-              <li><code>.size</code> built in (no <code>Object.keys().length</code>)</li>
-              <li>Must use <code>.get(key)</code> — no bracket notation</li>
+              <li><code>.size</code> built in</li>
+              <li>Must use <code>.get(key)</code></li>
             </ul>
           </div>
         </div>
-        <div class="note"><strong>Interview default:</strong> plain object <code>{}</code> for string keys (chars, words). Reach for <code>Map</code> when keys are numbers you need to preserve, or when building an adjacency list.</div>
+        <div class="note"><strong>Interview default:</strong> plain object <code>{}</code> for string keys (chars, words). Reach for <code>Map</code> when keys are numbers you need to preserve, or for adjacency lists.</div>
         <div class="code-block"><pre><span class="cm">// plain object — keys always coerced to strings</span>
-const obj = {};
 obj[1] === obj["1"];  <span class="bad">// true — same key ✗</span>
 
 <span class="cm">// Map — numbers stay numbers</span>
-const mp = new Map();
-mp.set(1, 'a');
 mp.get(1) !== mp.get("1");  <span class="ok">// true — different keys ✓</span></pre></div>
       </div>
     </div>
 
-    <!-- Function.prototype.call -->
-    <div class="section">
-      <div class="section-title">Function.prototype.call</div>
-
-      <div class="concept-card">
-        <h3>call() sets what <code>this</code> is inside a function</h3>
-        <p>Every function has a <code>.call()</code> method. The first argument is <code>thisArg</code> — what <code>this</code> refers to inside the function. The rest are normal arguments.</p>
-        <div class="code-block"><pre>fn.call(thisArg, arg1, arg2, ...)
-<span class="cm">//      ↑ sets `this`  ↑ normal args start here</span>
-
-<span class="cm">// easy trap in a polyfill:</span>
-callbackFn.call(acc, curVal, i, this)
-<span class="cm">// ↑ this sets acc as `this` inside the callback
-//   curVal becomes the FIRST arg, not acc!
-//   the accumulator is never passed as a parameter</span>
-
-<span class="cm">// correct:</span>
-callbackFn(acc, curVal, i, this)           <span class="ok">// just call it directly ✓</span>
-callbackFn.call(undefined, acc, curVal, i, this)  <span class="ok">// explicit thisArg ✓</span></pre></div>
-        <div class="gotcha"><strong>Waymo relevance:</strong> low. Comes up in polyfill questions (implement <code>bind</code>, <code>debounce</code> with <code>this</code> preservation). File away — don't need to nail it for the TPS.</div>
-        <div class="tags">
-          <span class="tag purple">polyfills</span>
-          <span class="tag amber">low priority for Waymo</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- arguments.length -->
-    <div class="section">
-      <div class="section-title">Detecting optional parameters — arguments.length</div>
-
-      <div class="concept-card">
-        <h3>Use arguments.length to tell if a param was actually passed</h3>
-        <p>Checking <code>initialValue !== undefined</code> fails if someone explicitly passes <code>undefined</code>. <code>arguments.length</code> counts what was actually passed — even if the value is <code>undefined</code>.</p>
-        <div class="code-block"><pre><span class="cm">// ✗ breaks when called with myReduce(cb, undefined)</span>
-if (initialValue !== undefined) { ... }
-
-<span class="cm">// ✓ correct — arguments is a special object inside regular functions</span>
-if (arguments.length >= 2) {
-  acc = initialValue;   <span class="cm">// initialValue was explicitly provided</span>
-} else {
-  acc = this[0];        <span class="cm">// no initialValue — use first element</span>
-  startIndex = 1;
-}</span></pre></div>
-        <div class="note"><code>arguments</code> is only available in regular <code>function</code> declarations — not arrow functions. Arrow functions inherit <code>arguments</code> from their enclosing scope.</div>
-      </div>
-    </div>
-
-    <!-- findIndex -->
-    <div class="section">
-      <div class="section-title">findIndex and the _ convention</div>
-
-      <div class="concept-card">
-        <h3>findIndex returns -1 if nothing matches — useful as a guard</h3>
-        <p>Cleaner than a <code>while</code> loop + separate length check. Returns the index of the first element where the callback returns <code>true</code>, or <code>-1</code>.</p>
-        <div class="code-block"><pre><span class="cm">// find first non-sparse index in an array (for myReduce polyfill)</span>
-startIndex = this.findIndex((_, i) => Object.hasOwn(this, i));
-if (startIndex === -1) throw new TypeError('Reduce of empty array with no initial value');
-acc = this[startIndex];
-startIndex += 1;
-
-<span class="cm">// _ = "intentionally unused" — just the value, I only need the index
-// same pattern works in map, filter, reduce, forEach</span>
-arr.findIndex((_, index) => index > 2);
-arr.map((_, index) => index * 2);  <span class="cm">// array of doubled indices</span></pre></div>
-        <div class="tags">
-          <span class="tag">findIndex</span>
-          <span class="tag">convention</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- polyfills -->
-    <div class="section">
-      <div class="section-title">What is a polyfill?</div>
-
-      <div class="concept-card">
-        <h3>Reimplementing a built-in from scratch</h3>
-        <p>A polyfill recreates a native method — either to deeply understand how it works, or to support older browsers that don't have it. GFE has a whole track of these: implement <code>debounce</code>, <code>Promise.all</code>, <code>Array.prototype.map</code>, <code>Function.prototype.call</code>, etc.</p>
-        <div class="code-block"><pre><span class="cm">// the real built-in</span>
-[1, 2, 3].reduce((acc, x) => acc + x, 0);
-
-<span class="cm">// a polyfill — you implementing reduce yourself</span>
-Array.prototype.myReduce = function(callbackFn, initialValue) {
-  let acc;
-  let startIndex;
-
-  if (arguments.length >= 2) {
-    acc = initialValue;
-    startIndex = 0;
-  } else {
-    startIndex = this.findIndex((_, i) => Object.hasOwn(this, i));
-    if (startIndex === -1) throw new TypeError('Empty array with no initial value');
-    acc = this[startIndex++];
-  }
-
-  for (let i = startIndex; i < this.length; i++) {
-    if (Object.hasOwn(this, i)) {
-      acc = callbackFn(acc, this[i], i, this);
-    }
-  }
-  return acc;
-};</pre></div>
-        <div class="gotcha"><strong>Waymo relevance:</strong> low. Polyfills test deep JS knowledge but the TPS is focused on UI builds and fleet data manipulation. Good for GFE practice, not a priority right now.</div>
-        <div class="tags">
-          <span class="tag purple">polyfills</span>
-          <span class="tag amber">low priority for Waymo</span>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /day -->
+  </div><!-- /day June 25 -->
 </div><!-- /journal -->
 
 </body>
