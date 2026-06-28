@@ -314,6 +314,7 @@
     <a class="toc-sub" href="#list-rendering">List Rendering</a>
     <a class="toc-sub" href="#forms">Forms</a>
     <a class="toc-sub" href="#modal">Modal Patterns</a>
+    <a class="toc-sub" href="#usememo-usecallback">useMemo & useCallback</a>
 
     <hr class="toc-divider">
 
@@ -531,6 +532,40 @@ const [pendingDeleteId, setPendingDeleteId] = useState(null);
         <div class="note"><code>e.stopPropagation()</code> on the inner modal prevents clicks from bubbling up to the overlay and closing it accidentally.</div>
         <div class="tags"><span class="tag">modal</span><span class="tag">window.confirm</span></div>
       </div>
+
+      <div class="concept-card" id="usememo-usecallback">
+        <h3>useMemo vs useCallback — memoize values and functions</h3>
+        <p><code>useMemo</code> caches the <em>result</em> of a computation. <code>useCallback</code> caches a <em>function reference</em>. Both take a dependency array — recompute only when deps change.</p>
+        <div class="code-block"><pre><span class="cm">// useMemo — memoize a derived value (expensive compute, filtered list, etc.)</span>
+const filteredUsers = useMemo(
+  () => users.filter(u => u.name.includes(query)),
+  [users, query]   <span class="cm">// recompute when users or query changes</span>
+);
+
+<span class="cm">// useCallback — memoize a function reference (debounce, stable callback for child props)</span>
+const debouncedSearch = useCallback(
+  debounce((val) => setSearchQuery(val), 300),
+  []   <span class="cm">// [] = create once on mount, never recreate</span>
+);</pre></div>
+        <div class="compare">
+          <div class="compare-col pros">
+            <h4>useMemo</h4>
+            <ul>
+              <li>Returns a cached value</li>
+              <li>Use for expensive calcs, filtered/sorted arrays, derived objects</li>
+            </ul>
+          </div>
+          <div class="compare-col cons">
+            <h4>useCallback</h4>
+            <ul>
+              <li>Returns a cached function</li>
+              <li>Use when memoizing a function (debounce, stable prop callbacks)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="gotcha"><code>useMemo(() => fn, [])</code> and <code>useCallback(fn, [])</code> are equivalent — but <code>useCallback</code> signals intent more clearly when the result is a function. The <code>() =&gt;</code> wrapper in <code>useMemo</code> is always required — it's what useMemo calls to get the value. Without <code>[]</code>, the debounced function recreates every render and the timer resets on every keystroke.</div>
+        <div class="tags"><span class="tag">useMemo</span><span class="tag">useCallback</span><span class="tag">performance</span><span class="tag">debounce</span></div>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════════════ -->
@@ -727,7 +762,9 @@ input.addEventListener('input', (e) =&gt; debouncedSearch(e.target.value));</pre
             </ul>
           </div>
         </div>
-        <div class="tags"><span class="tag">debounce</span><span class="tag">throttle</span><span class="tag">high priority</span></div>
+        <div class="gotcha">Always wrap <code>debounce</code> in <code>useCallback</code> (or <code>useMemo</code>) with <code>[]</code>. Without it, a new debounced function is created on every render — each one has its own fresh timer, so the delay never fires correctly.<br><br>
+<code>const debouncedSearch = useCallback(debounce((val) =&gt; fetchResults(val), 300), []);</code></div>
+        <div class="tags"><span class="tag">debounce</span><span class="tag">throttle</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
       </div>
     </div>
 
@@ -889,7 +926,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
   // ── Scroll spy ──
   const tocIds = [
     'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching',
-    'react-components','hooks-rules','props','list-rendering','forms','modal',
+    'react-components','hooks-rules','props','list-rendering','forms','modal','usememo-usecallback',
     'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
