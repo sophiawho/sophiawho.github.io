@@ -315,6 +315,7 @@
     <a class="toc-sub" href="#forms">Forms</a>
     <a class="toc-sub" href="#modal">Modal Patterns</a>
     <a class="toc-sub" href="#usememo-usecallback">useMemo & useCallback</a>
+    <a class="toc-sub" href="#select-listbox">select & option (listbox)</a>
 
     <hr class="toc-divider">
 
@@ -464,6 +465,7 @@ const CellButton = ({ value, onClick }) => {
   const [isHovered, setIsHovered] = useState(false); <span class="ok">// valid</span>
   return &lt;button onClick={onClick}&gt;{value}&lt;/button&gt;;
 };</pre></div>
+        <div class="note">Always declare all hooks (<code>useState</code>, <code>useCallback</code>, <code>useMemo</code>, etc.) at the top of the component, before any derived values or handlers. This makes the hook order consistent across renders (required by React) and keeps the component easy to scan.</div>
         <div class="tags"><span class="tag amber">gotcha</span><span class="tag">hooks</span><span class="tag">high priority</span></div>
       </div>
 
@@ -531,6 +533,26 @@ const [pendingDeleteId, setPendingDeleteId] = useState(null);
 )}</pre></div>
         <div class="note"><code>e.stopPropagation()</code> on the inner modal prevents clicks from bubbling up to the overlay and closing it accidentally.</div>
         <div class="tags"><span class="tag">modal</span><span class="tag">window.confirm</span></div>
+      </div>
+
+      <div class="concept-card" id="select-listbox">
+        <h3>&lt;select size={'{n}'}&gt; renders a listbox — children must be &lt;option&gt;</h3>
+        <p>Without <code>size</code>, <code>&lt;select&gt;</code> is a dropdown. Setting <code>size={'{5}'}</code> makes it a visible listbox showing 5 rows. Only one item can be selected by default (add <code>multiple</code> for multi-select).</p>
+        <div class="code-block"><pre><span class="cm">// controlled listbox — value must match an option's value</span>
+&lt;select
+  size={5}
+  value={selectedId ?? ""}
+  onChange={(e) => setSelectedId(e.target.value)}
+&gt;
+  &lt;option value=""&gt;-- select a user --&lt;/option&gt;  <span class="cm">// placeholder required (see gotcha)</span>
+  {users.map(user =&gt; (
+    &lt;option key={user.id} value={user.id}&gt;  <span class="cm">// must be option, not div</span>
+      {user.first} {user.last}
+    &lt;/option&gt;
+  ))}
+&lt;/select&gt;</pre></div>
+        <div class="gotcha"><strong>Cancel-then-reselect bug:</strong> when <code>selectedId</code> becomes <code>null</code>, <code>value=""</code> matches nothing in the DOM. The browser must always track one item as "active" — it's not optional — so it falls back to highlighting the first option internally. That's the DOM's own tracking, not React's state. Clicking the first item then looks like "nothing changed" to the browser, so <code>onChange</code> never fires.<br><br>Fix: add a <code>&lt;option value=""&gt;</code> placeholder. Now <code>value=""</code> matches a real option, React fully owns the selection, and clicking any user is a genuine change from <code>""</code> to a UUID.</div>
+        <div class="tags"><span class="tag">select</span><span class="tag">listbox</span><span class="tag amber">gotcha</span><span class="tag">forms</span></div>
       </div>
 
       <div class="concept-card" id="usememo-usecallback">
@@ -926,7 +948,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
   // ── Scroll spy ──
   const tocIds = [
     'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching',
-    'react-components','hooks-rules','props','list-rendering','forms','modal','usememo-usecallback',
+    'react-components','hooks-rules','props','list-rendering','forms','modal','select-listbox','usememo-usecallback',
     'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
