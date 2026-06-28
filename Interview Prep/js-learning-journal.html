@@ -340,6 +340,7 @@
 
     <a class="toc-section" href="#html-css">HTML / CSS</a>
     <a class="toc-sub" href="#css-cheatsheet">Cheat Sheet</a>
+    <a class="toc-sub" href="#css-grid">Grid</a>
     <a class="toc-sub" href="#inline-vs-file">Inline vs File</a>
     <a class="toc-sub" href="#lists">Lists</a>
   </nav>
@@ -789,6 +790,49 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
         <div class="tags"><span class="tag">CSS</span><span class="tag">high priority</span></div>
       </div>
 
+      <div class="concept-card" id="css-grid">
+        <h3>CSS Grid — 2D layouts, boards, card grids</h3>
+        <p>Apply to the parent. Children auto-place left-to-right, wrapping to the next row. Perfect for tic tac toe — a flat array of 9 cells becomes a 3×3 board with no row divs needed.</p>
+        <div class="code-block"><pre><span class="cm">/* 3×3 fixed board */</span>
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);  <span class="cm">// 3 cols, 80px each</span>
+  grid-template-rows: repeat(3, 80px);     <span class="cm">// 3 rows, 80px each</span>
+  gap: 4px;
+}
+
+<span class="cm">/* responsive card grid — fills available width */</span>
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);   <span class="cm">// 1fr = 1 fraction of remaining space</span>
+  gap: 16px;
+}
+
+<span class="cm">// JSX — flat array, no row divs needed</span>
+&lt;div className="board"&gt;
+  {board.map((mark, i) =&gt; &lt;Cell key={i} mark={mark} /&gt;)}
+&lt;/div&gt;</pre></div>
+        <div class="compare">
+          <div class="compare-col pros">
+            <h4>Use Grid when</h4>
+            <ul>
+              <li>2D layout — rows AND columns</li>
+              <li>Fixed cell sizes (boards, calendars)</li>
+              <li>Card/tile grids</li>
+            </ul>
+          </div>
+          <div class="compare-col cons">
+            <h4>Use Flexbox when</h4>
+            <ul>
+              <li>1D layout — a row of buttons or a column of items</li>
+              <li>Content-driven sizing</li>
+              <li>Centering a single element</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tags"><span class="tag">grid</span><span class="tag">high priority</span></div>
+      </div>
+
       <div class="concept-card" id="inline-vs-file">
         <h3>Inline style vs CSS file</h3>
         <p>In React, inline styles use camelCase keys and string values. CSS files use kebab-case and no quotes. In interviews on CoderPad (single file), inline is faster and totally fine.</p>
@@ -849,7 +893,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
     'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
-    'html-css','css-cheatsheet','inline-vs-file','lists'
+    'html-css','css-cheatsheet','css-grid','inline-vs-file','lists'
   ];
 
   const tocLinks = {};
