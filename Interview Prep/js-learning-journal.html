@@ -10,7 +10,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #e8f0fe;
+      background: #f0f4ff;
       color: #2c1f14;
       min-height: 100vh;
     }
@@ -315,6 +315,7 @@
     <a class="toc-sub" href="#list-rendering">List Rendering</a>
     <a class="toc-sub" href="#forms">Forms</a>
     <a class="toc-sub" href="#modal">Modal Patterns</a>
+    <a class="toc-sub" href="#form-intent">Form Intents</a>
     <a class="toc-sub" href="#usememo-usecallback">useMemo & useCallback</a>
     <a class="toc-sub" href="#select-listbox">select & option (listbox)</a>
 
@@ -376,7 +377,12 @@
         <div class="code-block"><pre><span class="cm">// value in curly braces (not quotes), onChange updates state</span>
 const [text, setText] = useState("");
 &lt;input type="text" value={text} onChange={(e) => setText(e.target.value)} /&gt;</pre></div>
-        <div class="gotcha"><code>for</code> is a reserved JS word — React renames it to <code>htmlFor</code>. <code>&lt;input /&gt;</code> is self-closing (void element, can never have children).</div>
+        <div class="gotcha"><code>for</code> is a reserved JS word — React renames it to <code>htmlFor</code>. <code>&lt;input /&gt;</code> is self-closing (void element, can never have children).<br><br>
+Two valid ways to associate a label with an input:<br>
+<strong>Wrapping</strong> (implicit) — cleaner, no id needed, good for interviews:<br>
+<code>&lt;label&gt;First Name: &lt;input value={first} onChange={...} /&gt;&lt;/label&gt;</code><br><br>
+<strong>htmlFor/id</strong> (explicit) — use when label and input are far apart in the DOM or need independent styling:<br>
+<code>&lt;label htmlFor="first"&gt;First Name&lt;/label&gt; &lt;input id="first" ... /&gt;</code></div>
         <div class="tags"><span class="tag">controlled input</span><span class="tag">JSX</span><span class="tag">high priority</span></div>
       </div>
 
@@ -519,7 +525,51 @@ const CellButton = ({ value, hoveredValue, onClick }) => {
   &lt;button type="submit"&gt;Submit&lt;/button&gt;
 &lt;/form&gt;</pre></div>
         <div class="note">The form wraps all related inputs. Each input still manages its own state. <code>type="submit"</code> on the button triggers <code>onSubmit</code>; <code>type="button"</code> does not.</div>
+        <div class="gotcha"><strong>Always call <code>e.preventDefault()</code> first.</strong> Without it the browser reloads the page on submit, blowing away all React state. Make it the first line of every <code>onSubmit</code> handler — forgetting it in an interview is immediately visible.</div>
         <div class="tags"><span class="tag">forms</span><span class="tag">onSubmit</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="form-intent">
+        <h3>Single form with button intents — one onSubmit handler for all actions</h3>
+        <p>Instead of separate <code>onClick</code> handlers per button, wrap everything in one <code>&lt;form&gt;</code> and use <code>name="intent"</code> on each button to identify which action was triggered. <code>event.nativeEvent.submitter</code> is the specific button clicked — passing it to <code>FormData</code> includes it in the form data.</p>
+        <div class="code-block"><pre><span class="cm">// buttons declare their intent via name + value</span>
+&lt;form onSubmit={onSubmit}&gt;
+  &lt;button name="intent" value="create" disabled={!canCreate}&gt;Create&lt;/button&gt;
+  &lt;button name="intent" value="update" disabled={!canUpdate}&gt;Update&lt;/button&gt;
+  &lt;button name="intent" value="delete" disabled={!hasSelected}&gt;Delete&lt;/button&gt;
+&lt;/form&gt;
+
+function onSubmit(e) {
+  e.preventDefault();
+  <span class="cm">// submitter = the button that was clicked</span>
+  const formData = new FormData(e.target, e.nativeEvent.submitter);
+  const intent = formData.get('intent'); <span class="cm">// "create" | "update" | "delete"</span>
+
+  switch (intent) {
+    case 'create': create(); break;
+    case 'update': update(); break;
+    case 'delete': del();    break;
+    default: throw new Error(`Invalid intent: ${intent}`);
+  }
+}</pre></div>
+        <div class="note">Enter submits to the first <em>enabled</em> button. Since <code>canCreate</code> and <code>canUpdate</code> are mutually exclusive (can't have both true at once), Enter always hits the right action without extra logic.</div>
+        <div class="compare">
+          <div class="compare-col pros">
+            <h4>Single form + intents</h4>
+            <ul>
+              <li>One handler, less repetition</li>
+              <li>Enter key works correctly for free</li>
+            </ul>
+          </div>
+          <div class="compare-col cons">
+            <h4>Separate onClick handlers</h4>
+            <ul>
+              <li>More explicit, easier to follow</li>
+              <li>No switch/intent pattern to explain</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tags"><span class="tag">forms</span><span class="tag">onSubmit</span><span class="tag">FormData</span></div>
       </div>
 
       <div class="concept-card" id="modal">
@@ -960,7 +1010,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
   // ── Scroll spy ──
   const tocIds = [
     'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching',
-    'react-components','hooks-rules','props','list-rendering','forms','modal','select-listbox','usememo-usecallback',
+    'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback',
     'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
