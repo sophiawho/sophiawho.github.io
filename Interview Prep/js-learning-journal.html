@@ -338,6 +338,7 @@
     <a class="toc-section" href="#async">Async & Timing</a>
     <a class="toc-sub" href="#event-loop">Event Loop</a>
     <a class="toc-sub" href="#settimeout">setTimeout</a>
+    <a class="toc-sub" href="#useeffect-cleanup">useEffect Cleanup</a>
     <a class="toc-sub" href="#debounce-throttle">Debounce & Throttle</a>
 
     <hr class="toc-divider">
@@ -820,6 +821,28 @@ timeoutId.current = setTimeout(() =&gt; {
 const timeoutId = useRef(null);
 clearTimeout(timeoutId.current);  <span class="cm">// in resetGame()</span></pre></div>
         <div class="tags"><span class="tag">setTimeout</span><span class="tag">useRef</span><span class="tag amber">gotcha</span></div>
+      </div>
+
+      <div class="concept-card" id="useeffect-cleanup">
+        <h3>useEffect cleanup — return a function, don't call it inline</h3>
+        <p>Most effects don't need cleanup. But when you set up a timer, subscription, or event listener, React needs to know how to tear it down. Return a function — React will call it when the dependency changes or the component unmounts.</p>
+        <div class="code-block"><pre><span class="cm">// ✗ Wrong — clearTimeout runs immediately, cancelling the timer you just set</span>
+useEffect(() =&gt; {
+  const timer = setTimeout(..., 1000);
+  clearTimeout(timer);  <span class="bad">// fires right now, not on cleanup</span>
+}, [currentColor]);
+
+<span class="cm">// ✓ Correct — return a function; React calls it later at cleanup time</span>
+useEffect(() =&gt; {
+  const timer = setTimeout(() =&gt; {
+    setCurrentColor(getNextColor());
+  }, TRAFFIC_LIGHT_CONFIG[currentColor].duration);
+
+  return () =&gt; clearTimeout(timer);  <span class="ok">// React runs this when currentColor changes or component unmounts</span>
+}, [currentColor]);</pre></div>
+        <div class="note">React runs the cleanup in two cases: (1) before the effect re-runs because a dependency changed, and (2) when the component is removed from the DOM (unmount). This guarantees only one timer is active at a time.</div>
+        <div class="gotcha"><strong>When does a component unmount?</strong> When it's removed from the DOM — e.g. conditional rendering (<code>{show &amp;&amp; &lt;TrafficLight /&gt;}</code> flips false), navigating to a different route, or the parent stops rendering it. You don't detect this yourself; returning a cleanup function is enough.</div>
+        <div class="tags"><span class="tag">useEffect</span><span class="tag">setTimeout</span><span class="tag">cleanup</span><span class="tag amber">gotcha</span></div>
       </div>
 
       <div class="concept-card" id="debounce-throttle">
