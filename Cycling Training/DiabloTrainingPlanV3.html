@@ -220,7 +220,25 @@
     padding: 20px 24px 16px 28px;
     border-bottom: 1px solid var(--rule);
     background: var(--paper-dark);
+    cursor: pointer;
+    user-select: none;
   }
+
+  .phase-card-header:hover { background: #e6e0d0; }
+
+  .phase-collapse-toggle {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-left: 20px;
+    flex-shrink: 0;
+    align-self: center;
+    white-space: nowrap;
+  }
+  .phase-card.collapsed .phase-card-body { display: none; }
+  .phase-card.collapsed .phase-card-header { border-bottom: none; }
 
   .phase-card-title {
     font-family: 'Playfair Display', serif;
@@ -804,8 +822,8 @@
     <div class="phases-grid">
 
       <!-- REBUILD -->
-      <div class="phase-card">
-        <div class="phase-card-header">
+      <div class="phase-card collapsed">
+        <div class="phase-card-header" onclick="togglePhase(this)" >
           <div>
             <div class="phase-card-title">Phase 1 — <span>Rebuild</span>
               <span class="ftp-ref">FTP ~250W</span>
@@ -822,6 +840,7 @@
               <div class="phase-meta-label">Hours / Week</div>
             </div>
           </div>
+          <div class="phase-collapse-toggle">show ▾</div>
         </div>
         <div class="phase-card-body">
           <div class="session-block">
@@ -851,7 +870,7 @@
 
       <!-- BUILD 1 -->
       <div class="phase-card">
-        <div class="phase-card-header">
+        <div class="phase-card-header" onclick="togglePhase(this)">
           <div>
             <div class="phase-card-title">Phase 2 — <span>Build 1</span>
               <span class="ftp-ref">FTP ~252–255W</span>
@@ -870,6 +889,7 @@
               <div class="phase-meta-sub">rec: 8h</div>
             </div>
           </div>
+          <div class="phase-collapse-toggle">collapse ▴</div>
         </div>
         <div class="phase-card-body">
           <div class="session-block">
@@ -907,7 +927,7 @@
 
       <!-- BUILD 2 -->
       <div class="phase-card">
-        <div class="phase-card-header">
+        <div class="phase-card-header" onclick="togglePhase(this)">
           <div>
             <div class="phase-card-title">Phase 3 — <span>Build 2</span>
               <span class="ftp-ref">FTP ~255–260W</span>
@@ -926,6 +946,7 @@
               <div class="phase-meta-sub">rec: 9h</div>
             </div>
           </div>
+          <div class="phase-collapse-toggle">collapse ▴</div>
         </div>
         <div class="phase-card-body">
           <div class="session-block">
@@ -963,7 +984,7 @@
 
       <!-- SHARPENING -->
       <div class="phase-card">
-        <div class="phase-card-header">
+        <div class="phase-card-header" onclick="togglePhase(this)">
           <div>
             <div class="phase-card-title">Phase 4 — <span>Sharpening</span>
               <span class="ftp-ref">FTP ~260–265W</span>
@@ -982,6 +1003,7 @@
               <div class="phase-meta-sub">rec: 8h</div>
             </div>
           </div>
+          <div class="phase-collapse-toggle">collapse ▴</div>
         </div>
         <div class="phase-card-body">
           <div class="session-block">
@@ -1148,5 +1170,13 @@
   <div class="footer-text">UPDATED JUN 2026</div>
 </div>
 
+<script>
+  function togglePhase(header) {
+    const card = header.closest('.phase-card');
+    const toggle = header.querySelector('.phase-collapse-toggle');
+    card.classList.toggle('collapsed');
+    toggle.textContent = card.classList.contains('collapsed') ? 'show ▾' : 'collapse ▴';
+  }
+</script>
 </body>
 </html>
