@@ -306,6 +306,7 @@
     <a class="toc-sub" href="#stale-state">Stale State</a>
     <a class="toc-sub" href="#derived-state">Derive Don't Store</a>
     <a class="toc-sub" href="#batching">Batching</a>
+    <a class="toc-sub" href="#usereducer">useReducer</a>
 
     <hr class="toc-divider">
 
@@ -325,6 +326,7 @@
     <a class="toc-sub" href="#object-vs-map">Object vs Map</a>
     <a class="toc-sub" href="#destructuring">Destructuring</a>
     <a class="toc-sub" href="#iteration">Iteration</a>
+    <a class="toc-sub" href="#locale-compare">localeCompare</a>
     <a class="toc-sub" href="#typescript">TypeScript</a>
 
     <hr class="toc-divider">
@@ -461,6 +463,29 @@ setIsXTurn(!isXTurn);    <span class="cm">// doesn't re-render yet</span>
 setWinner(playerName);   <span class="cm">// doesn't re-render yet</span>
                          <span class="cm">// → ONE re-render here with all updates applied</span></pre></div>
         <div class="tags"><span class="tag">batching</span><span class="tag">re-render</span></div>
+      </div>
+
+      <div class="concept-card" id="usereducer">
+        <h3>useReducer — one pure function owns all state transitions</h3>
+        <p>Same power as <code>useState</code>, but the update logic lives in one pure <code>reducer(state, action)</code> function instead of scattered <code>set</code> calls. The component just <code>dispatch</code>es an action describing what happened — the reducer decides the next state. Reach for it when the next state depends on the previous one, there are several distinct actions, or you want the logic testable in isolation. A single toggle doesn't need it — say so if asked.</p>
+        <div class="code-block"><pre><span class="cm">// simplest possible example — a counter</span>
+function reducer(count, action) {
+  switch (action.type) {
+    case "INC": return count + 1;
+    case "DEC": return count - 1;
+    case "RESET": return 0;
+    default: return count;          <span class="cm">// unknown action → no change</span>
+  }
+}
+
+const [count, dispatch] = useReducer(reducer, 0);  <span class="cm">// 2 args: reducer, initial state</span>
+
+&lt;button onClick={() =&gt; dispatch({ type: "INC" })}&gt;+&lt;/button&gt;   <span class="cm">// fire an action</span>
+&lt;button onClick={() =&gt; dispatch({ type: "RESET" })}&gt;reset&lt;/button&gt;</pre></div>
+        <div class="note">Data flow is one direction: click → <code>dispatch(action)</code> → React runs <code>reducer(state, action)</code> → new state → re-render. The child stays dumb, all rules live in the reducer. An <strong>action</strong> is just a plain object describing what happened, conventionally <code>{ type, ...payload }</code>.</div>
+        <div class="gotcha"><strong>The reducer must be pure.</strong> Return a NEW object/array, never mutate the old state (<code>cells[r][c] = x; return cells</code> returns the same reference so React may skip the re-render). No API calls, no <code>Math.random</code>, no side effects inside it — those belong in handlers or effects.</div>
+        <div class="gotcha"><strong>Optional 3rd argument = lazy init.</strong> <code>useReducer(reducer, undefined, makeInitial)</code> calls <code>makeInitial(undefined)</code> once on mount instead of rebuilding initial state every render. Note you pass the function itself (no parens), React calls it. For cheap state just use the 2-arg form and pass the value directly: <code>useReducer(reducer, makeInitial())</code>.</div>
+        <div class="tags"><span class="tag">useReducer</span><span class="tag">state</span><span class="tag">dispatch</span><span class="tag">high priority</span></div>
       </div>
     </div>
 
@@ -714,6 +739,26 @@ for (const [key, val] of Object.entries(obj)) { ... }
 <span class="cm">// Map — for...of directly</span>
 for (const [key, val] of myMap) { ... }</pre></div>
         <div class="tags"><span class="tag amber">gotcha</span><span class="tag">iteration</span></div>
+      </div>
+
+      <div class="concept-card" id="locale-compare">
+        <h3>localeCompare — alphabetical string sorting</h3>
+        <p>Use <code>a.localeCompare(b)</code> inside <code>.sort()</code> for alphabetical order. Returns negative, zero, or positive — same contract as any sort comparator.</p>
+        <div class="code-block"><pre><span class="cm">// sort strings alphabetically</span>
+arr.sort((a, b) => a.localeCompare(b));
+
+<span class="cm">// sort objects by name</span>
+items.sort((a, b) => a.name.localeCompare(b.name));
+
+<span class="cm">// combine with category sort — directories before files, then alpha</span>
+files.sort((a, b) => {
+  const aIsDir = !!a.children;
+  const bIsDir = !!b.children;
+  if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
+  return a.name.localeCompare(b.name);
+});</pre></div>
+        <div class="note">Don't use <code>a &gt; b ? 1 : -1</code> for strings — it's less reliable across locales and special characters. <code>localeCompare</code> handles accents, case, and language rules correctly.</div>
+        <div class="tags"><span class="tag">sorting</span><span class="tag">strings</span></div>
       </div>
 
       <div class="concept-card" id="typescript">
@@ -1032,7 +1077,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
 <script>
   // ── Scroll spy ──
   const tocIds = [
-    'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching',
+    'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching','usereducer',
     'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback',
     'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
