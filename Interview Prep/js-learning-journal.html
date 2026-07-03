@@ -318,6 +318,7 @@
     <a class="toc-sub" href="#modal">Modal Patterns</a>
     <a class="toc-sub" href="#form-intent">Form Intents</a>
     <a class="toc-sub" href="#usememo-usecallback">useMemo & useCallback</a>
+    <a class="toc-sub" href="#react-memo">React.memo</a>
     <a class="toc-sub" href="#select-listbox">select & option (listbox)</a>
 
     <hr class="toc-divider">
@@ -483,9 +484,16 @@ const [count, dispatch] = useReducer(reducer, 0);  <span class="cm">// 2 args: r
 
 &lt;button onClick={() =&gt; dispatch({ type: "INC" })}&gt;+&lt;/button&gt;   <span class="cm">// fire an action</span>
 &lt;button onClick={() =&gt; dispatch({ type: "RESET" })}&gt;reset&lt;/button&gt;</pre></div>
-        <div class="note">Data flow is one direction: click → <code>dispatch(action)</code> → React runs <code>reducer(state, action)</code> → new state → re-render. The child stays dumb, all rules live in the reducer. An <strong>action</strong> is just a plain object describing what happened, conventionally <code>{ type, ...payload }</code>.</div>
+        <div class="note">Data flow is one direction: click → <code>dispatch(action)</code> → React runs <code>reducer(state, action)</code> → new state → re-render. The child stays dumb, all rules live in the reducer.</div>
+        <div class="gotcha"><strong>Always dispatch an OBJECT with a <code>type</code>.</strong> <code>dispatch({ type: "CYCLE_CELL", r, c })</code>, not <code>dispatch("CYCLE_CELL")</code>. That object IS the action the reducer gets as its 2nd arg — put whatever payload the reducer needs right on it (<code>r</code>, <code>c</code>, ids, values) and read them back with <code>const { r, c } = action</code>. Convention is <code>{ type, ...payload }</code>.</div>
         <div class="gotcha"><strong>The reducer must be pure.</strong> Return a NEW object/array, never mutate the old state (<code>cells[r][c] = x; return cells</code> returns the same reference so React may skip the re-render). No API calls, no <code>Math.random</code>, no side effects inside it — those belong in handlers or effects.</div>
-        <div class="gotcha"><strong>Optional 3rd argument = lazy init.</strong> <code>useReducer(reducer, undefined, makeInitial)</code> calls <code>makeInitial(undefined)</code> once on mount instead of rebuilding initial state every render. Note you pass the function itself (no parens), React calls it. For cheap state just use the 2-arg form and pass the value directly: <code>useReducer(reducer, makeInitial())</code>.</div>
+        <div class="code-block"><pre><span class="cm">// 2 args — YOU call the function, React uses the returned value as initial state</span>
+useReducer(reducer, makeInitial());   <span class="cm">// runs every render, result only used on the 1st</span>
+
+<span class="cm">// 3 args (lazy) — you pass the function ITSELF (no parens); React calls it once on mount</span>
+useReducer(reducer, undefined, makeInitial);  <span class="cm">// React runs makeInitial(undefined)</span>
+<span class="cm">//                  ↑ 2nd arg is the input to makeInitial; unused here, so undefined</span></pre></div>
+        <div class="gotcha"><strong>3rd argument = lazy init.</strong> Pass the init function <em>directly</em> (no <code>()</code>) and React calls it once on mount, lazily building the initial state instead of rebuilding it every render. The tell: 2-arg form you write <code>makeInitial()</code> (you call it), lazy form you write <code>makeInitial</code> (React calls it). For cheap state the 2-arg form is fine — reach for lazy init only when building initial state is expensive.</div>
         <div class="tags"><span class="tag">useReducer</span><span class="tag">state</span><span class="tag">dispatch</span><span class="tag">high priority</span></div>
       </div>
     </div>
@@ -676,6 +684,17 @@ const debouncedSearch = useCallback(
         </div>
         <div class="gotcha"><code>useMemo(() => fn, [])</code> and <code>useCallback(fn, [])</code> are equivalent — but <code>useCallback</code> signals intent more clearly when the result is a function. The <code>() =&gt;</code> wrapper in <code>useMemo</code> is always required — it's what useMemo calls to get the value. Without <code>[]</code>, the debounced function recreates every render and the timer resets on every keystroke.</div>
         <div class="tags"><span class="tag">useMemo</span><span class="tag">useCallback</span><span class="tag">performance</span><span class="tag">debounce</span></div>
+      </div>
+
+      <div class="concept-card" id="react-memo">
+        <h3>React.memo — skip re-rendering a child when its props haven't changed</h3>
+        <p>By default a child re-renders whenever its parent does, even if its props are identical. Wrapping the component in <code>memo</code> makes React shallow-compare props and reuse the last render when they all match. Big win for many small children — clicking one cell of a 100-cell board re-renders only that cell, not all 100.</p>
+        <div class="code-block"><pre>const Cell = memo(function Cell({ r, c, state, onClick }) {
+  return &lt;button onClick={() =&gt; onClick(r, c)}&gt;...&lt;/button&gt;;
+});</pre></div>
+        <div class="gotcha"><strong>memo compares props with <code>===</code> (shallow).</strong> Primitives (<code>state</code>, <code>r</code>) compare by value and pass. Functions and objects compare by REFERENCE — a fresh one each render fails the check and defeats memo. So <strong>any function passed as a prop must be wrapped in <code>useCallback</code></strong> (and objects/arrays in <code>useMemo</code>), or memo does nothing.<br><br><code>const onClick = useCallback((r, c) =&gt; dispatch({ type: "CYCLE_CELL", r, c }), []);</code></div>
+        <div class="note">Three related tools: <code>useMemo</code> caches a value, <code>useCallback</code> caches a function reference, <code>memo</code> caches a component's render. The first two are hooks called inside a component; <code>memo</code> wraps a component from the outside. Pair <code>memo</code> on the child with <code>useCallback</code> for its function props.</div>
+        <div class="tags"><span class="tag">memo</span><span class="tag">useCallback</span><span class="tag">re-render</span><span class="tag">high priority</span></div>
       </div>
     </div>
 
@@ -1108,7 +1127,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
   // ── Scroll spy ──
   const tocIds = [
     'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching','usereducer',
-    'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback',
+    'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback','react-memo',
     'js-fundamentals','object-vs-map','destructuring','computed-keys','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
