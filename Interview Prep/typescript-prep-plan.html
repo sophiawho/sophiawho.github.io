@@ -827,6 +827,14 @@
       <div class="phase-label">Before the call</div>
       <h2>Confirm with the recruiter</h2>
       <p>Ask directly: which round tests UI-building vs. DSA-in-JS (or both, per the guide), what coding environment they use (CoderPad, CodeSandbox, shared doc), and whether vanilla JS is genuinely fine or if they lean toward seeing a framework.</p>
+
+      <div class="gotcha-box" style="margin-top:16px">
+        <strong>CoderPad React pad — two quirks to expect (Waymo uses CoderPad):</strong>
+        <br><br>
+        <strong>1. No code formatter for JSX/TSX.</strong> "Format Document" throws <em>"no formatter for typescriptreact/javascriptreact"</em>, and renaming <code>.tsx</code> → <code>.jsx</code> → <code>.js</code> does NOT fix it — any file containing JSX is a React language mode with no Prettier wired in. Don't burn interview time chasing it. Keep <a href="https://prettier.io/playground" target="_blank">prettier.io/playground</a> open in a tab as a paste-in/paste-back fallback, or just indent cleanly as you type (Monaco auto-indents on newlines and braces). Interviewers don't dock you for imperfect spacing.
+        <br><br>
+        <strong>2. Type squiggles don't block running.</strong> The pad runs via Vite/esbuild, which STRIPS types without type-checking, so red TS squiggles are cosmetic — the preview still renders. To write plain untyped JS in a <code>.tsx</code> file with zero noise, put <code>// @ts-nocheck</code> as the first line of the file. Alternatives: use a <code>.jsx</code> file, or add <code>: any</code> to the few flagged params. TS also infers most types, so only untyped function params (e.g. destructured props) tend to complain.
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════ -->
