@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Interview Playbook</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:14.5px;margin-top:4px;max-width:660px}
+  .tag{background:var(--card2);border:1px solid var(--line);color:var(--accent2);
+    padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 17px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .card.b::before{background:var(--accent2)} .card.c::before{background:var(--pink)}
+  .card.d::before{background:var(--warn)}
+  .step{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .num{width:27px;height:27px;border-radius:7px;background:var(--card2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--accent)}
+  .card.b .num{color:var(--accent2)} .card.c .num{color:var(--pink)} .card.d .num{color:var(--warn)}
+  .ct{font-size:16px;font-weight:700}
+  .say{font-size:13px;color:var(--muted);font-style:italic;margin-top:2px}
+  ul{list-style:none;margin-top:4px}
+  li{position:relative;padding-left:15px;margin:6px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent);font-weight:800}
+  .card.b li::before{color:var(--accent2)} .card.c li::before{color:var(--pink)} .card.d li::before{color:var(--warn)}
+  li b{color:var(--ink)}
+  .row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px;color:#374357}
+  .chip b{color:var(--warn)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--accent)}
+  .flags li::before{content:"⚑";color:var(--pink)}
+  .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:16px}
+  .kbd{color:var(--muted);font-size:13px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>The Coding Interview <span>Playbook</span></h1>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 1 -->
+    <div class="card">
+      <div class="step"><div class="num">1</div><div><div class="ct">Clarify the inputs</div></div></div>
+      <div class="say">"Before I start, can I ask a few questions about the input?"</div>
+      <ul>
+        <li><b>Type & shape:</b> array, string, tree, graph? Nested? Sorted?</li>
+        <li><b>Size / range:</b> how big is <code>n</code>? Hints at target complexity.</li>
+        <li><b>Value bounds:</b> negatives, zero, duplicates, empty, null?</li>
+        <li><b>Characters/encoding:</b> ASCII vs unicode, case sensitivity, whitespace.</li>
+        <li><b>Output:</b> return value vs mutate in place? Any specific format?</li>
+        <li><b>Guarantees:</b> is a solution always valid? Ties broken how?</li>
+      </ul>
+    </div>
+
+    <!-- 2 -->
+    <div class="card b">
+      <div class="step"><div class="num">2</div><div><div class="ct">Restate + walk an example</div></div></div>
+      <div class="say">"So given X, I should return Y — is that right?"</div>
+      <ul>
+        <li>Repeat the problem in <b>your own words</b> to confirm understanding.</li>
+        <li>Trace one <b>normal example</b> by hand to lock in the mapping.</li>
+        <li>List edge cases <b>now</b> (empty, single element, all same, huge).</li>
+        <li>Write them as pending test cases so you don't forget to check them.</li>
+      </ul>
+    </div>
+
+    <!-- 3 -->
+    <div class="card c">
+      <div class="step"><div class="num">3</div><div><div class="ct">Outline the solution</div></div></div>
+      <div class="say">"Here's my plan — let me know if you see an issue before I code."</div>
+      <ul>
+        <li>State the <b>approach in plain English</b> before any syntax.</li>
+        <li>Name the data structure & why (hash map for O(1) lookup, etc.).</li>
+        <li>Mention the brute force, then the optimization you'll actually write.</li>
+        <li><b>Get a nod</b> from the interviewer — course-correct cheaply here, not after 30 lines.</li>
+      </ul>
+    </div>
+
+    <!-- 4 -->
+    <div class="card d">
+      <div class="step"><div class="num">4</div><div><div class="ct">State time & space</div></div></div>
+      <div class="say">"This is O(n) time, O(n) space — the map dominates."</div>
+      <ul>
+        <li>Give <b>Big-O for time and space</b> before coding, then reconfirm after.</li>
+        <li>Tie it to <code>n</code>: does it match the input size they hinted at?</li>
+        <li>Call out the trade-off you chose (speed vs memory vs simplicity).</li>
+        <li>If it's not optimal, say so and note what a better bound would take.</li>
+      </ul>
+    </div>
+
+    <!-- 5 -->
+    <div class="card">
+      <div class="step"><div class="num">5</div><div><div class="ct">Code — clean & out loud</div></div></div>
+      <div class="say">"I'll pull the dedupe into a helper so it's easy to test."</div>
+      <ul>
+        <li><b>Narrate as you type</b> — never go silent for minutes.</li>
+        <li>Meaningful names, small helper functions, testable units.</li>
+        <li>Handle the guard clauses (empty/null) first, then the core.</li>
+        <li>Simplest structure that works — a list beats a map if a list does the job.</li>
+        <li>Don't stall on syntax; you picked the language, know the basics.</li>
+      </ul>
+    </div>
+
+    <!-- 6 -->
+    <div class="card b">
+      <div class="step"><div class="num">6</div><div><div class="ct">Test it yourself</div></div></div>
+      <div class="say">"Let me run through my edge cases before I call it done."</div>
+      <ul>
+        <li>Run your <b>edge cases from step 2</b>: empty, size 1, size 2, negatives, dupes.</li>
+        <li>Then a <b>normal case</b> to prove it works beyond the corners.</li>
+        <li>Trace line-by-line or actually run it — don't assume it's correct.</li>
+        <li>Find your own bug before the interviewer does; fix and re-run.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <h2>Clarifying questions to keep in your pocket</h2>
+      <div class="chips">
+        <div class="chip">How large can <b>n</b> get?</div>
+        <div class="chip">Can the input be <b>empty</b> or null?</div>
+        <div class="chip">Are there <b>duplicates</b>?</div>
+        <div class="chip">Is it <b>sorted</b>?</div>
+        <div class="chip">Negative numbers / zero?</div>
+        <div class="chip">Is there always a <b>valid answer</b>?</div>
+        <div class="chip">Return or <b>mutate in place</b>?</div>
+        <div class="chip">How are <b>ties</b> broken?</div>
+        <div class="chip">Case-sensitive?</div>
+        <div class="chip">Optimize for <b>time or space</b>?</div>
+        <div class="chip">Can I use built-in libraries?</div>
+        <div class="chip">Multiple valid outputs OK?</div>
+      </div>
+      <h2 style="margin-top:14px">If you get stuck or run low on time</h2>
+      <ul>
+        <li><b>Stuck:</b> think out loud, shrink the problem, or solve brute force first — a working slow answer beats a broken fast one.</li>
+        <li><b>Hint offered:</b> engage with it. You needn't accept, but give a clear reason if you don't.</li>
+        <li><b>Out of time:</b> say what you'd refactor and what edge cases you'd still test before it's "production ready."</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>What they're actually scoring</h2>
+      <ul>
+        <li><b>Communication:</b> reasoning shared, not stuck in your head.</li>
+        <li><b>Correctness:</b> it runs and handles edge cases.</li>
+        <li><b>Simplicity:</b> right data structure, no over-engineering.</li>
+        <li><b>Maintainability:</b> good names, helpers, light comments.</li>
+        <li><b>Complexity awareness:</b> you know your Big-O and trade-offs.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">Clarify → Example → Outline → Complexity → Code → Test. <span class="kbd">Keyboard comes after step 4.</span></div>
+</div>
+</body>
+</html>
