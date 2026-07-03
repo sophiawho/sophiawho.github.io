@@ -325,6 +325,7 @@
     <a class="toc-section" href="#js-fundamentals">JS Fundamentals</a>
     <a class="toc-sub" href="#object-vs-map">Object vs Map</a>
     <a class="toc-sub" href="#destructuring">Destructuring</a>
+    <a class="toc-sub" href="#computed-keys">Computed Keys</a>
     <a class="toc-sub" href="#iteration">Iteration</a>
     <a class="toc-sub" href="#locale-compare">localeCompare</a>
     <a class="toc-sub" href="#typescript">TypeScript</a>
@@ -728,6 +729,35 @@ const [isXTurn, setIsXTurn] = useState(...);</pre></div>
         <div class="tags"><span class="tag">destructuring</span><span class="tag">high priority</span></div>
       </div>
 
+      <div class="concept-card" id="computed-keys">
+        <h3>Computed property names — <code>[expr]</code> as an object key</h3>
+        <p>Square brackets around a key make JS <em>evaluate</em> what's inside and use the result as the key, instead of the literal text. Ties the key to a constant or expression so it can't drift out of sync with the values you store and look up.</p>
+        <div class="code-block"><pre>const EMPTY = "EMPTY";
+
+const a = { EMPTY: 1 };    <span class="cm">// key is the literal string "EMPTY"</span>
+const b = { [EMPTY]: 1 };  <span class="cm">// key is the VALUE of EMPTY → also "EMPTY"</span>
+
+<span class="cm">// same today, but change the constant's value and only b follows:</span>
+const EMPTY2 = "empty";
+({ EMPTY: 1 });     <span class="bad">// key still "EMPTY" — now out of sync</span>
+({ [EMPTY2]: 1 });  <span class="ok">// key "empty" — tracks the constant</span></pre></div>
+        <div class="code-block"><pre><span class="cm">// state → { color, next } config keyed by computed names</span>
+const EMPTY = "EMPTY", HIT = "HIT", MISS = "MISS";
+
+const STATE_CONFIG = {
+  [EMPTY]: { color: "gray",  next: HIT },
+  [HIT]:   { color: "green", next: MISS },
+  [MISS]:  { color: "red",   next: EMPTY },
+};
+
+<span class="cm">// cells store the state itself; config derives color + next from it</span>
+STATE_CONFIG[cell].next;   <span class="cm">// next state on click</span>
+STATE_CONFIG[cell].color;  <span class="cm">// color to paint</span></pre></div>
+        <div class="note">Store each fact once. The state's identity is the <em>key</em> — don't also stash a <code>value: "HIT"</code> field that just repeats it (it drifts). Color and next state are derived, so they belong in the config.</div>
+        <div class="gotcha">Brackets also allow keys that aren't plain identifiers — expressions and template strings: <code>{ [`${prefix}_1`]: true }</code> → key <code>"ship_1"</code>. Without brackets, <code>{ prefix: 1 }</code> would use the literal word "prefix".</div>
+        <div class="tags"><span class="tag">computed keys</span><span class="tag">objects</span><span class="tag">config pattern</span></div>
+      </div>
+
       <div class="concept-card" id="iteration">
         <h3>for...of iterates values — avoid for...in on arrays</h3>
         <div class="code-block"><pre>for (const x of arr) console.log(x);    <span class="ok">// 10, 20, 30 ✓</span>
@@ -1079,7 +1109,7 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
   const tocIds = [
     'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching','usereducer',
     'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback',
-    'js-fundamentals','object-vs-map','destructuring','iteration','typescript',
+    'js-fundamentals','object-vs-map','destructuring','computed-keys','iteration','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
     'html-css','css-cheatsheet','css-grid','inline-vs-file','lists'
