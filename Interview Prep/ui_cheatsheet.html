@@ -192,7 +192,14 @@
 };
 
 <span class="c">// cancel a pending call if the component unmounts (lodash gives .cancel())</span>
-<span class="f">useEffect</span>(() =&gt; () =&gt; debouncedSetQuery.<span class="f">cancel</span>(), [debouncedSetQuery]);</pre>
+<span class="f">useEffect</span>(() =&gt; () =&gt; debouncedSetQuery.<span class="f">cancel</span>(), [debouncedSetQuery]);
+
+<span class="c">// ── Why useMemo and NOT useCallback here (common instinct — it's a function!) ──</span>
+<span class="c">// useMemo CALLS its fn and stores the RETURN value; useCallback stores the fn itself.</span>
+<span class="c">// You want debounce()'s OUTPUT (built once), which is a value → that's useMemo's job.</span>
+<span class="f">useMemo</span>(() =&gt; <span class="f">debounce</span>(setQuery, <span class="n">300</span>), []);   <span class="c">// ✓ debounce() runs ONCE (inside the arrow)</span>
+<span class="f">useCallback</span>(<span class="f">debounce</span>(setQuery, <span class="n">300</span>), []);   <span class="c">// ✗ debounce() runs EVERY render, extras thrown away; eslint warns</span>
+<span class="c">// useCallback is for a fn you define INLINE: useCallback((v) =&gt; setQuery(v), []) — but that's NOT debounced.</span></pre>
 
       <h3>B · Timer ref + useEffect cleanup (simplest to write live)</h3>
       <pre><span class="c">// No helper, no useMemo. ref.current holds anything (timer id, DOM node...);</span>
