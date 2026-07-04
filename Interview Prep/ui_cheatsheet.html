@@ -183,7 +183,7 @@
 
 <span class="c">// In React — useMemo [] so the SAME debounced fn survives re-renders:</span>
 <span class="k">const</span> debouncedSetQuery = <span class="f">useMemo</span>(
-  () =&gt; <span class="f">debounce</span>(value =&gt; <span class="f">setQuery</span>(value), <span class="n">300</span>),
+  () =&gt; <span class="f">debounce</span>((value) =&gt; <span class="f">setQuery</span>(value), <span class="n">300</span>),
 []);
 
 <span class="k">const</span> <span class="f">onSearch</span> = (e) =&gt; {
