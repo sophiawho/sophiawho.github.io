@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DS/A Cheatsheet — Google + Plaid, 2-Week Sprint</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--accent2)}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 16px;max-width:800px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .panel.hot h2{color:var(--pink)}
+  .panel.gap h2{color:var(--warn)}
+  .panel.g h2{color:var(--accent)}
+  ul{list-style:none}
+  li{position:relative;padding-left:15px;margin:7px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent2);font-weight:800}
+  .panel.hot li::before{color:var(--pink)}
+  .panel.gap li::before{content:"⚑";color:var(--warn)}
+  .panel.g li::before{content:"✓";color:var(--accent)}
+  li b{color:var(--ink)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .note{font-size:13px;color:var(--muted);font-style:italic;margin:6px 0}
+  pre{background:#282c34;color:#abb2bf;border-radius:10px;padding:13px 15px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;overflow-x:auto;margin:8px 0 6px;line-height:1.55}
+  pre .k{color:#c678dd} pre .f{color:#61afef} pre .s{color:#98c379}
+  pre .n{color:#d19a66} pre .t{color:#e5c07b} pre .c{color:#5c6370;font-style:italic}
+  .pill{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;margin-left:6px;vertical-align:1px}
+  .pg{background:#e0f2fe;color:#0369a1} .pp{background:#fce7f3;color:#be185d} .pb{background:#dcfce7;color:#15803d}
+  .full{grid-column:1/-1}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th{text-align:left;color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px;padding:5px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--card2);color:#374357}
+  td b{color:var(--ink)}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:12px}
+  @media(max-width:900px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DS/A Cheatsheet — <span>Google + Plaid</span>, 2-Week Sprint</h1>
+  <div class="sub">Built against your learning journal (last entry June 23) and training plan. Four interviews in two weeks means: patch the four gap patterns below, drill the priority problems, and skip everything in the skip list. Pills mark who asks it: <span class="pill pg">Google</span> <span class="pill pp">Plaid</span> <span class="pill pb">Both</span></div>
+
+  <div class="cols">
+
+    <div class="panel g">
+      <h2>✓ Already solid — journal-verified, maintain only</h2>
+      <ul>
+        <li><b>Sliding window</b> (#3, #424, #76 incl. have/need optimization) — Google's favorite string pattern. One timed re-solve of #76.</li>
+        <li><b>Two pointers</b> (#125, #167, #15, #11) and <b>arrays/hashmaps</b> (#49, #238, #560 prefix-sum, #347 bucket sort).</li>
+        <li><b>Stacks</b> (#394, #739 monotonic) and <b>linked lists</b> (#206, #21, #141, #19, #138).</li>
+        <li><b>Tree BFS/DFS</b> (#102, #199 level-snapshot, #236 LCA, #98 bounds-down) and <b>graphs</b> (#200, #207 Kahn's, Dijkstra #743/#1514).</li>
+        <li>You're ahead of the curve on graphs — Dijkstra + topo sort is more than most L4/L5 loops need. Don't invest further there.</li>
+      </ul>
+    </div>
+
+    <div class="panel gap">
+      <h2>⚑ Gaps — in your plan, never logged in the journal</h2>
+      <ul>
+        <li><b>Binary search</b> (#33, #153, #981) — zero journal entries. Google asks a rotated-array or boundary variant constantly. <b>Highest-priority gap.</b></li>
+        <li><b>Intervals</b> (#56, #57) — not even in the plan's weekly lists (only a mock slot). Plaid's most-reported problem shape is literally "merge overlapping transaction time windows."</li>
+        <li><b>Heap as a pattern</b> (#215, #621, #295) — you know heapq mechanics cold from Dijkstra, but haven't done top-k/scheduling shapes.</li>
+        <li><b>Design problems</b> (#146 LRU, #981 time-based KV) — Google top-frequency, and Plaid's "KV store with TTL" is #981 wearing a fintech costume.</li>
+        <li><b>Backtracking</b> (#46, #78, #79) — Google-only risk, medium priority. #79 Word Search doubles as grid-DFS practice.</li>
+        <li>Skip list for these 2 weeks: DP (your instinct is right), #295 hard heap, #133/#417, tries, bit tricks.</li>
+      </ul>
+    </div>
+
+    <div class="panel full">
+      <h2>Priority problems — 2 weeks, ranked</h2>
+      <table>
+        <tr><th>Order</th><th>Problems</th><th>Pattern</th><th>Why now</th></tr>
+        <tr><td><b>1</b></td><td>#33, #153, #981 <span class="pill pb">Both</span></td><td>Binary search</td><td>Biggest gap × highest Google frequency. #981 bridges into design.</td></tr>
+        <tr><td><b>2</b></td><td>#56, #57 <span class="pill pb">Both</span></td><td>Intervals</td><td>Plaid's signature shape; Google staple. Two problems, one template.</td></tr>
+        <tr><td><b>3</b></td><td>#146 LRU Cache <span class="pill pb">Both</span></td><td>Design</td><td>Top-5 Google frequency for years; Plaid asks the TTL-store cousin.</td></tr>
+        <tr><td><b>4</b></td><td>#215, #621 <span class="pill pg">Google</span></td><td>Heap</td><td>You have the mechanics; these teach the top-k / greedy-schedule shapes.</td></tr>
+        <tr><td><b>5</b></td><td>#79, #46 <span class="pill pg">Google</span></td><td>Backtracking</td><td>#79 = grid DFS + undo; #46 = the canonical choose/explore/unchoose.</td></tr>
+        <tr><td><b>6</b></td><td>Rate limiter · dedupe transactions · parse nested accounts <span class="pill pp">Plaid</span></td><td>Practical</td><td>No LeetCode number — practice the shape: dict + timestamps + evolving requirements (see Plaid panel).</td></tr>
+      </table>
+      <div class="note">Cadence: 1 gap problem/day on weekdays ≈ all of tiers 1–4 in week one, tiers 5–6 plus timed re-solves in week two. Log each in learning_journal.html as usual.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Binary search — the gap template</h2>
+      <div class="note">Two forms. Exact-match you know. The one to internalize is <b>boundary search</b> (find leftmost true) — it solves #153, #33, #981, and "first bad version" shapes. Invariant: <code>lo</code> is always in the unknown zone, <code>hi</code> the candidate answer.</div>
+      <pre><span class="c"># Exact match — lo &lt;= hi, both move past mid</span>
+lo, hi = <span class="n">0</span>, <span class="f">len</span>(arr) - <span class="n">1</span>
+<span class="k">while</span> lo &lt;= hi:
+    mid = (lo + hi) // <span class="n">2</span>
+    <span class="k">if</span> arr[mid] == target: <span class="k">return</span> mid
+    <span class="k">elif</span> arr[mid] &lt; target: lo = mid + <span class="n">1</span>
+    <span class="k">else</span>: hi = mid - <span class="n">1</span>
+
+<span class="c"># Boundary — find leftmost index where cond(i) is True</span>
+<span class="c"># lo &lt; hi, hi = mid (NOT mid-1): mid might BE the answer</span>
+lo, hi = <span class="n">0</span>, <span class="f">len</span>(arr) - <span class="n">1</span>
+<span class="k">while</span> lo &lt; hi:
+    mid = (lo + hi) // <span class="n">2</span>
+    <span class="k">if</span> <span class="f">cond</span>(mid): hi = mid      <span class="c"># keep mid as candidate</span>
+    <span class="k">else</span>: lo = mid + <span class="n">1</span>
+<span class="c"># lo == hi == answer</span>
+
+<span class="c"># 153: cond = arr[mid] &lt;= arr[-1]  (mid is in the right/rotated half)</span>
+<span class="c"># 33:  find pivot with 153, then exact-match in the correct half</span>
+<span class="c"># 981: import bisect; i = bisect.bisect_right(times, t) - 1</span></pre>
+      <ul>
+        <li>Gotcha: <code>hi = mid</code> with <code>lo &lt;= hi</code> loops forever. Boundary form pairs <code>lo &lt; hi</code> with <code>hi = mid</code>; exact form pairs <code>lo &lt;= hi</code> with <code>mid ± 1</code>. Never mix.</li>
+        <li>Gotcha: rotated array — compare against <code>arr[-1]</code> (fixed anchor), not <code>arr[lo]</code> (moving target).</li>
+        <li>Know <code>bisect_left</code> vs <code>bisect_right</code>: left = first ≥ x, right = first &gt; x.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Intervals — the gap template</h2>
+      <div class="note">One template covers #56, #57, and Plaid's transaction-window merging: sort by start, then a single pass comparing each interval to the last merged one.</div>
+      <pre><span class="c"># 56. Merge Intervals — sort, then extend-or-append</span>
+intervals.<span class="f">sort</span>(key=<span class="k">lambda</span> x: x[<span class="n">0</span>])
+merged = [intervals[<span class="n">0</span>]]
+<span class="k">for</span> start, end <span class="k">in</span> intervals[<span class="n">1</span>:]:
+    <span class="k">if</span> start &lt;= merged[-<span class="n">1</span>][<span class="n">1</span>]:            <span class="c"># overlaps last merged</span>
+        merged[-<span class="n">1</span>][<span class="n">1</span>] = <span class="f">max</span>(merged[-<span class="n">1</span>][<span class="n">1</span>], end)
+    <span class="k">else</span>:
+        merged.<span class="f">append</span>([start, end])
+
+<span class="c"># Overlap test between two intervals (memorize this form):</span>
+<span class="c"># a and b overlap  ⟺  a.start &lt;= b.end and b.start &lt;= a.end</span></pre>
+      <ul>
+        <li>Gotcha: <b>touching intervals</b> — does [1,3] merge with [3,5]? Ask; it flips <code>&lt;=</code> vs <code>&lt;</code>.</li>
+        <li>Gotcha: <code>max()</code> on the end — [1,10] then [2,3] must not shrink the merged end to 3.</li>
+        <li>Plaid twist to expect: intervals arrive as transactions with timestamps + amounts; same merge, then aggregate per merged window.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Heap patterns — beyond Dijkstra</h2>
+      <div class="note">You know heapq mechanics. The two shapes you haven't done: <b>top-k with a size-k heap</b>, and <b>greedy scheduling</b>.</div>
+      <pre><span class="c"># 215. Kth largest — MIN-heap of size k (not max-heap of size n)</span>
+<span class="c"># Root is always the kth largest seen so far.</span>
+<span class="k">import</span> heapq
+heap = []
+<span class="k">for</span> num <span class="k">in</span> nums:
+    heapq.<span class="f">heappush</span>(heap, num)
+    <span class="k">if</span> <span class="f">len</span>(heap) &gt; k:
+        heapq.<span class="f">heappop</span>(heap)        <span class="c"># evict smallest</span>
+<span class="k">return</span> heap[<span class="n">0</span>]                      <span class="c"># O(n log k), not O(n log n)</span>
+
+<span class="c"># One-liners worth knowing:</span>
+heapq.<span class="f">nlargest</span>(k, nums)             <span class="c"># also takes key=...</span>
+heapq.<span class="f">heapify</span>(arr)                  <span class="c"># O(n), in place</span></pre>
+      <ul>
+        <li>Talking point: size-k min-heap gives O(n log k) — beats sorting when k ≪ n. Interviewers ask for this comparison on #215.</li>
+        <li>#621 Task Scheduler: max-heap of counts + a cooldown queue of (ready_time, count). Greedy: always run the most frequent available task.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Design — LRU + TTL store</h2>
+      <div class="note">#146: dict gives O(1) lookup, recency order gives O(1) eviction. In Python, <code>OrderedDict</code> does both — lead with it, mention the dict + doubly-linked-list version as what it wraps.</div>
+      <pre><span class="k">from</span> collections <span class="k">import</span> OrderedDict
+
+<span class="k">class</span> <span class="t">LRUCache</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, capacity):
+        self.cap = capacity
+        self.cache = <span class="t">OrderedDict</span>()
+
+    <span class="k">def</span> <span class="f">get</span>(self, key):
+        <span class="k">if</span> key <span class="k">not in</span> self.cache: <span class="k">return</span> -<span class="n">1</span>
+        self.cache.<span class="f">move_to_end</span>(key)      <span class="c"># mark most-recent</span>
+        <span class="k">return</span> self.cache[key]
+
+    <span class="k">def</span> <span class="f">put</span>(self, key, value):
+        <span class="k">if</span> key <span class="k">in</span> self.cache:
+            self.cache.<span class="f">move_to_end</span>(key)
+        self.cache[key] = value
+        <span class="k">if</span> <span class="f">len</span>(self.cache) &gt; self.cap:
+            self.cache.<span class="f">popitem</span>(last=<span class="k">False</span>)  <span class="c"># evict oldest</span>
+
+<span class="c"># Plaid variant — KV store with TTL (the #981 shape):</span>
+<span class="c"># store[key] = list of (timestamp, value); reads bisect on timestamp.</span>
+<span class="c"># Lazy expiry: check ts on read instead of background cleanup — say why</span>
+<span class="c"># (no timers needed, O(1) writes; tradeoff = stale entries hold memory).</span></pre>
+    </div>
+
+    <div class="panel">
+      <h2>Backtracking — one template, all three problems</h2>
+      <div class="note">Choose → explore → <b>unchoose</b>. The undo step is the whole pattern. #46/#78 on arrays, #79 on a grid (your grid-DFS skills transfer directly).</div>
+      <pre><span class="c"># 46. Permutations</span>
+<span class="k">def</span> <span class="f">backtrack</span>(path, remaining):
+    <span class="k">if not</span> remaining:
+        result.<span class="f">append</span>(path[:])          <span class="c"># COPY — path keeps mutating</span>
+        <span class="k">return</span>
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="f">len</span>(remaining)):
+        path.<span class="f">append</span>(remaining[i])                    <span class="c"># choose</span>
+        <span class="f">backtrack</span>(path, remaining[:i] + remaining[i+<span class="n">1</span>:])  <span class="c"># explore</span>
+        path.<span class="f">pop</span>()                                   <span class="c"># unchoose</span>
+
+<span class="c"># 79. Word Search — grid DFS with undo:</span>
+<span class="c"># mark grid[r][c] = '#' before recursing, restore after. Same shape.</span></pre>
+      <ul>
+        <li>Gotcha: appending <code>path</code> instead of <code>path[:]</code> — every result ends up empty (all point to the same mutated list).</li>
+        <li>Gotcha: forgetting the restore in #79 — cells stay blocked for sibling paths, misses valid answers.</li>
+      </ul>
+    </div>
+
+    <div class="panel hot">
+      <h2>Google — what the round looks like</h2>
+      <ul>
+        <li><b>Style:</b> classic single problem + follow-ups that tighten constraints ("now do it in O(1) space", "now the input doesn't fit in memory"). The follow-up is the real evaluation.</li>
+        <li><b>Highest-frequency patterns for you:</b> sliding window ✓, trees/graphs ✓, binary search ⚑, heap ⚑, LRU ⚑ — your gaps are exactly their favorites, hence the priority order.</li>
+        <li>State brute force first, then optimize — they score the journey.</li>
+        <li>Complexity precision matters: "O(n log k), and here's the log k" — your journal's Dijkstra-complexity habit is exactly the bar.</li>
+        <li>They rarely ask DP at L4/L5 phone screens, but #70/#198-level recurrence fluency is cheap insurance if a mock goes well early.</li>
+      </ul>
+    </div>
+
+    <div class="panel hot">
+      <h2>Plaid — what the round looks like</h2>
+      <ul>
+        <li><b>Style:</b> practical &gt; algorithmic. 45–90 min in CoderPad, starting simple, then <b>requirements layer on mid-problem</b> — design for change: small functions, clear names, no premature cleverness.</li>
+        <li><b>Reported shapes:</b> merge overlapping transaction windows (#56!), KV store with TTL (#981/#146!), parse nested bank-account JSON, dedupe/categorize transactions (hashmap + normalization), rate limiter, cycle detection in service dependencies (#207 ✓ — you have this).</li>
+        <li><b>Your code runs.</b> Unlike whiteboard-style rounds, they execute it — test with real inputs as you go, handle the empty/malformed case without being asked.</li>
+        <li>Money-data edge cases score points: duplicate timestamps, out-of-order events, cents-vs-dollars, idempotent reprocessing.</li>
+        <li>Practice rep: take #56, then self-extend it twice ("now windows have amounts — sum per merged window"; "now events arrive out of order"). That's their interview in miniature.</li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="foot">Coverage from learning_journal.html (through June 23) + interview_training_plan.html. Log new solves in the journal as you go — say the word and I'll add these to the plan schedule.</div>
+</div>
+</body>
+</html>
