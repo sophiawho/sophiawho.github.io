@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design Interview Playbook — L5</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--warn)}
+  .sub{color:var(--muted);font-size:14.5px;margin:4px 0 16px;max-width:780px}
+  .tag{background:var(--card2);border:1px solid var(--line);color:var(--accent2);
+    padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 17px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .card.b::before{background:var(--accent2)} .card.c::before{background:var(--pink)}
+  .card.d::before{background:var(--warn)}
+  .step{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .num{width:27px;height:27px;border-radius:7px;background:var(--card2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--accent)}
+  .card.b .num{color:var(--accent2)} .card.c .num{color:var(--pink)} .card.d .num{color:var(--warn)}
+  .ct{font-size:16px;font-weight:700}
+  .time{font-size:12px;color:var(--muted);font-weight:600}
+  .say{font-size:13px;color:var(--muted);font-style:italic;margin-top:2px}
+  ul{list-style:none;margin-top:4px}
+  li{position:relative;padding-left:15px;margin:6px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent);font-weight:800}
+  .card.b li::before{color:var(--accent2)} .card.c li::before{color:var(--pink)} .card.d li::before{color:var(--warn)}
+  li b{color:var(--ink)}
+  .row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px;color:#374357}
+  .chip b{color:var(--warn)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .flags li::before{content:"⚑";color:var(--pink)}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>The System Design <span>Playbook</span> — L5</h1>
+    </div>
+    <div class="tag">45–60 min · you drive, interviewer steers</div>
+  </header>
+  <div class="sub">The single biggest L4 → L5 difference: at L5 <b>you</b> propose the agenda, make decisions, and justify trade-offs without being dragged through each step. Run this sequence out loud, announce transitions ("requirements look solid — let me sketch the API"), and check in at each boundary. Budgets assume 45 minutes of design time.</div>
+
+  <div class="grid">
+    <!-- 1 -->
+    <div class="card">
+      <div class="step"><div class="num">1</div><div><div class="ct">Requirements — functional, then non-functional</div><div class="time">~5 min</div></div></div>
+      <div class="say">"Let me scope this to 3 core features, then pin the scale and latency constraints."</div>
+      <ul>
+        <li><b>Functional:</b> list 3–4 core user flows ("post a tweet, view a feed, follow"). Explicitly cut the rest: "I'll skip search and DMs unless you want them."</li>
+        <li><b>Non-functional — these drive the whole design:</b> how many users? read-heavy or write-heavy? latency target? consistency vs availability — which matters more here?</li>
+        <li>Ask "<b>what's the read:write ratio?</b>" — it decides caching, replication, fan-out.</li>
+        <li>Write requirements down (top of the doc/whiteboard). You'll return to them in deep dives.</li>
+        <li>L5 move: propose the scale yourself ("assume 10M DAU?") instead of waiting to be told.</li>
+      </ul>
+    </div>
+
+    <!-- 2 -->
+    <div class="card b">
+      <div class="step"><div class="num">2</div><div><div class="ct">Estimate — only what changes the design</div><div class="time">~3 min</div></div></div>
+      <div class="say">"10M DAU × 10 reads/day ≈ 100M reads/day ≈ ~1,200 QPS average, maybe 5k peak. One DB with replicas handles that."</div>
+      <ul>
+        <li>QPS: <b>requests/day ÷ 100,000</b> ≈ average QPS (86,400 sec/day, round to 100k). Peak = 3–5×.</li>
+        <li>Storage: rows × bytes/row × retention. Only compute if data size drives sharding/blob decisions.</li>
+        <li><b>End with a conclusion, not a number:</b> "so this fits in one Postgres with read replicas" or "this write volume forces us to partition."</li>
+        <li>If the math doesn't affect any decision, say so and skip it. Interviewers respect that.</li>
+      </ul>
+    </div>
+
+    <!-- 3 -->
+    <div class="card c">
+      <div class="step"><div class="num">3</div><div><div class="ct">API + data model</div><div class="time">~7 min</div></div></div>
+      <div class="say">"One endpoint per core flow. GET /feed?cursor=... — cursor pagination, offset breaks at depth."</div>
+      <ul>
+        <li>Write <b>one endpoint per functional requirement:</b> method, path, params, response shape. REST unless there's a reason (real-time → WebSocket, flexible clients → GraphQL).</li>
+        <li><b>Core entities + fields + relationships:</b> User, Tweet, Follow. Note the indexes your queries need.</li>
+        <li>This is your <b>full-stack home turf — show it:</b> cursor vs offset pagination, idempotency keys on POSTs, what the client caches, auth in a sentence (sessions vs JWT).</li>
+        <li>Don't design 15 endpoints. Core flows only; say the rest is mechanical.</li>
+      </ul>
+    </div>
+
+    <!-- 4 -->
+    <div class="card d">
+      <div class="step"><div class="num">4</div><div><div class="ct">High-level design — boxes that satisfy every requirement</div><div class="time">~10 min</div></div></div>
+      <div class="say">"Client → CDN → load balancer → stateless API servers → cache → database. Let me walk a write end to end."</div>
+      <ul>
+        <li>Draw the <b>default skeleton</b> (above), then adapt. Stateless app tier = horizontal scaling for free.</li>
+        <li><b>Walk one read and one write through the diagram</b> out loud, end to end. This catches gaps fast.</li>
+        <li>Map every functional requirement to a path through the boxes. Unmapped requirement = hole.</li>
+        <li>Anything slow or non-critical (notifications, fan-out, thumbnails) → <b>queue + async worker</b>.</li>
+        <li>Keep it simple here. Depth comes next — say "I'm staying high level, then I'll deep-dive where it's interesting."</li>
+      </ul>
+    </div>
+
+    <!-- 5 -->
+    <div class="card">
+      <div class="step"><div class="num">5</div><div><div class="ct">Deep dives — where L5 is won or lost</div><div class="time">~15 min</div></div></div>
+      <div class="say">"The interesting problem here is feed fan-out. Two options: fan-out on write vs on read. Given the read ratio, I'd choose..."</div>
+      <ul>
+        <li><b>Pick 2–3 dives yourself</b>, driven by the non-functional requirements from step 1. Don't wait to be prompted.</li>
+        <li>Format every dive the same: <b>problem → 2 options → trade-off → decision → why.</b> Naming a technology without the why is an L4 tell.</li>
+        <li>Common dives: scaling reads (cache + replicas), scaling writes (partition/queue), real-time delivery (WebSocket vs SSE vs polling), contention (two users, one seat — locking vs atomic ops), hot keys/celebrities, failure handling (retries + idempotency).</li>
+        <li>Quantify when you can: "cache hit rate ~90% cuts DB load 10×."</li>
+        <li><b>Follow the interviewer's nudges</b> — a hint means they want depth there. Engage immediately.</li>
+      </ul>
+    </div>
+
+    <!-- 6 -->
+    <div class="card b">
+      <div class="step"><div class="num">6</div><div><div class="ct">Wrap — bottlenecks &amp; evolution</div><div class="time">~5 min</div></div></div>
+      <div class="say">"Single points of failure: the DB primary — I'd add failover. At 10× scale, the first thing to break is..."</div>
+      <ul>
+        <li>Name the <b>weakest link</b> and its fix (replica promotion, cache stampede protection, DLQ for the queue).</li>
+        <li>One sentence on <b>observability:</b> metrics on latency p99, error rates, queue depth; alerts on saturation.</li>
+        <li><b>10× question:</b> say what breaks first at 10× scale and the upgrade path. Shows headroom thinking.</li>
+        <li>Revisit the requirements list — confirm each is satisfied. Close the loop.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <h2>Clarifying questions to keep in your pocket</h2>
+      <div class="chips">
+        <div class="chip">How many <b>users / DAU</b>?</div>
+        <div class="chip"><b>Read:write</b> ratio?</div>
+        <div class="chip">Latency target — <b>p99</b>?</div>
+        <div class="chip"><b>Consistency or availability</b> when forced to pick?</div>
+        <div class="chip">Global or <b>single region</b>?</div>
+        <div class="chip">Data <b>retention</b> — forever?</div>
+        <div class="chip">Real-time or is <b>eventual</b> fine?</div>
+        <div class="chip">Which features are <b>in scope</b>?</div>
+        <div class="chip">Mobile + web <b>clients</b>?</div>
+        <div class="chip">Can I assume <b>managed services</b> (S3, SQS)?</div>
+      </div>
+      <h2 style="margin-top:14px">Common traps</h2>
+      <ul class="flags">
+        <li><b>Boxes before requirements.</b> A perfect design for the wrong problem scores zero.</li>
+        <li><b>Name-dropping without why.</b> "I'd use Kafka" is nothing; "a queue decouples the spike from the DB, Kafka because we need replay" is the bar.</li>
+        <li><b>Uniform shallowness.</b> Covering ten topics at 1-inch depth reads L4. Two dives at real depth reads L5.</li>
+        <li><b>Premature scale.</b> Don't shard a database that fits on one machine. Start simple, scale when the numbers demand it — and say that's what you're doing.</li>
+        <li><b>Ignoring hints.</b> Interviewer nudges are the rubric leaking. Take them.</li>
+        <li><b>Silence while drawing.</b> Narrate every box as you add it.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>What they're scoring at L5</h2>
+      <ul>
+        <li><b>Ownership:</b> you drove start to finish; the interviewer only steered.</li>
+        <li><b>Requirements → design traceability:</b> every choice ties back to a stated constraint.</li>
+        <li><b>Trade-off fluency:</b> two options and a justified pick, every time.</li>
+        <li><b>Quantified reasoning:</b> rough numbers that lead to decisions.</li>
+        <li><b>Depth on demand:</b> at least two areas where you go genuinely deep.</li>
+        <li><b>Pragmatism:</b> simplest thing that meets the requirements, with a scaling path.</li>
+      </ul>
+      <h2 style="margin-top:14px">Full-stack edge — use it</h2>
+      <ul>
+        <li>API contract details (pagination, idempotency, errors) — most backend candidates skip these; you shouldn't.</li>
+        <li>Client-side story: optimistic updates, browser caching, stale-while-revalidate.</li>
+        <li>Real-time delivery trade-offs (WebSocket vs SSE vs polling) end to end, client included.</li>
+        <li>When infra depth runs out, say so honestly and reason from first principles — that beats bluffing.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">Requirements → Estimate → API/Data → High-level → Deep dives → Wrap. <b>Announce each transition. Non-functional requirements choose your deep dives.</b></div>
+</div>
+</body>
+</html>

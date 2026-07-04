@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design — 4-Week Study Guide (from zero, L5 full-stack)</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 16px;max-width:800px}
+  .week{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px;position:relative;overflow:hidden}
+  .week::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .week.b::before{background:var(--accent2)} .week.c::before{background:var(--pink)} .week.d::before{background:var(--warn)}
+  .wh{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+  .wh h2{font-size:17px;font-weight:800}
+  .wh .wt{font-size:13px;color:var(--muted);font-weight:600}
+  .goal{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:8px}
+  .days{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+  .day{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .day h3{font-size:13.5px;font-weight:700;margin-bottom:4px;color:var(--ink)}
+  .day p{font-size:13px;color:#374357}
+  ul{list-style:none}
+  li{position:relative;padding-left:15px;margin:6px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent);font-weight:800}
+  .week.b li::before{color:var(--accent2)} .week.c li::before{color:var(--pink)} .week.d li::before{color:var(--warn)}
+  li b{color:var(--ink)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .panel.warn h2{color:var(--warn)}
+  .tier{display:flex;gap:8px;align-items:flex-start;margin:7px 0}
+  .pill{flex-shrink:0;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;margin-top:1px}
+  .p1{background:#dcfce7;color:#15803d} .p2{background:#e0f2fe;color:#0369a1} .p3{background:#fef3c7;color:#b45309}
+  .tier div:last-child{font-size:13.5px;color:#374357}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:12px}
+  @media(max-width:900px){.days{grid-template-columns:1fr}.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>System Design — <span>4-Week Study Guide</span></h1>
+  <div class="sub">From zero to L5-ready in ~2 hours/day. Full-stack weighting: deep on APIs, data modeling, caching, and real-time; conversational on infra internals (know what Kafka does and when, not how it stores segments). Ratio: weeks 1–2 build vocabulary, weeks 3–4 are practice — the interview skill is doing designs, not reading about them.</div>
+
+  <div class="panel">
+    <h2>Priority tiers — where your hours go</h2>
+    <div class="tier"><div class="pill p1">COLD</div><div><b>Must know cold:</b> request lifecycle, SQL vs NoSQL + indexes, caching (all layers + invalidation), replication vs sharding, load balancing, queues &amp; async work, pagination, WebSocket/SSE/polling, idempotency, back-of-envelope math, CAP in plain words.</div></div>
+    <div class="tier"><div class="pill p2">TALK</div><div><b>Know well enough to discuss:</b> consistent hashing, rate limiting algorithms, CDC/outbox, search indexing (Elasticsearch), blob storage + CDN, fan-out strategies, distributed locks, auth (sessions/JWT/OAuth).</div></div>
+    <div class="tier"><div class="pill p3">SKIP</div><div><b>Skip for full-stack L5:</b> consensus internals (Raft/Paxos), Kafka/DB storage internals, Kubernetes, service mesh, gossip protocols, custom infra design (design a database, design Kafka).</div></div>
+  </div>
+
+  <div class="week">
+    <div class="wh"><h2>Week 1 — Foundations</h2><div class="wt">how one server becomes many</div></div>
+    <div class="goal">Goal: draw and defend the default skeleton — client → CDN → LB → stateless app tier → cache → DB — and explain every arrow.</div>
+    <div class="days">
+      <div class="day"><h3>Day 1 · Request lifecycle</h3><p>DNS → LB → app server → DB and back. Vertical vs horizontal scaling; why stateless app servers scale horizontally for free.</p></div>
+      <div class="day"><h3>Day 2 · Databases I</h3><p>SQL vs NoSQL — the honest answer: Postgres until proven otherwise. Indexes: what a B-tree index buys, what writes pay. Model a schema for a small app.</p></div>
+      <div class="day"><h3>Day 3 · Databases II</h3><p>Replication (read replicas, primary failover, replication lag) vs sharding/partitioning (choosing a partition key, hot partitions). When each is the answer.</p></div>
+      <div class="day"><h3>Day 4 · Caching</h3><p>The full ladder: browser → CDN → app cache (Redis) → DB. TTL vs explicit invalidation ("the two hard things"), cache-aside pattern, eviction (LRU), stampede.</p></div>
+      <div class="day"><h3>Day 5 · Consistency, plainly</h3><p>CAP without the theory: on a network split, do you serve stale (available) or refuse (consistent)? Strong vs eventual with product examples — bank balance vs like count.</p></div>
+      <div class="day"><h3>Days 6–7 · Consolidate</h3><p>Do the math drill (panel below) until fast. Design "URL shortener" cold — the hello-world of system design. Note what you couldn't answer; that's Monday's reading.</p></div>
+    </div>
+  </div>
+
+  <div class="week b">
+    <div class="wh"><h2>Week 2 — Communication &amp; async</h2><div class="wt">your full-stack strength zone</div></div>
+    <div class="goal">Goal: own the client-to-server contract better than backend-only candidates — this is where you differentiate.</div>
+    <div class="days">
+      <div class="day"><h3>Day 8 · API design</h3><p>REST conventions, error shapes, versioning. GraphQL vs REST vs gRPC in one paragraph each. Pagination: offset vs cursor and why offset dies at depth.</p></div>
+      <div class="day"><h3>Day 9 · Real-time</h3><p>Polling vs long-polling vs SSE vs WebSocket — cost, direction, reconnect story, when each wins. The full-stack view: what the client does on disconnect.</p></div>
+      <div class="day"><h3>Day 10 · Queues &amp; async</h3><p>Message queue vs pub-sub; SQS vs Kafka positioning (task queue vs replayable log). Retries, dead-letter queues, and why retries force <b>idempotency</b>.</p></div>
+      <div class="day"><h3>Day 11 · Idempotency &amp; reliability</h3><p>Idempotency keys on writes, exactly-once is a lie (at-least-once + dedupe), webhooks with signed payloads + retry backoff. Plaid-country material.</p></div>
+      <div class="day"><h3>Day 12 · Edges of the system</h3><p>CDN + blob storage (S3) for media, presigned upload URLs. Rate limiting (token bucket in one diagram). Auth in five sentences: sessions vs JWT, OAuth flow shape.</p></div>
+      <div class="day"><h3>Days 13–14 · Consolidate</h3><p>Design "typeahead/autocomplete" and "notification system" cold, using the playbook, 45 min each, out loud. Grade yourself against the playbook's scoring panel.</p></div>
+    </div>
+  </div>
+
+  <div class="week c">
+    <div class="wh"><h2>Week 3 — Practice designs</h2><div class="wt">one per day, 45 min, out loud, playbook open</div></div>
+    <div class="goal">Goal: eight designs done. Each one exists to teach a specific concept — after finishing, read a reference solution and note what you missed.</div>
+    <ul>
+      <li><b>Day 15 · News feed</b> (Twitter/Instagram) — teaches fan-out on write vs read, celebrity problem. The single most-asked question; do it twice.</li>
+      <li><b>Day 16 · Chat</b> (WhatsApp/Slack) — WebSockets at scale, message ordering, delivery receipts, online presence.</li>
+      <li><b>Day 17 · Ticket/booking</b> (Ticketmaster) — contention: two users, one seat. Locking vs atomic conditional writes; reservations with TTL.</li>
+      <li><b>Day 18 · Live dashboard</b> (metrics/fleet monitoring) — ingest pipeline, time-series aggregation, push vs pull to the client. Waymo-flavored.</li>
+      <li><b>Day 19 · Payment/webhook system</b> — idempotency end to end, retries, reconciliation, audit log. Plaid-flavored.</li>
+      <li><b>Day 20 · Rate limiter + URL shortener redux</b> — both small; practice doing a tight 25-minute version. Teaches pacing.</li>
+      <li><b>Day 21 · Collaborative doc or multi-tenant app builder</b> — permissions, tenant isolation, optimistic UI + conflict handling. Retool-flavored.</li>
+    </ul>
+  </div>
+
+  <div class="week d">
+    <div class="wh"><h2>Week 4 — Mocks &amp; sharpening</h2><div class="wt">simulate, patch, rest</div></div>
+    <div class="goal">Goal: three full mocks under real conditions. By now the playbook sequence should run on rails; mocks expose where it derails.</div>
+    <div class="days">
+      <div class="day"><h3>Days 22–26 · Mock cycle ×3</h3><p>Mock (45 min, unseen question, spoken aloud or with a partner/AI interviewer) → same-day review: which step ran long, which deep dive was thin → one day patching that gap → next mock.</p></div>
+      <div class="day"><h3>Day 27 · Company pass</h3><p>One hour per upcoming interview: reread their product, pick the 2 most likely question shapes (panel below), sketch each for 15 min. Not full designs — just openings.</p></div>
+      <div class="day"><h3>Day 28 · Rest</h3><p>Skim the playbook and the math drill. No new material. Cramming week-4 infra trivia costs more than it buys.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <h2>Back-of-envelope kit — memorize</h2>
+      <ul>
+        <li><b>QPS:</b> requests/day ÷ 100,000 ≈ avg QPS. Peak ≈ 3–5×. (1M/day ≈ 12 QPS — tiny.)</li>
+        <li><b>One Postgres box</b> comfortably does thousands of simple QPS — don't shard early.</li>
+        <li><b>Storage:</b> 1M rows × 1 KB = 1 GB. A "huge" 1 TB table still fits one machine.</li>
+        <li><b>Latency ladder:</b> memory ~100ns · SSD ~100µs · same-region network ~1ms · cross-region ~50–150ms · disk seek ~10ms. Conclusion that matters: <b>cache hits are ~100× cheaper than DB reads, cross-region is the killer</b>.</li>
+        <li><b>Sizes:</b> UUID 16 B · timestamp 8 B · tweet ~280 B · image ~500 KB · 1 min video ~50 MB (→ blob storage + CDN, never the DB).</li>
+      </ul>
+      <h2 style="margin-top:14px">Default technology shortlist</h2>
+      <ul>
+        <li><b>Postgres</b> — default store. <b>Redis</b> — cache, counters, locks. <b>Kafka/SQS</b> — async + spikes. <b>S3 + CDN</b> — media. <b>Elasticsearch</b> — text search. <b>DynamoDB/Cassandra</b> — massive simple-key write scale.</li>
+        <li>One reason each, never the internals. "Redis because sub-ms reads for hot data" is complete.</li>
+      </ul>
+    </div>
+
+    <div class="panel warn">
+      <h2>Company flavors — your five targets</h2>
+      <ul>
+        <li><b>Waymo:</b> real-time and latency-aware — fleet dashboards, log/metrics ingestion, freshness trade-offs. Lean on Day 18. Their infra prompts (petabyte lidar pipelines) are for infra roles; full-stack gets the dashboard/data-product version.</li>
+        <li><b>Plaid:</b> reliability of money-adjacent data — webhooks, idempotency, retries, reconciliation, third-party APIs that fail. Day 11 + Day 19 are the prep.</li>
+        <li><b>Google:</b> most classic — scale numbers, trade-off rigor, crisp requirements→design traceability. The playbook as-is, executed cleanly.</li>
+        <li><b>Retool:</b> product-minded full-stack — multi-tenancy, permissions/RBAC, query execution against customer DBs, optimistic UI. Day 21.</li>
+        <li>Common denominator: every one rewards the <b>API + data-model step done well</b> — your strongest step. Never rush it.</li>
+      </ul>
+      <h2 style="margin-top:14px">Resources (in order)</h2>
+      <ul>
+        <li><b>Hello Interview</b> (hellointerview.com) — best free written guides + graded practice; matches this plan's structure.</li>
+        <li><b>Alex Xu, System Design Interview Vol 1</b> — read weeks 1–2, one chapter/day covers most concept days.</li>
+        <li><b>Jordan Has No Life / System Design Fight Club</b> (YouTube) — watch a solution <i>after</i> attempting each week-3 problem, never before.</li>
+        <li>Skip: System Design Primer as a syllabus (reference only), papers, and anything about building infra from scratch.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">Vocabulary (wks 1–2) → Reps (wk 3) → Mocks (wk 4). <b>A design spoken aloud is worth five read silently.</b> Pair with systems_design_playbook.html.</div>
+</div>
+</body>
+</html>

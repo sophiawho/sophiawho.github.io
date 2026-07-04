@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Interview Playbook — React</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--accent2)}
+  .sub{color:var(--muted);font-size:14.5px;margin:4px 0 16px;max-width:760px}
+  .tag{background:var(--card2);border:1px solid var(--line);color:var(--accent2);
+    padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 17px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .card.b::before{background:var(--accent2)} .card.c::before{background:var(--pink)}
+  .card.d::before{background:var(--warn)}
+  .step{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .num{width:27px;height:27px;border-radius:7px;background:var(--card2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--accent)}
+  .card.b .num{color:var(--accent2)} .card.c .num{color:var(--pink)} .card.d .num{color:var(--warn)}
+  .ct{font-size:16px;font-weight:700}
+  .time{font-size:12px;color:var(--muted);font-weight:600}
+  .say{font-size:13px;color:var(--muted);font-style:italic;margin-top:2px}
+  ul{list-style:none;margin-top:4px}
+  li{position:relative;padding-left:15px;margin:6px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent);font-weight:800}
+  .card.b li::before{color:var(--accent2)} .card.c li::before{color:var(--pink)} .card.d li::before{color:var(--warn)}
+  li b{color:var(--ink)}
+  .row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px;color:#374357}
+  .chip b{color:var(--warn)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  pre{background:#101726;color:#dbe4f5;border-radius:10px;padding:12px 14px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;overflow-x:auto;margin-top:8px;line-height:1.45}
+  pre .k{color:#7dd3fc} pre .c{color:#64748b}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>The UI Interview <span>Playbook</span> — React</h1>
+    </div>
+    <div class="tag">Waymo TPS · ~45–60 min · budget every step</div>
+  </header>
+  <div class="sub">Same skeleton as the coding playbook, adapted for "build this component/board/widget" problems. Time budgets assume a 45-minute problem inside a 60-minute call. The #1 reported failure on the Waymo Battleship question was burning 15+ minutes on rules clarification and running out of implementation time — you drive the clock, not the interviewer.</div>
+
+  <div class="grid">
+    <!-- 1 -->
+    <div class="card">
+      <div class="step"><div class="num">1</div><div><div class="ct">Clarify how it looks</div><div class="time">~3 min</div></div></div>
+      <div class="say">"Let me confirm the visual first: an N×M grid of cells, plus a status panel below?"</div>
+      <ul>
+        <li><b>Sketch the layout in words</b> (or a quick comment block): what's on screen, where.</li>
+        <li><b>Dimensions:</b> fixed size or configurable? Hardcoding 10×10 is usually fine — ask.</li>
+        <li><b>Visual states per element:</b> what does each cell/row/item look like in each state?</li>
+        <li><b>What must be displayed</b> vs what's decoration. Skip styling polish unless asked.</li>
+        <li>Confirm CSS effort level: "Is basic CSS grid layout enough, or does styling matter here?"</li>
+      </ul>
+    </div>
+
+    <!-- 2 -->
+    <div class="card b">
+      <div class="step"><div class="num">2</div><div><div class="ct">Pin down the behavior</div><div class="time">~4 min</div></div></div>
+      <div class="say">"Three states per cell, click cycles empty → red → white → empty, ship is sunk when all its cells are red — correct?"</div>
+      <ul>
+        <li>State the rules back as <b>one crisp sentence per interaction</b> and get a yes/no. Closed questions, not open ones.</li>
+        <li><b>Enumerate every user action:</b> click, double-click same element, type, submit, reset.</li>
+        <li><b>Derived outcomes:</b> what's computed from state (winner, sunk, filtered count) and when it updates.</li>
+        <li><b>Edge interactions:</b> clicking twice, clicking outside valid targets, empty input, rapid clicks.</li>
+        <li>Ask what's <b>out of scope:</b> persistence on refresh, animations, keyboard support — usually no, confirm and move on.</li>
+        <li><b>Hard stop:</b> if you're past ~7 total minutes of clarifying, propose assumptions out loud and start.</li>
+      </ul>
+    </div>
+
+    <!-- 3 -->
+    <div class="card c">
+      <div class="step"><div class="num">3</div><div><div class="ct">Design state before JSX</div><div class="time">~5 min</div></div></div>
+      <div class="say">"My state is one 2D array of cell states. Everything else — sunk status, winner — I derive during render."</div>
+      <ul>
+        <li><b>Minimal state rule:</b> store only what the user changes. If it can be computed from other state, derive it — never store it.</li>
+        <li>Write the <b>state shape as a type</b> first: <code>type Cell = 'empty'|'hit'|'miss'</code>, <code>cells: Cell[][]</code>.</li>
+        <li>Static config (ship positions, options list) is <b>not state</b> — a plain constant outside the component.</li>
+        <li><b>useState vs useReducer:</b> one or two independent values → useState. Multiple transitions on one structure (game moves, undo) → useReducer, and say why: "one pure function owns all transitions, easy to test."</li>
+        <li>State lives in the <b>top component</b>; children get values + callbacks. Say "unidirectional data flow" out loud.</li>
+      </ul>
+    </div>
+
+    <!-- 4 -->
+    <div class="card d">
+      <div class="step"><div class="num">4</div><div><div class="ct">Component tree + plan</div><div class="time">~3 min</div></div></div>
+      <div class="say">"I'll do Board owning state, Cell as a dumb clickable, Status deriving from state. Sound right before I code?"</div>
+      <ul>
+        <li>Name 2–4 components max: <code>&lt;Board/&gt;</code>, <code>&lt;Cell/&gt;</code>, <code>&lt;Status/&gt;</code>. Don't over-split.</li>
+        <li>For each: <b>props in, events out.</b> Cell gets <code>(state, onClick)</code>, nothing else.</li>
+        <li>State the <b>build order:</b> static render → click handler → derived status → polish. Working &gt; complete.</li>
+        <li><b>Get the nod</b> from the interviewer before typing — course-correct here, not after 50 lines.</li>
+      </ul>
+    </div>
+
+    <!-- 5 -->
+    <div class="card">
+      <div class="step"><div class="num">5</div><div><div class="ct">Code in layers, out loud</div><div class="time">~20 min</div></div></div>
+      <div class="say">"First I'll render the static grid from state so we can see something, then wire clicks."</div>
+      <ul>
+        <li><b>Layer 1 — static render:</b> map state to JSX. Grid: <code>cells.map((row,r) =&gt; row.map((cell,c) =&gt; ...))</code> inside <code>display:grid</code>. Stable keys (<code>`${r}-${c}`</code> is fine for a fixed grid).</li>
+        <li><b>Layer 2 — interaction:</b> one handler, <b>immutable update</b>. Never mutate: copy the row you touch.</li>
+        <li><b>Layer 3 — derived UI:</b> compute sunk/winner/filtered list in render body or <code>useMemo</code>, then display it.</li>
+        <li>Controlled inputs: <code>value</code> + <code>onChange</code> together, always.</li>
+        <li>Narrate as you type. Meaningful names. Don't chase CoderPad's missing JSX formatter — indent by hand, add <code>// @ts-nocheck</code> if TS squiggles distract you.</li>
+      </ul>
+      <pre><span class="c">// the immutable 2D update — know this cold</span>
+setCells(prev =&gt; prev.map((row, ri) =&gt;
+  ri !== r ? row
+  : row.map((cell, ci) =&gt; ci !== c ? cell : nextState(cell))
+));</pre>
+    </div>
+
+    <!-- 6 -->
+    <div class="card b">
+      <div class="step"><div class="num">6</div><div><div class="ct">Test, then talk performance</div><div class="time">~8 min</div></div></div>
+      <div class="say">"Let me click through the cycle, sink one ship, and check the status updates — then I'll cover complexity."</div>
+      <ul>
+        <li><b>Demo the behaviors from step 2</b> in the live preview: normal flow, then edge interactions.</li>
+        <li>State Big-O of your derived logic: "sunk check is O(ships × cells), fine at this size; a <code>Map</code> from cell → ship makes it O(1) per click if n grows."</li>
+        <li><b>Memoization — discuss, don't pre-optimize:</b> "every click re-renders all 100 cells; if that mattered I'd wrap Cell in <code>React.memo</code> and stabilize <code>onClick</code> with <code>useCallback</code>." Only implement if asked.</li>
+        <li>Rapid-input problems (search box) → <b>debounce</b>; mention it even if you don't build it.</li>
+        <li>Out of time? Say exactly what's left: "I'd add keyboard support and extract a custom hook."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <h2>UI clarifying questions to keep in your pocket</h2>
+      <div class="chips">
+        <div class="chip">Fixed <b>dimensions</b> or configurable?</div>
+        <div class="chip">Exact <b>click/cycle order</b> of states?</div>
+        <div class="chip">Same element clicked <b>twice</b>?</div>
+        <div class="chip">Clicks <b>outside valid targets</b> allowed?</div>
+        <div class="chip">When does <b>derived status</b> update?</div>
+        <div class="chip">Is there a <b>reset</b> / undo?</div>
+        <div class="chip">Does <b>styling</b> matter or just structure?</div>
+        <div class="chip">Persist on <b>refresh</b>? (usually no)</div>
+        <div class="chip">Keyboard / <b>accessibility</b> in scope?</div>
+        <div class="chip">Where does <b>data</b> come from — hardcode it?</div>
+        <div class="chip">Any <b>framework</b> preference? (React fine?)</div>
+      </div>
+      <h2 style="margin-top:14px">Waymo-specific traps</h2>
+      <ul>
+        <li><b>Clarification eats the clock.</b> On Battleship, the interviewer explains rules verbally (even with a physical model). Drive with closed yes/no restatements; propose assumptions if it drags.</li>
+        <li><b>CoderPad React pad:</b> no JSX formatter (don't fight it) and TS squiggles are cosmetic — code still runs. <code>// @ts-nocheck</code> on line 1 silences them.</li>
+        <li><b>Fleet-monitoring flavor:</b> equally likely problem is a vehicle list with filter dropdown + sort + debounced search. Same playbook: state = raw list + filter values; the visible list is <b>derived</b>.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>What they're actually scoring</h2>
+      <ul>
+        <li><b>Requirements handling:</b> you pinned behavior fast and correctly.</li>
+        <li><b>State design:</b> minimal state, derived values derived, immutable updates.</li>
+        <li><b>Component structure:</b> sensible decomposition, data flows down, events up.</li>
+        <li><b>Working demo:</b> something renders and responds. Partial-but-running beats complete-but-broken.</li>
+        <li><b>Performance literacy:</b> you can say when re-renders happen and how you'd cut them.</li>
+      </ul>
+      <h2 style="margin-top:14px">Time budget (45 min)</h2>
+      <ul>
+        <li><b>0–7:</b> looks + behavior pinned</li>
+        <li><b>7–15:</b> state shape + component plan, nod received</li>
+        <li><b>15–35:</b> code in layers</li>
+        <li><b>35–43:</b> demo, edges, complexity, memoization talk</li>
+        <li><b>43–45:</b> what you'd do next</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">Looks → Behavior → State → Components → Layered code → Demo &amp; perf. <b>Keyboard comes after step 4. Assumptions beat open-ended questions after minute 7.</b></div>
+</div>
+</body>
+</html>

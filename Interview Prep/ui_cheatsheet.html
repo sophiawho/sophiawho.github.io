@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waymo TPS — Condensed UI Cheatsheet</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--pink)}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 16px;max-width:780px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .panel.hot h2{color:var(--pink)}
+  .panel.gap h2{color:var(--warn)}
+  ul{list-style:none}
+  li{position:relative;padding-left:15px;margin:7px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent2);font-weight:800}
+  .panel.hot li::before{color:var(--pink)}
+  .panel.gap li::before{content:"⚑";color:var(--warn)}
+  li b{color:var(--ink)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .note{font-size:13px;color:var(--muted);font-style:italic;margin:6px 0}
+  /* CoderPad-style dark editor (One Dark palette, same family Monaco uses) */
+  pre{background:#282c34;color:#abb2bf;border-radius:10px;padding:13px 15px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;overflow-x:auto;margin:8px 0 6px;line-height:1.55}
+  pre .k{color:#c678dd}   /* keywords: const, return, if */
+  pre .f{color:#61afef}   /* function names / hooks */
+  pre .s{color:#98c379}   /* strings */
+  pre .n{color:#d19a66}   /* numbers, constants */
+  pre .t{color:#e5c07b}   /* components, types, classes */
+  pre .c{color:#5c6370;font-style:italic}   /* comments */
+  pre .p{color:#e06c75}   /* JSX props / object keys */
+  .full{grid-column:1/-1}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:12px}
+  @media(max-width:900px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Waymo TPS — <span>Condensed UI Cheatsheet</span></h1>
+  <div class="sub">The 20% of the JS journal + prep plan an interviewer actually probes, with runnable code for each. Study this; skim the big files only where something here feels shaky. Working reference build: <code>react/FleetList.jsx</code>.</div>
+
+  <div class="cols">
+
+    <div class="panel hot full">
+      <h2>1 · State rules — most-tested React knowledge</h2>
+      <ul>
+        <li><b>Minimal state:</b> store only user-changed data. Winner, sunk status, filtered lists = <b>derived in render</b>, never stored. Storing derived state (then syncing it with useEffect) is the classic interview red flag.</li>
+        <li><b>State is stale until next render.</b> Compute with locals first, call setters at the end of the handler.</li>
+        <li><b>Functional update</b> when new depends on old: <code>setX(prev =&gt; ...)</code>. Multiple plain <code>setX(x+1)</code> calls in one handler collapse to one increment — batching.</li>
+        <li><b>Never mutate.</b> New arrays/objects every update; React compares by reference and skips re-renders on same reference.</li>
+        <li><b>useReducer</b> when many action types hit one structure (game moves, undo): one pure <code>(state, action) =&gt; newState</code>.</li>
+        <li>Component body order: <b>state → derived → handlers → JSX.</b></li>
+      </ul>
+    </div>
+
+    <div class="panel hot full">
+      <h2>2 · Rendering a grid — the full pattern</h2>
+      <div class="note">Three parts: build the 2D state, render it with nested maps inside CSS grid, update one cell immutably. The CSS trick: the wrapper is <b>one</b> grid container with <code>repeat(COLS, ...)</code>, and you render a flat stream of cells into it — row divs are unnecessary. Keys combine row and column since grid cells have no natural id.</div>
+      <pre><span class="c">// 1. Build the 2D state — Array.from gives each row its OWN array.</span>
+<span class="c">//    Array(3).fill([]) is a bug: every row would be the same array object.</span>
+<span class="k">const</span> ROWS = <span class="n">3</span>, COLS = <span class="n">4</span>;
+<span class="k">const</span> [cells, setCells] = <span class="f">useState</span>(() =&gt;
+  <span class="t">Array</span>.<span class="f">from</span>({ <span class="p">length</span>: ROWS }, () =&gt; <span class="t">Array</span>(COLS).<span class="f">fill</span>(<span class="s">'empty'</span>))
+);
+
+<span class="c">// 2. Render — outer map = rows, inner map = cells in that row.</span>
+<span class="c">//    CSS grid wraps the flat children into COLS columns automatically.</span>
+<span class="k">return</span> (
+  &lt;<span class="t">div</span> <span class="p">style</span>={{
+    <span class="p">display</span>: <span class="s">'grid'</span>,
+    <span class="p">gridTemplateColumns</span>: <span class="s">`repeat(${</span>COLS<span class="s">}, 48px)`</span>,
+    <span class="p">gap</span>: <span class="n">4</span>,
+  }}&gt;
+    {cells.<span class="f">map</span>((row, r) =&gt;
+      row.<span class="f">map</span>((cell, c) =&gt; (
+        &lt;<span class="t">button</span>
+          <span class="p">key</span>={<span class="s">`${</span>r<span class="s">}-${</span>c<span class="s">}`</span>}          <span class="c">// stable for a fixed-size grid</span>
+          <span class="p">onClick</span>={() =&gt; <span class="f">handleClick</span>(r, c)}
+          <span class="p">style</span>={{ <span class="p">height</span>: <span class="n">48</span>, <span class="p">background</span>: <span class="f">colorFor</span>(cell) }}
+        &gt;
+          {cell === <span class="s">'hit'</span> ? <span class="s">'✕'</span> : <span class="s">''</span>}
+        &lt;/<span class="t">button</span>&gt;
+      ))
+    )}
+  &lt;/<span class="t">div</span>&gt;
+);
+
+<span class="c">// 3. Update ONE cell immutably — copy only the row you touch.</span>
+<span class="c">//    Untouched rows keep their reference (matters later for React.memo).</span>
+<span class="k">function</span> <span class="f">handleClick</span>(r, c) {
+  <span class="f">setCells</span>(prev =&gt; prev.<span class="f">map</span>((row, ri) =&gt;
+    ri !== r
+      ? row                                    <span class="c">// untouched row: same reference</span>
+      : row.<span class="f">map</span>((cell, ci) =&gt; ci !== c ? cell : <span class="f">nextState</span>(cell))
+  ));
+}
+
+<span class="c">// State machine as data — no if/else chain</span>
+<span class="k">const</span> CYCLE = { <span class="p">empty</span>: <span class="s">'hit'</span>, <span class="p">hit</span>: <span class="s">'miss'</span>, <span class="p">miss</span>: <span class="s">'empty'</span> };
+<span class="k">const</span> <span class="f">nextState</span> = cell =&gt; CYCLE[cell];</pre>
+      <ul>
+        <li>Why <code>useState(() =&gt; ...)</code>: the function form (lazy init) builds the array once, not on every render.</li>
+        <li>Why not <code>row[r][c] = x</code>: mutation keeps the same outer reference, React may skip the re-render — and even when it renders, memoized children won't update.</li>
+        <li>Say out loud: "untouched rows keep their reference, so if I memoize rows or cells later, only the changed one re-renders."</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>3 · Controlled input — the two-way wiring</h2>
+      <div class="note">Controlled = React state is the single source of truth. The input shows exactly <code>value</code>; typing fires <code>onChange</code>, which updates state, which re-renders the input with the new value. Forget <code>onChange</code> and the input is frozen; forget <code>value</code> and it's uncontrolled (DOM owns it, read via ref).</div>
+      <pre><span class="k">const</span> [query, setQuery] = <span class="f">useState</span>(<span class="s">''</span>);
+
+&lt;<span class="t">input</span>
+  <span class="p">value</span>={query}                              <span class="c">// state → UI</span>
+  <span class="p">onChange</span>={e =&gt; <span class="f">setQuery</span>(e.target.value)}   <span class="c">// UI → state</span>
+  <span class="p">placeholder</span>=<span class="s">"Search"</span>
+/&gt;
+
+<span class="c">// Same idea for select</span>
+&lt;<span class="t">select</span> <span class="p">value</span>={status} <span class="p">onChange</span>={e =&gt; <span class="f">setStatus</span>(e.target.value)}&gt;
+  &lt;<span class="t">option</span> <span class="p">value</span>=<span class="s">"all"</span>&gt;All&lt;/<span class="t">option</span>&gt;
+  &lt;<span class="t">option</span> <span class="p">value</span>=<span class="s">"stopped"</span>&gt;Stopped&lt;/<span class="t">option</span>&gt;
+&lt;/<span class="t">select</span>&gt;
+
+<span class="c">// Form submit: preventDefault or the page reloads</span>
+&lt;<span class="t">form</span> <span class="p">onSubmit</span>={e =&gt; { e.<span class="f">preventDefault</span>(); <span class="f">addItem</span>(query); }}&gt;</pre>
+    </div>
+
+    <div class="panel">
+      <h2>4 · useCallback + React.memo — the pair</h2>
+      <div class="note">Yes — the handler is a function, and a component <b>recreates every function defined in its body on every render</b>. New function = new reference = a memoized child sees a "changed" prop and re-renders anyway. <code>useCallback</code> returns the <i>same</i> function reference across renders, which is what lets <code>React.memo</code> actually skip work. One is useless without the other.</div>
+      <pre><span class="c">// Child: React.memo skips re-render if all props are === to last time</span>
+<span class="k">const</span> <span class="t">Cell</span> = <span class="t">React</span>.<span class="f">memo</span>(<span class="k">function</span> <span class="t">Cell</span>({ state, onClick }) {
+  <span class="k">return</span> &lt;<span class="t">button</span> <span class="p">onClick</span>={onClick}&gt;{state}&lt;/<span class="t">button</span>&gt;;
+});
+
+<span class="c">// Parent — WITHOUT useCallback: new function each render,</span>
+<span class="c">// so every Cell re-renders and React.memo does nothing:</span>
+<span class="k">const</span> handleClick = (r, c) =&gt; { <span class="c">/* ... */</span> };   <span class="c">// ✗ new ref each render</span>
+
+<span class="c">// WITH useCallback: same reference until deps change</span>
+<span class="k">const</span> handleClick = <span class="f">useCallback</span>((r, c) =&gt; {
+  <span class="f">setCells</span>(prev =&gt; <span class="f">updateCell</span>(prev, r, c));  <span class="c">// functional update ⇒</span>
+}, []);                                        <span class="c">// no deps needed at all</span>
+
+<span class="c">// Trap: inline arrow in JSX recreates the ref and defeats memo again.</span>
+&lt;<span class="t">Cell</span> <span class="p">onClick</span>={() =&gt; <span class="f">handleClick</span>(r, c)} /&gt;   <span class="c">// ✗ new ref per render</span>
+<span class="c">// Fix: pass r,c as props and let Cell call onClick(r, c) itself.</span></pre>
+      <ul>
+        <li>Interview line: "I'd only add this after noting all 100 cells re-render per click — at this size it's optional, and I'd measure first."</li>
+        <li><code>useMemo</code> is the same idea for <b>values</b>; <code>useCallback(fn, deps)</code> ≡ <code>useMemo(() =&gt; fn, deps)</code>.</li>
+      </ul>
+    </div>
+
+    <div class="panel full">
+      <h2>5 · Debounce &amp; throttle — calling them, and lodash in CoderPad</h2>
+      <div class="note">Both wrap a function and return a new rate-limited function. <b>Debounce</b> = fire once after calls stop for N ms (search input). <b>Throttle</b> = fire at most once per N ms while calls keep coming (scroll, resize, mousemove). The trap in React: the wrapped function must be created <b>once</b>, not on every render, or each render gets a fresh timer and the debounce never holds.</div>
+      <pre><span class="c">// CoderPad has npm packages — lodash imports just work:</span>
+<span class="k">import</span> { debounce, throttle } <span class="k">from</span> <span class="s">'lodash'</span>;
+<span class="c">// (also fine: import _ from 'lodash'; then _.debounce(...))</span>
+
+<span class="k">const</span> log = (msg) =&gt; console.<span class="f">log</span>(msg);
+<span class="k">const</span> debouncedLog = <span class="f">debounce</span>(log, <span class="n">300</span>);  <span class="c">// fires 300ms after LAST call</span>
+<span class="k">const</span> throttledLog = <span class="f">throttle</span>(log, <span class="n">300</span>);  <span class="c">// fires at most once per 300ms</span>
+
+debouncedLog(<span class="s">'a'</span>); debouncedLog(<span class="s">'b'</span>); debouncedLog(<span class="s">'c'</span>);
+<span class="c">// → logs only 'c', 300ms after the last call</span>
+
+<span class="c">// In React — useMemo so the SAME debounced fn survives re-renders:</span>
+<span class="k">const</span> debouncedSetQuery = <span class="f">useMemo</span>(
+  () =&gt; <span class="f">debounce</span>(value =&gt; <span class="f">setQuery</span>(value), <span class="n">300</span>),
+[]);
+
+<span class="k">const</span> <span class="f">onSearch</span> = (e) =&gt; {
+  <span class="f">setInputValue</span>(e.target.value);      <span class="c">// controlled input: instant</span>
+  <span class="f">debouncedSetQuery</span>(e.target.value);  <span class="c">// filtering: after the pause</span>
+};
+
+<span class="c">// No lodash? Hand-rolled debounce is 5 lines — know it cold:</span>
+<span class="k">function</span> <span class="f">debounce</span>(fn, ms) {
+  <span class="k">let</span> timer;
+  <span class="k">return</span> (...args) =&gt; {
+    <span class="f">clearTimeout</span>(timer);
+    timer = <span class="f">setTimeout</span>(() =&gt; <span class="f">fn</span>(...args), ms);
+  };
+}</pre>
+      <ul>
+        <li>Or skip the helper entirely: a <code>useRef</code> holding the timer id inside the handler (the FleetList.jsx approach) — simplest to write live.</li>
+        <li>One-line contrast to say aloud: "debounce waits for silence; throttle samples during noise."</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>6 · BFS / DFS in JavaScript</h2>
+      <div class="note">Waymo scope: level-order on a tree, flood-fill on a grid. BFS = queue (<code>shift</code>), DFS = recursion or stack (<code>pop</code>). Grid version needs bounds check + visited/mark.</div>
+      <pre><span class="c">// BFS — level order on a tree (returns [[level0], [level1], ...])</span>
+<span class="k">function</span> <span class="f">levelOrder</span>(root) {
+  <span class="k">if</span> (!root) <span class="k">return</span> [];
+  <span class="k">const</span> result = [], queue = [root];
+  <span class="k">while</span> (queue.length) {
+    <span class="k">const</span> size = queue.length;      <span class="c">// snapshot = this level</span>
+    <span class="k">const</span> level = [];
+    <span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; size; i++) {
+      <span class="k">const</span> node = queue.<span class="f">shift</span>();
+      level.<span class="f">push</span>(node.val);
+      <span class="k">if</span> (node.left) queue.<span class="f">push</span>(node.left);
+      <span class="k">if</span> (node.right) queue.<span class="f">push</span>(node.right);
+    }
+    result.<span class="f">push</span>(level);
+  }
+  <span class="k">return</span> result;
+}
+
+<span class="c">// DFS — flood fill on a grid (recursion; mark visited by mutating)</span>
+<span class="k">const</span> DIRS = [[<span class="n">0</span>,<span class="n">1</span>],[<span class="n">0</span>,<span class="n">-1</span>],[<span class="n">1</span>,<span class="n">0</span>],[<span class="n">-1</span>,<span class="n">0</span>]];
+<span class="k">function</span> <span class="f">flood</span>(grid, r, c) {
+  <span class="k">if</span> (r &lt; <span class="n">0</span> || r &gt;= grid.length ||
+      c &lt; <span class="n">0</span> || c &gt;= grid[<span class="n">0</span>].length ||
+      grid[r][c] !== <span class="s">'1'</span>) <span class="k">return</span>;
+  grid[r][c] = <span class="s">'0'</span>;                   <span class="c">// mark visited</span>
+  <span class="k">for</span> (<span class="k">const</span> [dr, dc] <span class="k">of</span> DIRS) <span class="f">flood</span>(grid, r + dr, c + dc);
+}</pre>
+      <ul>
+        <li><code>queue.shift()</code> is O(n) — fine in interviews; mention "I'd use a head-index or deque for large n."</li>
+        <li>Mutating the algorithm's own grid copy is fine — just never mutate React state this way.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>7 · reduce — especially reduce-as-map</h2>
+      <div class="note">Signature: <code>arr.reduce((acc, item) =&gt; newAcc, initial)</code>. The accumulator is whatever you want — number, object, Map. "Reduce into an object" is how you group and count in JS (Python's <code>defaultdict</code> equivalent).</div>
+      <pre><span class="c">// Sum — the trivial case</span>
+<span class="k">const</span> total = nums.<span class="f">reduce</span>((acc, n) =&gt; acc + n, <span class="n">0</span>);
+
+<span class="c">// Count by key → { stopped: 3, active: 2 }  ("reduce as map")</span>
+<span class="k">const</span> counts = vehicles.<span class="f">reduce</span>((acc, v) =&gt; {
+  acc[v.status] = (acc[v.status] ?? <span class="n">0</span>) + <span class="n">1</span>;
+  <span class="k">return</span> acc;                       <span class="c">// ← forgetting this = classic bug</span>
+}, {});
+
+<span class="c">// Group by key → { 'sf-1': [v1, v4], 'ph-1': [v3] }</span>
+<span class="k">const</span> byZone = vehicles.<span class="f">reduce</span>((acc, v) =&gt; {
+  (acc[v.zoneId] ??= []).<span class="f">push</span>(v);   <span class="c">// ??= creates the bucket once</span>
+  <span class="k">return</span> acc;
+}, {});
+
+<span class="c">// Index by id → O(1) lookup table (Map keeps non-string keys)</span>
+<span class="k">const</span> byId = <span class="k">new</span> <span class="t">Map</span>(vehicles.<span class="f">map</span>(v =&gt; [v.id, v]));</pre>
+      <ul>
+        <li>Rule of thumb to say aloud: <b>array → array</b> is <code>map</code>/<code>filter</code>; <b>array → one thing</b> (object, Map, number) is <code>reduce</code>.</li>
+        <li>If the reduce body needs more than ~3 lines, a plain <code>for...of</code> loop is more readable — saying that is a point in your favor.</li>
+      </ul>
+    </div>
+
+    <div class="panel gap full">
+      <h2>⚑ Gaps — in neither journal nor prep plan, likely to come up</h2>
+      <ul>
+        <li><b>useEffect dependency arrays.</b> Journal only covers cleanup. Know: <code>[]</code> = mount once, <code>[x]</code> = when x changes, none = every render. For a TPS build you rarely need useEffect at all — say "no effect needed, everything derives from state" and score points.</li>
+        <li><b>Immutable nested/2D updates.</b> Biggest practical gap given grids — now covered in panel 2. Drill until automatic.</li>
+        <li><b>Lifting state up.</b> Two siblings need the same data → state moves to the parent. One sentence, be able to say it.</li>
+        <li><b>Index-as-key pitfall.</b> Journal says "needs a key" but not why index breaks: on reorder/delete React reuses the wrong DOM/state. Fine only for fixed-size never-reordered grids.</li>
+        <li><b>Typing React in TS.</b> Journal has enums only. Know: <code>interface Props { state: Cell; onClick: () =&gt; void }</code>, <code>useState&lt;Cell[][]&gt;(...)</code>, <code>e: React.ChangeEvent&lt;HTMLInputElement&gt;</code>. (CoderPad squiggles are cosmetic; <code>// @ts-nocheck</code> if noisy.)</li>
+        <li><b>Controlled vs uncontrolled</b> as a concept — panel 3 covers controlled; uncontrolled = DOM owns the value, read via <code>ref</code> on submit.</li>
+        <li><b>Custom hooks / useContext:</b> mention-only. "I'd extract the debounce into a useDebouncedValue hook" is a strong closer; don't study deeply.</li>
+      </ul>
+    </div>
+
+    <div class="panel hot full">
+      <h2>Focus — what Waymo actually asks</h2>
+      <ul>
+        <li><b>Grids: yes, drill them.</b> Battleship board (reported 2026), "Random Grid Token Placement" (TPS), Set Matrix Zeroes and Sparse Matrix in the pool. Grid state + click cycling + derived status is the highest-value rehearsal — panel 2 is that whole build in miniature.</li>
+        <li><b>Equal weight: filterable data list.</b> Fleet-monitoring role → vehicle list with status dropdown, sort, debounced search. Full worked version: <code>react/FleetList.jsx</code> + <code>react/fleet-list-question.html</code>. Build both once, timed, before the call.</li>
+        <li><b>Skip this week:</b> DP, backtracking, heaps, hard graphs, polyfill drills. Light BFS/DFS only (panel 6 is the ceiling).</li>
+        <li><b>Rehearse the mouth, not just the hands:</b> state shape out loud, Big-O out loud, the memoization talk track (panel 4) out loud.</li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="foot">Pair with <b>ui_interview_playbook.html</b> for the in-interview sequence. Two timed builds &gt; ten more read-throughs.</div>
+</div>
+</body>
+</html>

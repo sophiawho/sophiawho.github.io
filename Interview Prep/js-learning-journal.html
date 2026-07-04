@@ -306,6 +306,8 @@
     <a class="toc-sub" href="#stale-state">Stale State</a>
     <a class="toc-sub" href="#derived-state">Derive Don't Store</a>
     <a class="toc-sub" href="#batching">Batching</a>
+    <a class="toc-sub" href="#functional-updater">Functional setState</a>
+    <a class="toc-sub" href="#render-lifecycle">Render→Commit→Effect</a>
     <a class="toc-sub" href="#usereducer">useReducer</a>
 
     <hr class="toc-divider">
@@ -319,6 +321,7 @@
     <a class="toc-sub" href="#form-intent">Form Intents</a>
     <a class="toc-sub" href="#usememo-usecallback">useMemo & useCallback</a>
     <a class="toc-sub" href="#react-memo">React.memo</a>
+    <a class="toc-sub" href="#refs-array">Array of Refs</a>
     <a class="toc-sub" href="#select-listbox">select & option (listbox)</a>
 
     <hr class="toc-divider">
@@ -329,6 +332,7 @@
     <a class="toc-sub" href="#computed-keys">Computed Keys</a>
     <a class="toc-sub" href="#iteration">Iteration</a>
     <a class="toc-sub" href="#locale-compare">localeCompare</a>
+    <a class="toc-sub" href="#regex-test">Regex .test()</a>
     <a class="toc-sub" href="#typescript">TypeScript</a>
 
     <hr class="toc-divider">
@@ -352,6 +356,12 @@
     <a class="toc-sub" href="#css-grid">Grid</a>
     <a class="toc-sub" href="#inline-vs-file">Inline vs File</a>
     <a class="toc-sub" href="#lists">Lists</a>
+
+    <hr class="toc-divider">
+
+    <a class="toc-section" href="#events">Events</a>
+    <a class="toc-sub" href="#input-events">Which Event Does What</a>
+    <a class="toc-sub" href="#preventdefault">preventDefault</a>
   </nav>
 
   <!-- ── Main ── -->
@@ -388,7 +398,8 @@ Two valid ways to associate a label with an input:<br>
 <code>&lt;label&gt;First Name: &lt;input value={first} onChange={...} /&gt;&lt;/label&gt;</code><br><br>
 <strong>htmlFor/id</strong> (explicit) — use when label and input are far apart in the DOM or need independent styling:<br>
 <code>&lt;label htmlFor="first"&gt;First Name&lt;/label&gt; &lt;input id="first" ... /&gt;</code></div>
-        <div class="tags"><span class="tag">controlled input</span><span class="tag">JSX</span><span class="tag">high priority</span></div>
+        <div class="note"><code>autoFocus</code> (camelCase in JSX, not lowercase <code>autofocus</code>) focuses the input on mount — handy for the first field of a form or the first box of an OTP/code input. One-line declarative alternative to a <code>useRef</code> + <code>useEffect</code> focus call.</div>
+        <div class="tags"><span class="tag">controlled input</span><span class="tag">JSX</span><span class="tag">autoFocus</span><span class="tag">high priority</span></div>
       </div>
 
       <div class="concept-card" id="rerenders">
@@ -465,6 +476,42 @@ setIsXTurn(!isXTurn);    <span class="cm">// doesn't re-render yet</span>
 setWinner(playerName);   <span class="cm">// doesn't re-render yet</span>
                          <span class="cm">// → ONE re-render here with all updates applied</span></pre></div>
         <div class="tags"><span class="tag">batching</span><span class="tag">re-render</span></div>
+      </div>
+
+      <div class="concept-card" id="functional-updater">
+        <h3>Functional setState — <code>setX(prev =&gt; ...)</code> when new state depends on old</h3>
+        <p>Passing a function gives you React's latest committed state as <code>prev</code>, instead of the value captured in this render's closure. Identical for a single update, but the closure value goes stale when updates batch or fire in quick succession.</p>
+        <div class="code-block"><pre><span class="cm">// ✓ reads the latest state — safe when updates stack up</span>
+setDigits(prev =&gt; prev.map((d, i) =&gt; (i === index ? char : d)));
+
+<span class="cm">// ✗ reads `digits` from the closure — a snapshot from this render</span>
+setDigits(digits.map((d, i) =&gt; (i === index ? char : d)));
+
+<span class="cm">// classic proof: this only adds 1 — both read the same stale count</span>
+setCount(count + 1);
+setCount(count + 1);
+<span class="cm">// functional form adds 2 — each call gets the previous result</span>
+setCount(c =&gt; c + 1);
+setCount(c =&gt; c + 1);</pre></div>
+        <div class="note">Default to <code>prev =&gt;</code> whenever the next state is derived from the previous state (toggles, counters, mapping a list). Costs nothing and kills a whole class of stale-closure bugs — e.g. paste-then-focus or fast typing in an OTP input.</div>
+        <div class="tags"><span class="tag">setState</span><span class="tag">functional update</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="render-lifecycle">
+        <h3>Render → Commit → Paint → Effect — when things actually run</h3>
+        <p>React runs your component function top to bottom (render), but does NOT run <code>useEffect</code> inline — it just registers the callback. Only after the DOM is updated does the effect run. That's why effects can safely touch the DOM and refs: by the time they run, the elements exist.</p>
+        <div class="code-block"><pre><span class="cm">// 1. RENDER — function runs top to bottom, builds JSX.</span>
+<span class="cm">//    useEffect(fn, []) is RECORDED, not called. DOM not created yet.</span>
+<span class="cm">// 2. COMMIT — React applies JSX to the real DOM; ref callbacks fire,</span>
+<span class="cm">//    filling inputsRef.current.</span>
+<span class="cm">// 3. PAINT — browser draws the updated DOM to the screen.</span>
+<span class="cm">// 4. EFFECT — React runs the useEffect callback. Refs are populated now.</span>
+
+useEffect(() =&gt; {
+  inputsRef.current[0]?.focus();  <span class="ok">// works — the input exists by now</span>
+}, []);  <span class="cm">// [] = run once, after the first commit</span></pre></div>
+        <div class="note">Effects are deferred because rendering must stay pure and side-effect-free. Touching the DOM (focus, measure) only makes sense after it exists. <code>useLayoutEffect</code> is the sibling that runs after DOM mutation but BEFORE paint — use it to avoid a visible flicker when measuring/repositioning; plain <code>useEffect</code> is right for focus.</div>
+        <div class="tags"><span class="tag">useEffect</span><span class="tag">lifecycle</span><span class="tag">render</span><span class="tag">high priority</span></div>
       </div>
 
       <div class="concept-card" id="usereducer">
@@ -696,6 +743,22 @@ const debouncedSearch = useCallback(
         <div class="note">Three related tools: <code>useMemo</code> caches a value, <code>useCallback</code> caches a function reference, <code>memo</code> caches a component's render. The first two are hooks called inside a component; <code>memo</code> wraps a component from the outside. Pair <code>memo</code> on the child with <code>useCallback</code> for its function props.</div>
         <div class="tags"><span class="tag">memo</span><span class="tag">useCallback</span><span class="tag">re-render</span><span class="tag">high priority</span></div>
       </div>
+
+      <div class="concept-card" id="refs-array">
+        <h3>Array of refs — one <code>useRef([])</code> to focus many elements</h3>
+        <p>For a list of inputs (OTP boxes, a grid) hold all DOM nodes in one ref whose <code>.current</code> is an array. Assign each node in the <code>ref</code> callback — <code>el</code> is the actual DOM element React hands you as the input mounts.</p>
+        <div class="code-block"><pre>const inputsRef = useRef([]);  <span class="cm">// .current is an array, NOT null</span>
+
+&lt;input
+  ref={(el) =&gt; { inputsRef.current[index] = el; }}  <span class="cm">// el = the DOM node</span>
+  ...
+/&gt;
+
+inputsRef.current[0]?.focus();          <span class="cm">// focus first box</span>
+inputsRef.current[index + 1]?.focus();  <span class="cm">// focus the next</span></pre></div>
+        <div class="gotcha">Init with <code>[]</code>, not <code>null</code> — <code>null[2] = el</code> throws, but <code>[][2] = el</code> just grows the array (indices 0–1 become empty holes). And out-of-bounds reads return <code>undefined</code>, so <code>inputsRef.current[-1]?.focus()</code> is a safe no-op — <code>?.</code> means no bounds check needed.</div>
+        <div class="tags"><span class="tag">useRef</span><span class="tag">refs</span><span class="tag">focus</span><span class="tag">high priority</span></div>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════════════ -->
@@ -808,6 +871,17 @@ files.sort((a, b) => {
 });</pre></div>
         <div class="note">Don't use <code>a &gt; b ? 1 : -1</code> for strings — it's less reliable across locales and special characters. <code>localeCompare</code> handles accents, case, and language rules correctly.</div>
         <div class="tags"><span class="tag">sorting</span><span class="tag">strings</span></div>
+      </div>
+
+      <div class="concept-card" id="regex-test">
+        <h3>Test a character with a regex — <code>/\d/.test(ch)</code></h3>
+        <p><code>regex.test(str)</code> returns a boolean. Works on a single char or a whole string. There's no <code>char</code> type in JS — a single character is just a string of length 1, so the same test runs on <code>"5"</code> or <code>s[0]</code>.</p>
+        <div class="code-block"><pre>/\d/.test(ch);        <span class="cm">// true if ch is a digit 0-9  (\d === [0-9])</span>
+/[0-9]/.test(ch);     <span class="cm">// same, written explicitly</span>
+/^[0-9]$/.test(ch);   <span class="cm">// true only if EXACTLY one digit (anchored)</span>
+/^\d+$/.test(str);    <span class="cm">// true if the WHOLE string is all digits</span></pre></div>
+        <div class="note">Prefer an anchored positive check (<code>/^[0-9]$/</code>) over rejecting only single bad chars — a guard like <code>ch.length === 1 &amp;&amp; !/\d/.test(ch)</code> lets multi-char key names (<code>"ArrowLeft"</code>, <code>"Tab"</code>) slip through. Avoid <code>!isNaN(ch)</code> for digit checks: <code>isNaN("")</code> is <code>false</code> because <code>""</code> coerces to 0.</div>
+        <div class="tags"><span class="tag">regex</span><span class="tag">test</span><span class="tag">validation</span></div>
       </div>
 
       <div class="concept-card" id="typescript">
@@ -1120,18 +1194,66 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
       </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- EVENTS -->
+    <!-- ══════════════════════════════════════════════ -->
+    <div class="chapter" id="events">
+      <div class="chapter-label">Events</div>
+      <h2>Input &amp; Keyboard Events</h2>
+
+      <div class="concept-card" id="input-events">
+        <h3>Which event does what — onChange vs onKeyDown vs onPaste</h3>
+        <p>Text-entry UIs (like an OTP input) split cleanly across three handlers. Don't rebuild typing from <code>onKeyDown</code> alone — it can't see paste and forces you to filter every non-character key.</p>
+        <div class="code-block"><pre><span class="cm">// onChange — the VALUE changed. Owns data entry + forward focus.</span>
+onChange={(e) =&gt; handle(e.target.value, i)}   <span class="cm">// e.target.value is always a string</span>
+
+<span class="cm">// onKeyDown — KEY identity. Owns Backspace-on-empty + arrow nav.</span>
+onKeyDown={(e) =&gt; {                            <span class="cm">// e.key = "5" | "Backspace" | "ArrowLeft"...</span>
+  if (e.key === "Backspace" &amp;&amp; digits[i] === "") focusPrev();
+}}
+
+<span class="cm">// onPaste — has its OWN event; keys can't detect a paste.</span>
+onPaste={(e) =&gt; {
+  const text = e.clipboardData.getData("text");  <span class="cm">// the pasted string</span>
+}}</pre></div>
+        <div class="gotcha">Why a combination: <code>onChange</code> does NOT fire on Backspace in an already-empty box (value didn't change), so moving focus back needs <code>onKeyDown</code>. And <code>e.key</code> is a key NAME, not the resulting value — validating it like a character lets <code>"ArrowLeft"</code> through.</div>
+        <div class="note"><strong>Timing:</strong> for one keypress the order is <code>keydown</code> → <code>input</code>/<code>change</code> → <code>keyup</code>. So <code>keydown</code> sees the value BEFORE this keystroke, <code>keyup</code> sees it after. Read the new value in <code>onChange</code>, not <code>onKeyDown</code>.</div>
+        <div class="tags"><span class="tag">events</span><span class="tag">onChange</span><span class="tag">onKeyDown</span><span class="tag">onPaste</span></div>
+      </div>
+
+      <div class="concept-card" id="preventdefault">
+        <h3>e.preventDefault() — cancel the browser's built-in behavior</h3>
+        <p>Call it whenever you take over what the browser would do by default, so the native action doesn't fight your logic.</p>
+        <div class="code-block"><pre><span class="cm">// form submit — stop the full-page reload that wipes React state</span>
+onSubmit={(e) =&gt; { e.preventDefault(); doSubmit(); }}
+
+<span class="cm">// empty-box Backspace — move focus back WITHOUT the native delete</span>
+<span class="cm">// also erasing the previous box's digit (one press = one action)</span>
+if (e.key === "Backspace" &amp;&amp; digits[i] === "") {
+  e.preventDefault();
+  focusPrev();
+}
+
+<span class="cm">// paste — stop default insertion so YOUR logic fills the boxes</span>
+onPaste={(e) =&gt; { e.preventDefault(); spread(e.clipboardData.getData("text")); }}</pre></div>
+        <div class="note">Rule of thumb: taking over a default (submit, paste, a key's native effect) → call <code>preventDefault</code>. Leaving the default alone → don't.</div>
+        <div class="tags"><span class="tag">preventDefault</span><span class="tag">events</span><span class="tag">forms</span></div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /layout -->
 
 <script>
   // ── Scroll spy ──
   const tocIds = [
-    'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching','usereducer',
-    'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback','react-memo',
-    'js-fundamentals','object-vs-map','destructuring','computed-keys','iteration','typescript',
+    'react-state','controlled-inputs','rerenders','stale-state','derived-state','batching','functional-updater','render-lifecycle','usereducer',
+    'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback','react-memo','refs-array',
+    'js-fundamentals','object-vs-map','destructuring','computed-keys','iteration','regex-test','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle',
-    'html-css','css-cheatsheet','css-grid','inline-vs-file','lists'
+    'html-css','css-cheatsheet','css-grid','inline-vs-file','lists',
+    'events','input-events','preventdefault'
   ];
 
   const tocLinks = {};
