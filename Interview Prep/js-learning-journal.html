@@ -339,6 +339,7 @@
 
     <a class="toc-section" href="#functional">Functional Programming</a>
     <a class="toc-sub" href="#map-filter-reduce">map / filter / reduce</a>
+    <a class="toc-sub" href="#sort-mutates">sort & reverse mutate</a>
     <a class="toc-sub" href="#flatmap">flatMap</a>
 
     <hr class="toc-divider">
@@ -936,6 +937,30 @@ arr.map((_, index) =&gt; index * 2);</pre></div>
         <div class="tags"><span class="tag">map</span><span class="tag">filter</span><span class="tag">reduce</span><span class="tag">high priority</span></div>
       </div>
 
+      <div class="concept-card" id="sort-mutates">
+        <h3>sort &amp; reverse mutate — <code>slice()</code> first</h3>
+        <p><code>.filter()</code> and <code>.map()</code> never touch the original and return a new array. <code>.sort()</code> and <code>.reverse()</code> reorder <em>in place</em> and return the SAME array. So sorting an array you don't own silently scrambles the original.</p>
+        <div class="code-block"><pre><span class="cm">// ✗ sorts the source constant itself — reorders it for every other reader,</span>
+<span class="cm">//   and the damage compounds on each render</span>
+const visible = VEHICLES.sort((a, b) =&gt; b.stoppedSeconds - a.stoppedSeconds);
+
+<span class="cm">// ✓ slice() makes a throwaway copy — sort chews on the copy, source is safe</span>
+const visible = VEHICLES.slice().sort((a, b) =&gt; b.stoppedSeconds - a.stoppedSeconds);
+
+<span class="cm">// ✓ modern: toSorted() returns a NEW sorted array, never mutates (no slice needed)</span>
+const visible = VEHICLES.toSorted((a, b) =&gt; b.stoppedSeconds - a.stoppedSeconds);</pre></div>
+        <div class="code-block"><pre><span class="cm">// pipeline order is left-to-right — each method runs fully, hands result to next</span>
+const visible = useMemo(() =&gt; VEHICLES
+  .filter(v =&gt; statusFilter === 'all' || v.status === statusFilter)  <span class="cm">// new array</span>
+  .filter(v =&gt; v.id.toLowerCase().includes(query.toLowerCase()))     <span class="cm">// new array</span>
+  .slice()                                                          <span class="cm">// copy (see note)</span>
+  .sort((a, b) =&gt; b.stoppedSeconds - a.stoppedSeconds),             <span class="cm">// mutates the copy</span>
+[statusFilter, query]);</pre></div>
+        <div class="note"><strong>In this exact chain <code>slice()</code> is redundant</strong> — the <code>.filter()</code> before it already produced a fresh array, so <code>.sort()</code> is mutating a copy, not <code>VEHICLES</code>. Keep it anyway as cheap insurance: if someone later deletes the filters, <code>.sort()</code> would fall through onto <code>VEHICLES</code> itself. Filter before sort is also faster — fewer items to sort.</div>
+        <div class="gotcha"><strong>Rule:</strong> any time you <code>.sort()</code> or <code>.reverse()</code> an array you didn't just create, <code>.slice()</code> it first (or use <code>.toSorted()</code> / <code>.toReversed()</code>). When the previous step is already a <code>.filter()</code>/<code>.map()</code>, the copy is free but leaving <code>slice()</code> in is harmless.</div>
+        <div class="tags"><span class="tag">sort</span><span class="tag">mutation</span><span class="tag">slice</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
       <div class="concept-card" id="flatmap">
         <h3>flatMap — map + flat(1) in one step</h3>
         <p>Return <code>[item]</code> to include, <code>[]</code> to skip. Useful for filter+map on nested arrays in one pass.</p>
@@ -1039,7 +1064,26 @@ input.addEventListener('input', (e) =&gt; debouncedSearch(e.target.value));</pre
         </div>
         <div class="gotcha">Always wrap <code>debounce</code> in <code>useCallback</code> (or <code>useMemo</code>) with <code>[]</code>. Without it, a new debounced function is created on every render — each one has its own fresh timer, so the delay never fires correctly.<br><br>
 <code>const debouncedSearch = useCallback(debounce((val) =&gt; fetchResults(val), 300), []);</code></div>
-        <div class="tags"><span class="tag">debounce</span><span class="tag">throttle</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+        <div class="code-block"><pre><span class="cm">// lodash debounce + useMemo — the interview default for a search input</span>
+import debounce from "lodash/debounce";
+
+const [query, setQuery] = useState("");
+
+<span class="cm">// useMemo memoizes the debounced FUNCTION (a value) so it's stable across renders.</span>
+<span class="cm">// The timer id lives inside debounce's own closure — no manual useRef needed.</span>
+const debouncedSetQuery = useMemo(
+  () =&gt; debounce((value) =&gt; setQuery(value), 300),
+  []   <span class="cm">// [] = create once. setQuery from useState is stable, so no deps</span>
+);
+
+<span class="cm">// cancel any pending call when the component unmounts</span>
+useEffect(() =&gt; () =&gt; debouncedSetQuery.cancel(), [debouncedSetQuery]);
+
+&lt;input onChange={(e) =&gt; debouncedSetQuery(e.target.value)} /&gt;</pre></div>
+        <div class="note"><strong>Why useMemo here but useRef for a manual setTimeout debounce?</strong> Two different jobs. <code>useMemo</code> stores the debounced <em>function</em> (a stable value — exactly what useMemo is for). A hand-rolled debounce calls <code>setTimeout</code>/<code>clearTimeout</code> yourself, so you need <code>useRef</code> to hold the timer id for cancellation. With <code>lodash.debounce</code> the timer id is encapsulated inside the returned function's closure — you didn't eliminate the ref, you hid it inside the helper. Never run the timer logic <em>inside</em> useMemo — that's a side effect during render.</div>
+        <div class="gotcha"><strong>Always cancel pending calls on unmount.</strong> A debounced call can fire after the component is gone and call <code>setState</code> on an unmounted component, which warns. Return <code>() =&gt; debouncedSetQuery.cancel()</code> from a <code>useEffect</code>. This is the detail interviewers look for. Also: keep the input's displayed value instant (local/uncontrolled) and only debounce the <code>query</code> that drives filtering — binding the input directly to the debounced value feels laggy.</div>
+        <div class="note"><strong>Purist caveat:</strong> <code>useMemo</code> is a performance hint, not a guarantee — React may drop the cached value and rebuild the debounced fn, resetting its pending timer. In practice this rarely bites and the lodash + <code>useMemo</code> + cleanup pattern is widely accepted. If pressed, the airtight version is <code>useRef</code> lazy init, or a <code>useEffect</code> that creates the debounced fn and returns <code>.cancel</code> as cleanup.</div>
+        <div class="tags"><span class="tag">debounce</span><span class="tag">throttle</span><span class="tag">useMemo</span><span class="tag">cleanup</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
       </div>
     </div>
 

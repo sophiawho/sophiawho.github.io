@@ -22,6 +22,7 @@
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
   .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2);margin-bottom:10px}
+  .panel h3{font-size:12.5px;font-weight:700;color:var(--ink);margin:14px 0 6px}
   .panel.hot h2{color:var(--pink)}
   .panel.gap h2{color:var(--warn)}
   ul{list-style:none}
@@ -165,20 +166,22 @@
     </div>
 
     <div class="panel full">
-      <h2>5 · Debounce &amp; throttle — calling them, and lodash in CoderPad</h2>
-      <div class="note">Both wrap a function and return a new rate-limited function. <b>Debounce</b> = fire once after calls stop for N ms (search input). <b>Throttle</b> = fire at most once per N ms while calls keep coming (scroll, resize, mousemove). The trap in React: the wrapped function must be created <b>once</b>, not on every render, or each render gets a fresh timer and the debounce never holds.</div>
-      <pre><span class="c">// CoderPad has npm packages — lodash imports just work:</span>
-<span class="k">import</span> { debounce, throttle } <span class="k">from</span> <span class="s">'lodash'</span>;
-<span class="c">// (also fine: import _ from 'lodash'; then _.debounce(...))</span>
+      <h2>5 · Debounce for a search input — two ways</h2>
+      <div class="note"><b>Debounce</b> = fire once after calls stop for N ms (search input). <b>Throttle</b> = fire at most once per N ms while calls keep coming (scroll, resize, mousemove). Say aloud: "debounce waits for silence; throttle samples during noise." The React trap: the debounced fn must be created <b>once</b>, not on every render, or each render gets a fresh timer and the debounce never holds.</div>
 
-<span class="k">const</span> log = (msg) =&gt; console.<span class="f">log</span>(msg);
-<span class="k">const</span> debouncedLog = <span class="f">debounce</span>(log, <span class="n">300</span>);  <span class="c">// fires 300ms after LAST call</span>
-<span class="k">const</span> throttledLog = <span class="f">throttle</span>(log, <span class="n">300</span>);  <span class="c">// fires at most once per 300ms</span>
+      <h3>A · Debounce factory (lodash or hand-rolled) + useMemo</h3>
+      <pre><span class="c">// CoderPad has npm — lodash just works. No lodash? The hand-rolled version is 5 lines.</span>
+<span class="k">import</span> { debounce } <span class="k">from</span> <span class="s">'lodash'</span>;
 
-debouncedLog(<span class="s">'a'</span>); debouncedLog(<span class="s">'b'</span>); debouncedLog(<span class="s">'c'</span>);
-<span class="c">// → logs only 'c', 300ms after the last call</span>
+<span class="k">function</span> <span class="f">debounce</span>(fn, ms) {   <span class="c">// hand-rolled — know it cold</span>
+  <span class="k">let</span> timer;                 <span class="c">// timer id lives in the closure (the persistent slot)</span>
+  <span class="k">return</span> (...args) =&gt; {
+    <span class="f">clearTimeout</span>(timer);
+    timer = <span class="f">setTimeout</span>(() =&gt; <span class="f">fn</span>(...args), ms);
+  };
+}
 
-<span class="c">// In React — useMemo so the SAME debounced fn survives re-renders:</span>
+<span class="c">// In React — useMemo [] so the SAME debounced fn survives re-renders:</span>
 <span class="k">const</span> debouncedSetQuery = <span class="f">useMemo</span>(
   () =&gt; <span class="f">debounce</span>(value =&gt; <span class="f">setQuery</span>(value), <span class="n">300</span>),
 []);
@@ -188,17 +191,27 @@ debouncedLog(<span class="s">'a'</span>); debouncedLog(<span class="s">'b'</span
   <span class="f">debouncedSetQuery</span>(e.target.value);  <span class="c">// filtering: after the pause</span>
 };
 
-<span class="c">// No lodash? Hand-rolled debounce is 5 lines — know it cold:</span>
-<span class="k">function</span> <span class="f">debounce</span>(fn, ms) {
-  <span class="k">let</span> timer;
-  <span class="k">return</span> (...args) =&gt; {
-    <span class="f">clearTimeout</span>(timer);
-    timer = <span class="f">setTimeout</span>(() =&gt; <span class="f">fn</span>(...args), ms);
-  };
-}</pre>
+<span class="c">// cancel a pending call if the component unmounts (lodash gives .cancel())</span>
+<span class="f">useEffect</span>(() =&gt; () =&gt; debouncedSetQuery.<span class="f">cancel</span>(), [debouncedSetQuery]);</pre>
+
+      <h3>B · Timer ref + useEffect cleanup (simplest to write live)</h3>
+      <pre><span class="c">// No helper, no useMemo. ref.current holds anything (timer id, DOM node...);</span>
+<span class="c">// persists across renders, and writing to it does NOT re-render.</span>
+<span class="c">// That's why the id survives between keystrokes.</span>
+<span class="k">const</span> timerRef = <span class="f">useRef</span>(<span class="k">null</span>);
+
+<span class="k">const</span> <span class="f">onSearch</span> = (e) =&gt; {
+  <span class="k">const</span> value = e.target.value;
+  <span class="f">setInputValue</span>(value);              <span class="c">// input: instant</span>
+  <span class="f">clearTimeout</span>(timerRef.current);    <span class="c">// cancel PREVIOUS keystroke's timer</span>
+  timerRef.current = <span class="f">setTimeout</span>(() =&gt; <span class="f">setQuery</span>(value), <span class="n">300</span>);  <span class="c">// arm new, save id</span>
+};
+
+<span class="c">// clear a pending timer if the component unmounts mid-countdown</span>
+<span class="f">useEffect</span>(() =&gt; () =&gt; <span class="f">clearTimeout</span>(timerRef.current), []);</pre>
       <ul>
-        <li>Or skip the helper entirely: a <code>useRef</code> holding the timer id inside the handler (the FleetList.jsx approach) — simplest to write live.</li>
-        <li>One-line contrast to say aloud: "debounce waits for silence; throttle samples during noise."</li>
+        <li><b>Which to use:</b> B (timer ref) for one search box — self-contained, nothing to import, easy to narrate. A (factory) when debounce is reused or the prompt is literally "implement debounce."</li>
+        <li><b>Timer-ref traps</b> (all make debounce a no-op): storing the id in a local <code>const timer</code> instead of the ref → nothing survives to cancel, every keystroke fires. Calling <code>clearTimeout(timer)</code> in the SAME handler on the timer you just set → cancels it instantly, nothing ever fires. The clear must reach a timer from an <em>earlier</em> call, so the id needs a persistent slot (ref).</li>
       </ul>
     </div>
 

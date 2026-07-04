@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Front End — 14-Day Plan</title>
+<title>Front End — TypeScript &amp; UI Prep</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
 <style>
   :root {
@@ -543,26 +543,6 @@
   <nav class="toc">
     <div class="toc-label">Contents</div>
 
-    <a class="toc-phase" href="#phase-foundation">Days 1–3</a>
-    <a class="toc-sub" href="#phase-foundation">Foundation</a>
-
-    <a class="toc-phase" href="#phase-traversal">Days 4–6</a>
-    <a class="toc-sub" href="#phase-traversal">Traversal</a>
-
-    <a class="toc-phase" href="#phase-ui">Days 7–9</a>
-    <a class="toc-sub" href="#phase-ui">UI Implementation</a>
-
-    <a class="toc-phase" href="#phase-comms">Days 10–11</a>
-    <a class="toc-sub" href="#phase-comms">Communication</a>
-
-    <a class="toc-phase" href="#phase-mocks">Days 12–13</a>
-    <a class="toc-sub" href="#phase-mocks">Simulation</a>
-
-    <a class="toc-phase" href="#phase-buffer">Day 14</a>
-    <a class="toc-sub" href="#phase-buffer">Buffer</a>
-
-    <hr class="toc-divider">
-
     <a class="toc-ref" href="#confirm">Before the Call</a>
 
     <hr class="toc-divider">
@@ -592,8 +572,8 @@
 
     <header>
       <div class="eyebrow">Waymo · Software Engineer, Fleet Monitoring</div>
-      <h1>Technical Phone Screen — 14-Day Plan</h1>
-      <div class="subhead">Two hours a day, building from Python fluency toward live JavaScript problem-solving across UI implementation and core data structures.</div>
+      <h1>Technical Phone Screen — TypeScript &amp; UI Prep</h1>
+      <div class="subhead">Reference and drills for the live JavaScript/TypeScript round — UI implementation, fleet-data manipulation, and core patterns. LeetCode-style algorithm problems are handled separately in Python.</div>
       <div class="scope">
         <strong>Per the official TPS guide:</strong> live coding in JavaScript/TypeScript, covering UI implementation (any framework or vanilla JS/TS), arrays/strings/objects/sets/maps, simple graph &amp; tree traversal (BFS/DFS), recursion, sorting/filtering logic, and time/space complexity discussion.
       </div>
@@ -633,194 +613,6 @@
         </div>
       </div>
     </header>
-
-    <!-- ── PHASE 1 ── -->
-    <div class="phase" id="phase-foundation">
-      <div class="phase-label"><span class="days">Days 1–3</span> Foundation</div>
-      <h2>JS syntax via porting</h2>
-      <div class="why">Rewrite problems you've already solved in Python so you're learning syntax through familiar logic, not learning both at once.</div>
-
-      <div class="card">
-        <div class="day-tag">Day 1 — Arrays &amp; Strings</div>
-        <p>Port 3–4 sliding window / two-pointer problems from Python to JS. Get comfortable with <code>.slice()</code>, <code>.split()</code>, template literals.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="3"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">3. Longest Substring Without Repeating Characters</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="121"><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="11"><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a></li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 2 — Objects, Map, Set</div>
-        <p>Port hashmap-style problems (Two Sum and similar). Practice <code>Map</code>, <code>Set</code>, and plain object lookups as JS equivalents of Python dicts.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="1"><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="49"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="242"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a></li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 3 — Sorting &amp; Filtering</div>
-        <p>Practice <code>.sort()</code> with custom comparators, <code>.filter()</code>, <code>.map()</code>, <code>.reduce()</code> chains. Explicitly called out in the TPS guide.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="238"><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="347"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a></li>
-        </ul>
-      </div>
-
-      <div class="resources">
-        <div class="res-label">Resources</div>
-        <ul class="res-list">
-          <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — switch your default language to JavaScript; re-solve problems you've already cleared in Python</li>
-          <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — JS &amp; browser fundamentals quiz questions for quick syntax checks</li>
-          <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — browser sandbox, zero setup, for testing snippets as you port them</li>
-          <li>MDN Web Docs — <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank">Array methods reference</a> when a method name slips your mind</li>
-          <li><a href="https://www.greatfrontend.com/front-end-interview-playbook" target="_blank">GFE Front-End Interview Playbook</a> — read this early; covers interview format, what to say, and how to structure solutions</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ── PHASE 2 ── -->
-    <div class="phase" id="phase-traversal">
-      <div class="phase-label"><span class="days">Days 4–6</span> Traversal</div>
-      <h2>Trees, graphs, recursion in JS</h2>
-      <div class="why">The part most different from pure UI work, and explicitly listed in the TPS guide as its own category.</div>
-
-      <div class="card">
-        <div class="day-tag">Day 4 — Recursion Basics</div>
-        <p>Factorial, Fibonacci, then simple tree problems. JS recursive syntax has small quirks (no tail-call optimization guarantee) worth a few reps.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="104"><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="100"><a href="https://leetcode.com/problems/same-tree/" target="_blank">100. Same Tree</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="226"><a href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">226. Invert Binary Tree</a></li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 5 — BFS/DFS on Trees</div>
-        <p>Level order traversal, max depth, path sum — port problems you've already solved in Python.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="102"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="543"><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a></li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 6 — BFS/DFS on Graphs</div>
-        <p>Represent adjacency lists using <code>Map</code> or nested arrays. Practice queue-as-array (<code>.push()</code>/<code>.shift()</code>) and stack-as-array (<code>.push()</code>/<code>.pop()</code>) patterns.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="skip-tag">skip</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="skip-tag">skip</span></li>
-        </ul>
-      </div>
-
-      <div class="resources">
-        <div class="res-label">Resources</div>
-        <ul class="res-list">
-          <li><a href="https://leetcode.com/tag/tree/" target="_blank">LeetCode — Tree tag</a> and <a href="https://leetcode.com/tag/graph/" target="_blank">Graph tag</a>, filtered to Easy/Medium</li>
-          <li><a href="https://www.greatfrontend.com/questions" target="_blank">GreatFrontEnd — coding questions</a> for JS-flavored DSA practice</li>
-          <li><a href="https://stackblitz.com" target="_blank">StackBlitz</a> — keep building here so traversal code is testable immediately</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ── PHASE 3 ── -->
-    <div class="phase" id="phase-ui">
-      <div class="phase-label"><span class="days">Days 7–9</span> UI Implementation</div>
-      <h2>Vanilla JS component builds</h2>
-      <div class="why">Layering in the UI-implementation half of the TPS guide. Vanilla JS/TS is explicitly acceptable — no need to learn Angular for this round.</div>
-
-      <div class="card">
-        <div class="day-tag">Day 7 — Filterable List + Debounced Search</div>
-        <p>Build a list with a text input that filters live (case-insensitive substring match), then add a 300ms debounce so filtering only fires after the user pauses typing.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="20"><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">20. Valid Parentheses</a> <span class="stretch">(stack warmup before the UI build)</span></li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 8 — Expandable Tree View</div>
-        <p>Render a nested object (folder structure) where each node expands/collapses on click. Deliberately combines recursion with UI rendering.</p>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 9 — Counter with Undo</div>
-        <p>Increment/decrement buttons plus an undo button that reverts the last action using a stack-based history array.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="155"><a href="https://leetcode.com/problems/min-stack/" target="_blank">155. Min Stack</a> <span class="stretch">(conceptually close to this build)</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="232"><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank">232. Implement Queue using Stacks</a></li>
-        </ul>
-      </div>
-
-      <div class="resources">
-        <div class="res-label">Resources</div>
-        <ul class="res-list">
-          <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — built specifically for "build a UI component" interview questions</li>
-          <li><a href="https://javascript30.com" target="_blank">JavaScript30</a> (free, Wes Bos) — 30 vanilla JS UI builds, no framework</li>
-          <li><a href="https://codesandbox.io" target="_blank">CodeSandbox</a> or <a href="https://stackblitz.com" target="_blank">StackBlitz</a> — live sandbox closest to a real interview coding environment</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ── PHASE 4 ── -->
-    <div class="phase" id="phase-comms">
-      <div class="phase-label"><span class="days">Days 10–11</span> Communication</div>
-      <h2>Time &amp; space complexity drilling</h2>
-      <div class="why">Explicitly its own bullet in the TPS guide — they'll expect you to state Big-O out loud, not just write working code.</div>
-
-      <div class="card">
-        <div class="day-tag">Day 10 — Narrate Days 1–6 Solutions</div>
-        <p>Go back through your DSA solutions and say the complexity out loud for each, including tradeoffs ("O(n) time, O(n) space with a hashmap, versus O(n²) brute force with no extra space").</p>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 11 — Narrate Days 7–9 Solutions</div>
-        <p>Same exercise for the UI builds — state the complexity of your filtering logic, debounce, and recursive tree rendering.</p>
-      </div>
-
-      <div class="resources">
-        <div class="res-label">Resources</div>
-        <ul class="res-list">
-          <li><a href="https://www.bigocheatsheet.com" target="_blank">Big-O Cheat Sheet</a> — quick reference while narrating</li>
-          <li>No new problems here — the resource is repetition, out loud, on what you've already built</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ── PHASE 5 ── -->
-    <div class="phase" id="phase-mocks">
-      <div class="phase-label"><span class="days">Days 12–13</span> Simulation</div>
-      <h2>Timed mocks</h2>
-      <div class="why">Closest rehearsal to the actual call: one DSA problem and one UI build per day, under time pressure, narrating the whole way through.</div>
-
-      <div class="card">
-        <div class="day-tag">Day 12 — Mock 1</div>
-        <p>One DSA problem (30–40 min) + one UI build (30–40 min), picked cold, no looking up syntax mid-problem.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="56"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="73"><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank">73. Set Matrix Zeroes</a></li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="day-tag">Day 13 — Mock 2</div>
-        <p>Repeat with fresh problems. If a recruiter has shared their coding environment (CoderPad, CodeSandbox, shared doc), mock inside that same tool.</p>
-        <ul class="problem-list">
-          <li><input type="checkbox" class="prob-cb" data-problem="211"><a href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank">211. Design Add and Search Words Data Structure</a></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="295"><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">295. Find Median from Data Stream</a> <span class="stretch">(harder, only if Days 1–11 felt comfortable)</span></li>
-        </ul>
-      </div>
-
-      <div class="resources">
-        <div class="res-label">Resources</div>
-        <ul class="res-list">
-          <li><a href="https://leetcode.com" target="_blank">LeetCode</a> — pick random Easy/Medium problems untagged, to simulate not knowing what's coming</li>
-          <li><a href="https://www.greatfrontend.com" target="_blank">GreatFrontEnd</a> — pull a UI question you haven't seen yet</li>
-          <li>Whatever environment the recruiter confirms they'll use for the actual round</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ── PHASE 6 ── -->
-    <div class="phase" id="phase-buffer">
-      <div class="phase-label"><span class="days">Day 14</span> Buffer</div>
-      <h2>Light review &amp; rest</h2>
-      <div class="why">Revisit anything that felt shaky during the mocks. If the call is scheduled close to this window, treat this as a rest day, not a cram day.</div>
-    </div>
 
     <!-- ── Before the call ── -->
     <div class="ask-box" id="confirm">
@@ -1193,7 +985,7 @@ for (const x of [10, 20]) console.log(x);  <span class="code-ok">// 10, 20</span
     <div class="ref-section" id="js-drills">
       <div class="phase-label"><span class="days">Reference</span> Drills</div>
       <h2>JavaScript Syntax Drills</h2>
-      <div class="why">One pattern per section — code snippet to memorize, then the LeetCode problems that force you to use it. Do these in JS, not Python.</div>
+      <div class="why">One pattern per section — a code snippet to memorize for the live JS/TS round. Write these in JavaScript, not Python.</div>
 
       <!-- Arrays -->
       <div class="sub-label" id="drill-arrays">Array Methods</div>
@@ -1208,11 +1000,6 @@ const merged = [...a, ...b];  <span class="code-comment">// concat without mutat
 
 // No Python arr[-1] — use arr[arr.length - 1] or arr.at(-1)</span>
 arr.at(-1);                   <span class="code-comment">// last element (modern JS)</span></pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="121"><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">121. Best Time to Buy and Sell Stock</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="238"><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="11"><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">11. Container With Most Water</a> <span class="diff-tag diff-medium">Medium</span></li>
-        </ul>
       </div>
 
       <!-- Map & Set -->
@@ -1233,11 +1020,6 @@ for (const [u, v] of edges) {
   graph.get(u).push(v);
   graph.get(v).push(u);
 }</pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="1"><a href="https://leetcode.com/problems/two-sum/" target="_blank">1. Two Sum</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="49"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">49. Group Anagrams</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="560"><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">560. Subarray Sum Equals K</a> <span class="diff-tag diff-medium">Medium</span></li>
-        </ul>
       </div>
       <div class="drill-card">
         <div class="day-tag">Set — dedup / visited tracking</div>
@@ -1253,11 +1035,6 @@ if (!visited.has(node)) { ... }
 const seen = new Set();
 seen.add(`${r},${c}`);
 if (seen.has(`${r},${c}`)) { ... }</pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="217"><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">217. Contains Duplicate</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="128"><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">128. Longest Consecutive Sequence</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
-        </ul>
       </div>
 
       <!-- Sorting -->
@@ -1277,11 +1054,6 @@ arr.sort((a, b) => a.len - b.len || a.name.localeCompare(b.name));
 
 <span class="code-comment">// Non-mutating sort</span>
 const sorted = [...arr].sort((a, b) => a - b);</pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="56"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">56. Merge Intervals</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="347"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="242"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">242. Valid Anagram</a> <span class="diff-tag diff-easy">Easy</span></li>
-        </ul>
       </div>
 
       <!-- Functional -->
@@ -1318,11 +1090,6 @@ const freq = arr.reduce((acc, x) => {
 <span class="code-comment">// some / every for early-exit boolean checks</span>
 vehicles.some(v => v.faultCode !== null);  <span class="code-comment">// any fault?</span>
 vehicles.every(v => v.batteryPct > 20);   <span class="code-comment">// all above threshold?</span></pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="347"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">347. Top K Frequent Elements</a> <span class="diff-tag diff-medium">Medium</span> — filter + sort on a frequency map</li>
-          <li><input type="checkbox" class="prob-cb" data-problem="451"><a href="https://leetcode.com/problems/sort-characters-by-frequency/" target="_blank">451. Sort Characters By Frequency</a> <span class="diff-tag diff-medium">Medium</span> — reduce to freq, then sort</li>
-          <li><input type="checkbox" class="prob-cb" data-problem="438"><a href="https://leetcode.com/problems/find-all-anagrams-in-a-string/" target="_blank">438. Find All Anagrams in a String</a> <span class="diff-tag diff-medium">Medium</span> — sliding window + map comparison</li>
-        </ul>
       </div>
 
       <!-- BFS / DFS -->
@@ -1347,11 +1114,6 @@ function levelOrder(root) {
   }
   return result;
 }</pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="102"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">102. Binary Tree Level Order Traversal</a> <span class="diff-tag diff-medium">Medium</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="133"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">133. Clone Graph</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="207"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">207. Course Schedule</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
-        </ul>
       </div>
       <div class="drill-card">
         <div class="day-tag">DFS — recursive tree</div>
@@ -1373,11 +1135,6 @@ function dfs(grid, r, c, visited) {
   dfs(grid, r, c+1, visited);
   dfs(grid, r, c-1, visited);
 }</pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="104"><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">104. Maximum Depth of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="543"><a href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank">543. Diameter of Binary Tree</a> <span class="diff-tag diff-easy">Easy</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="200"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">200. Number of Islands</a> <span class="diff-tag diff-medium">Medium</span></li>
-        </ul>
       </div>
 
       <!-- Recursion -->
@@ -1398,11 +1155,6 @@ function subsets(nums) {
   backtrack(0, []);
   return result;
 }</pre></div>
-        <ul class="drill-problems">
-          <li><input type="checkbox" class="prob-cb" data-problem="78"><a href="https://leetcode.com/problems/subsets/" target="_blank">78. Subsets</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="46"><a href="https://leetcode.com/problems/permutations/" target="_blank">46. Permutations</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
-          <li><input type="checkbox" class="prob-cb" data-problem="39"><a href="https://leetcode.com/problems/combination-sum/" target="_blank">39. Combination Sum</a> <span class="diff-tag diff-medium">Medium</span> <span class="skip-tag">skip</span></li>
-        </ul>
       </div>
 
       <!-- GFE Polyfills -->
@@ -1624,9 +1376,9 @@ btn.addEventListener('click', () => {
   btn.textContent = isOpen ? '▶' : '▼';
 });</pre></div>
         <ul class="drill-problems">
-          <li><input type="checkbox" class="build-cb" data-build="d7"><span class="build-label">Day 7 build: filterable list with debounced search</span></li>
-          <li><input type="checkbox" class="build-cb" data-build="d8"><span class="build-label">Day 8 build: expandable tree view (recursive render)</span></li>
-          <li><input type="checkbox" class="build-cb" data-build="d9"><span class="build-label">Day 9 build: counter with stack-based undo history</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="d7"><span class="build-label">Build: filterable list with debounced search</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="d8"><span class="build-label">Build: expandable tree view (recursive render)</span></li>
+          <li><input type="checkbox" class="build-cb" data-build="d9"><span class="build-label">Build: counter with stack-based undo history</span></li>
         </ul>
       </div>
 
@@ -1699,8 +1451,7 @@ btn.addEventListener('click', () => {
 
   // ── Scroll spy ──
   const tocIds = [
-    'phase-foundation','phase-traversal','phase-ui','phase-comms',
-    'phase-mocks','phase-buffer','confirm',
+    'confirm',
     'js-cheatsheet','js-data-structures','js-iteration','js-functional',
     'js-algo-templates','js-gotchas',
     'js-drills','drill-arrays','drill-map-set','drill-sort','drill-functional',
