@@ -349,6 +349,8 @@
     <a class="toc-sub" href="#settimeout">setTimeout</a>
     <a class="toc-sub" href="#useeffect-cleanup">useEffect Cleanup</a>
     <a class="toc-sub" href="#debounce-throttle">Debounce & Throttle</a>
+    <a class="toc-sub" href="#fetch-shape">Fetching from an API</a>
+    <a class="toc-sub" href="#promise-all">Promise.all</a>
 
     <hr class="toc-divider">
 
@@ -1085,6 +1087,49 @@ useEffect(() =&gt; () =&gt; debouncedSetQuery.cancel(), [debouncedSetQuery]);
         <div class="note"><strong>Purist caveat:</strong> <code>useMemo</code> is a performance hint, not a guarantee — React may drop the cached value and rebuild the debounced fn, resetting its pending timer. In practice this rarely bites and the lodash + <code>useMemo</code> + cleanup pattern is widely accepted. If pressed, the airtight version is <code>useRef</code> lazy init, or a <code>useEffect</code> that creates the debounced fn and returns <code>.cancel</code> as cleanup.</div>
         <div class="tags"><span class="tag">debounce</span><span class="tag">throttle</span><span class="tag">useMemo</span><span class="tag">cleanup</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
       </div>
+
+      <div class="concept-card" id="fetch-shape">
+        <h3>Fetching from an API — the shape to memorize</h3>
+        <p>Two-step every time. <code>fetch(url)</code> returns a promise for a <em>Response</em> object, not the data. <code>await</code> it, then call <code>.json()</code> which is <em>itself</em> async (it reads and parses the body stream), so it needs a second <code>await</code>. That's why the one-liner uses <code>.then(r =&gt; r.json())</code>.</p>
+        <div class="code-block"><pre><span class="cm">// long form — two awaits, the Response then the parsed body</span>
+const res = await fetch(url);        <span class="cm">// Response object (headers, status)</span>
+const data = await res.json();       <span class="cm">// .json() is async → parses body to JS object/array</span>
+
+<span class="cm">// one-liner — same thing, chained</span>
+const data = await fetch(url).then((r) =&gt; r.json());</pre></div>
+        <div class="gotcha"><strong><code>await</code> only works inside an <code>async</code> function.</strong> A React component body is not async, so you can't <code>await</code> at the top level of the component. Put the fetch inside an <code>async</code> function declared <em>inside</em> a <code>useEffect</code> (or a click handler), then call it. The effect callback itself must stay synchronous — never write <code>useEffect(async () =&gt; ...)</code>.</p>
+        <div class="code-block"><pre>useEffect(() =&gt; {
+  async function load() {              <span class="cm">// async fn lives inside the effect</span>
+    setIsLoading(true);
+    const ids = await fetch(JOB_STORIES_URL).then((r) =&gt; r.json());
+    <span class="cm">// ...use ids...</span>
+    setIsLoading(false);
+  }
+  load();                              <span class="cm">// invoke it; effect returns nothing (or a cleanup fn)</span>
+}, []);  <span class="cm">// [] = run once on mount</span></pre></div>
+        <div class="note">Within one async function, <code>await</code> runs top to bottom in order — each line waits for its promise before the next runs. But <code>await</code> only pauses <em>that function</em>, not the whole app. React keeps rendering and other events keep firing while it waits. Always wrap fetches with an <code>isLoading</code> flag and (in real code) a try/catch for errors.</div>
+        <div class="tags"><span class="tag">fetch</span><span class="tag">async/await</span><span class="tag">useEffect</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="promise-all">
+        <h3>Promise.all — fire N requests in parallel, wait for all</h3>
+        <p>When you have a list of IDs and need to fetch each one's details, don't <code>await</code> inside a loop — that runs them one after another (slow). Map the IDs to an array of promises and hand it to <code>Promise.all</code>, which fires them all at once and resolves when the last one finishes.</p>
+        <div class="code-block"><pre><span class="cm">// ✗ sequential — each await blocks the next, 6 round-trips in series</span>
+const jobs = [];
+for (const id of pageIds) {
+  jobs.push(await fetch(itemUrl(id)).then((r) =&gt; r.json()));  <span class="bad">// slow</span>
+}
+
+<span class="cm">// ✓ parallel — all 6 fire at once, one await for the whole batch</span>
+const jobs = await Promise.all(
+  pageIds.map((id) =&gt;
+    fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then((r) =&gt; r.json())
+  )
+);</pre></div>
+        <div class="gotcha"><strong>Parallel inside, ordered outside.</strong> The requests race in no guaranteed order, but <code>Promise.all</code> returns results positionally — <code>jobs[0]</code> matches <code>pageIds[0]</code> regardless of which response arrived first. Common interview follow-up: "do the results stay in order?" Yes.</div>
+        <div class="note"><code>Promise.all</code> rejects as soon as <em>any</em> promise rejects (all-or-nothing). If you need the successful ones even when some fail, use <code>Promise.allSettled</code>, which returns a status + value/reason for each.</div>
+        <div class="tags"><span class="tag">Promise.all</span><span class="tag">parallel</span><span class="tag">fetch</span><span class="tag">high priority</span></div>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════════════ -->
@@ -1295,7 +1340,7 @@ onPaste={(e) =&gt; { e.preventDefault(); spread(e.clipboardData.getData("text"))
     'react-components','hooks-rules','props','list-rendering','forms','form-intent','modal','select-listbox','usememo-usecallback','react-memo','refs-array',
     'js-fundamentals','object-vs-map','destructuring','computed-keys','iteration','regex-test','typescript',
     'functional','map-filter-reduce','flatmap',
-    'async','event-loop','settimeout','debounce-throttle',
+    'async','event-loop','settimeout','debounce-throttle','fetch-shape','promise-all',
     'html-css','css-cheatsheet','css-grid','inline-vs-file','lists',
     'events','input-events','preventdefault'
   ];
