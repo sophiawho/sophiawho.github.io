@@ -270,6 +270,115 @@
 <div class="journal">
 
 
+  <!-- ══════════════════════ July 5, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">July 5, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- PROBLEMS SOLVED -->
+    <div class="section">
+      <div class="section-title">Problems Solved</div>
+
+      <div class="problem-card">
+        <div class="problem-number">#33</div>
+        <div class="problem-info">
+          <h3>Search in Rotated Sorted Array</h3>
+          <p>Modified binary search. At every step, at least one half around <code>mid</code> is sorted. Check whether target falls inside the <em>sorted</em> half's bounds — if yes, search there; if not, search the other (rotated) half. This stays O(log n) single-path binary search.</p>
+          <div class="note"><strong>Trap avoided:</strong> the instinct that you must "look into the rotated half AND possibly branch" leads toward DFS or a queue. Wrong. Once you rule the target out of the sorted half, the search collapses to exactly one remaining half. It never branches into two.</div>
+          <p style="margin-top:10px"><strong>Two bugs that bit me first:</strong> (1) <code>high = len(nums)</code> should be <code>len(nums) - 1</code> — last valid index — else <code>mid</code> can point past the end. (2) <code>mid = low + high // 2</code> is <code>low + (high // 2)</code> because <code>//</code> binds before <code>+</code>. Use <code>(low + high) // 2</code> or <code>low + (high - low) // 2</code>. Same mid-calc point as the concept note below.</p>
+          <div class="code-block"><pre><span class="kw">while</span> low &lt;= high:
+    mid = (low + high) // 2
+    <span class="kw">if</span> nums[mid] == target:
+        <span class="kw">return</span> mid
+
+    isLeftRotated  = nums[low] &gt; nums[mid]
+    isRightRotated = nums[mid] &gt; nums[high]
+
+    <span class="cm"># left half sorted and holds target</span>
+    <span class="kw">if not</span> isLeftRotated <span class="kw">and</span> nums[low] &lt;= target &lt; nums[mid]:
+        high = mid - 1
+    <span class="cm"># right half sorted and holds target</span>
+    <span class="kw">elif not</span> isRightRotated <span class="kw">and</span> nums[mid] &lt; target &lt;= nums[high]:
+        low = mid + 1
+    <span class="cm"># otherwise go to whichever half holds the rotation</span>
+    <span class="kw">elif</span> isRightRotated:
+        low = mid + 1
+    <span class="kw">else</span>:
+        high = mid - 1
+
+<span class="kw">return</span> -1</pre></div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Binary Search</span>
+            <span class="tag">Array</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#153</div>
+        <div class="problem-info">
+          <h3>Find Minimum in Rotated Sorted Array</h3>
+          <p>Binary search for the rotation point. The <code>nums[low] &lt;= nums[high]</code> check does double duty: it's the base case AND a shortcut — if the current segment is already sorted, its first element is the minimum, so return it immediately.</p>
+          <p style="margin-top:10px"><strong>Mid-bias applied correctly (July 5 rule):</strong> the keep-mid branch is <code>high = mid</code>, so mid must round <em>down</em> — which <code>(low + high) // 2</code> does. No infinite loop: the only stall case is <code>mid == high</code>, which needs <code>low == high</code>, and the sorted-check returns before mid is ever computed in that state.</p>
+          <div class="code-block"><pre><span class="kw">while</span> low &lt;= high:
+    <span class="kw">if</span> nums[low] &lt;= nums[high]:   <span class="cm"># segment sorted -&gt; first is min</span>
+        <span class="kw">return</span> nums[low]
+    mid = (low + high) // 2
+    <span class="kw">if</span> nums[low] &lt;= nums[mid]:    <span class="cm"># left half sorted, drop is on right</span>
+        low = mid + 1            <span class="cm"># mid can't be the min, exclude it</span>
+    <span class="kw">else</span>:                        <span class="cm"># drop is in left half, mid might be min</span>
+        high = mid               <span class="cm"># keep mid</span></pre></div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Binary Search</span>
+            <span class="tag">Array</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPTS LEARNED -->
+    <div class="section">
+      <div class="section-title">Concepts Learned</div>
+
+      <div class="concept-card">
+        <h3>Binary Search — mid calculation and the mid-bias rule</h3>
+        <p>Standard mid is <code>(low + high) / 2</code> with integer division (rounds down). In fixed-size integer languages (Java, C++) <code>low + high</code> can overflow, so prefer <code>low + (high - low) / 2</code> — same value, no overflow. JS: <code>Math.floor((low + high) / 2)</code>. Python: <code>(low + high) // 2</code> (no overflow).</p>
+        <ul style="margin-top:10px; padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem; color:#3d6b55; line-height:1.6;">
+          <li><strong>The infinite-loop trap:</strong> with <code>low = 0</code>, <code>high = 1</code>, round-down mid gives <code>mid = 0 = low</code>. If a branch does <code>low = mid</code> (keeps mid in the window), <code>low</code> never moves and the loop freezes.</li>
+          <li><strong>Mid-bias rule:</strong> match rounding to your update. If any branch does <code>low = mid</code>, round <em>up</em>: <code>mid = low + (high - low + 1) / 2</code>. If any branch does <code>high = mid</code>, round <em>down</em>. Mismatch causes the freeze.</li>
+        </ul>
+      </div>
+
+      <div class="concept-card">
+        <h3>Two binary-search templates — exact match vs boundary</h3>
+        <p><strong>Exact match:</strong> looking for a specific value, return the instant <code>nums[mid] == target</code>. Because you return on hit, mid is never kept in the window — every other branch does <code>mid + 1</code> or <code>mid - 1</code>, so it always shrinks. Round-down mid is safe, no bias worries. Use <code>while low &lt;= high</code>.</p>
+        <div class="code-block"><pre><span class="kw">while</span> low &lt;= high:
+    mid = low + (high - low) // 2
+    <span class="kw">if</span> nums[mid] == target:
+        <span class="kw">return</span> mid
+    <span class="kw">elif</span> nums[mid] &lt; target:
+        low = mid + 1
+    <span class="kw">else</span>:
+        high = mid - 1
+<span class="kw">return</span> -1  <span class="cm"># not found</span></pre></div>
+        <p style="margin-top:10px"><strong>Boundary search:</strong> find the first/last position satisfying a condition ("first element ≥ target", "smallest x where condition is true"). You can't return early because mid might be the answer, so you keep it with <code>low = mid</code> — and now rounding direction matters. This is the core pattern for binary-search-on-answer problems, which Waymo-style questions lean on.</p>
+        <div class="note">Retry in ~1 week: re-derive both templates from scratch and explain why exact-match can't infinite-loop but boundary search can.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Binary Search</span>
+          <span class="tag purple">Templates</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ══════════════════════ end July 5 ══════════════════════ -->
+
+
   <!-- ══════════════════════ June 23, 2026 ══════════════════════ -->
   <div class="day">
 
