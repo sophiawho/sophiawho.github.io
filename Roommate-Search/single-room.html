@@ -39,16 +39,16 @@
     background:var(--card);border:1px solid var(--line);border-radius:20px;
     box-shadow:var(--shadow);
   }
-  .masthead img{width:100%;height:100%;object-fit:cover;min-height:240px;max-height:320px}
-  .masthead-body{padding:24px 26px;display:flex;flex-direction:column;justify-content:center}
+  .masthead img{width:100%;height:100%;object-fit:cover;object-position:center}
+  .masthead-body{padding:20px 24px;display:flex;flex-direction:column;justify-content:center}
   .pill{
     display:inline-block;align-self:flex-start;background:var(--accent-soft);color:#8a4a22;
     font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;
     padding:5px 12px;border-radius:999px;margin-bottom:12px;
   }
-  .masthead h1{font-size:clamp(22px,3.2vw,30px);line-height:1.2;font-weight:800;margin-bottom:12px}
+  .masthead h1{font-size:clamp(20px,2.6vw,26px);line-height:1.18;font-weight:800;margin-bottom:10px}
   .masthead ul{list-style:none;font-size:15px}
-  .masthead ul li{padding:5px 0 5px 24px;position:relative;color:#4a443d}
+  .masthead ul li{padding:4px 0 4px 24px;position:relative;color:#4a443d}
   .masthead ul li::before{content:"";position:absolute;left:4px;top:13px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
 
   section{padding:38px 0 4px}
@@ -123,7 +123,7 @@
   footer{text-align:center;color:var(--muted);font-size:13px;padding:26px 0 40px}
 
   @media(max-width:680px){
-    .masthead{grid-template-columns:1fr}
+    .masthead{grid-template-columns:1fr;height:auto;max-height:none}
     .masthead img{max-height:220px}
     .rooms{max-width:none}
     .spaces{grid-template-columns:1fr}
@@ -138,11 +138,10 @@
       <img src="assets/exterior.jpg" alt="House exterior on Stanyan St">
       <div class="masthead-body">
         <span class="pill">Neighborhood: Inner Richmond / Lone Mountain</span>
-        <h1>Room available on Stanyan St</h1>
+        <h1>Room available in 3bed/3bath house in Lone Mountain</h1>
         <ul>
           <li>Cross streets: Stanyan St &amp; Anza St</li>
-          <li>Single-family house, 3 floors — quiet room, not street-facing</li>
-          <li>In-unit W/D, dishwasher &amp; large skylit kitchen</li>
+          <li>Single-family house, 3 floors with laundry, dishwasher &amp; large skylit kitchen</li>
           <li>Two blocks from Golden Gate Park</li>
           <li>$2,175/month, available early to mid September (flexible)</li>
         </ul>
@@ -211,14 +210,15 @@
 
         <div class="panel">
           <h3>🏡 The house &amp; us</h3>
-          <p>You'd join three of us (mid-to-late 20s), active young professionals with busy social lives. We enjoy hanging out and grabbing dinner when schedules align. Two of us have desks against a wall in the living room (you can see them in the last photo), but we don't have many meetings and stay quiet during the work day.</p>
+                    <p>You'd join three of us (mid-to-late 20s), active young professionals with busy social lives.</p>
+          <p style="margin-top:10px">Me (Sophia) and my husband, Stanley, purchased the house in 2024. We both moved to San Francisco in 2020 from Toronto, and work in tech. I spend most of my free time riding my bike, and have recently been really enjoying trying new recipes and reading. Stanley has recently gotten into woodworking and has made some storage solutions for the house :)</p>
         </div>
 
         <div class="panel">
           <h3>🔎 What we're looking for</h3>
           <ul>
             <li>Mid-20s to mid-30s working professional, preferably hybrid or in-office</li>
-            <li>Clean, responsible &amp; communicative — keeps common areas tidy and splits the cost of a monthly cleaner</li>
+            <li>Clean, responsible &amp; communicative — keeps common areas tidy</li>
             <li>No pets, sorry</li>
             <li>A schedule that generally aligns with ours — up by 7–8am, quiet hours from 9pm</li>
           </ul>
@@ -229,7 +229,7 @@
           <p>Your room is on the middle floor with a shared living space and bathroom, separate from where Sophia and Stanley live upstairs — so you get plenty of privacy.</p>
           <ul>
             <li><b>Top floor</b> — Sophia &amp; Stanley</li>
-            <li><b>Middle floor (yours)</b> — your room, living space &amp; bathroom</li>
+            <li><b>Middle floor (yours)</b> — your room, living space &amp; bathroom. Stanley and I have desks against a wall in the living room (you can see them in the last photo), but we don't have many meetings and stay quiet during the work day.</li>
             <li><b>Lower floor</b> — extra bathroom, family room &amp; bike/Zwift room</li>
           </ul>
         </div>
