@@ -102,13 +102,23 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .chip{background:#f1ece4;border-radius:999px;padding:6px 12px;font-size:13.5px;color:#5a5249}
 
-  /* CONTACT (one line) */
+  /* CONTACT */
   .contact-bar{
     background:linear-gradient(135deg,#c2703d,#a85a2c);color:#fff;
-    border-radius:14px;padding:14px 22px;text-align:center;margin:30px 0 10px;
-    font-size:16px;font-weight:700;box-shadow:0 8px 20px rgba(168,90,44,.24);
+    border-radius:16px;padding:24px 26px;margin:30px 0 10px;
+    box-shadow:0 8px 20px rgba(168,90,44,.24);
   }
-  .contact-bar a{color:#fff;text-decoration:underline;font-weight:800}
+  .contact-bar h2{color:#fff;font-size:22px;margin-bottom:6px}
+  .contact-bar p{opacity:.95;font-size:15px;margin-bottom:12px;max-width:60ch}
+  .contact-bar ul{list-style:none;font-size:15px;margin-bottom:16px}
+  .contact-bar ul li{padding:5px 0 5px 22px;position:relative}
+  .contact-bar ul li::before{content:"";position:absolute;left:4px;top:13px;width:6px;height:6px;border-radius:50%;background:#fff}
+  .contact-bar .btn{
+    display:inline-block;background:#fff;color:var(--accent);font-weight:800;
+    padding:12px 26px;border-radius:999px;text-decoration:none;font-size:16px;
+    transition:transform .15s ease;
+  }
+  .contact-bar .btn:hover{transform:translateY(-2px)}
 
   footer{text-align:center;color:var(--muted);font-size:13px;padding:26px 0 40px}
 
@@ -259,7 +269,17 @@
     </section>
 
     <div class="contact-bar">
-      Interested? <a href="mailto:sophiahuyt@gmail.com?subject=Interested%20in%20the%20Stanyan%20St%20room">Email Sophia →</a>
+      <h2>Interested? Email Sophia</h2>
+      <p>I'd love to hear a bit about you. Answering the following helps make sure we're a compatible long-term fit:</p>
+      <ul>
+        <li>A little about you — what you do for work</li>
+        <li>Your target move-in date and how long you're looking to stay (looking for at least one year)</li>
+        <li>Your work setup: remote, hybrid, or in-office, and rough hours</li>
+        <li>How you'd describe yourself as a roommate</li>
+        <li>Social media (LinkedIn or Instagram)</li>
+        <li>Confirm you're good with the basics: no pets, non-smoking, and splitting a monthly cleaner</li>
+      </ul>
+      <a class="btn" href="mailto:sophiahuyt@gmail.com?subject=Interested%20in%20the%20Stanyan%20St%20room">Email Sophia →</a>
     </div>
 
   </div>

@@ -1281,6 +1281,24 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
 &lt;/li&gt;</pre></div>
         <div class="tags"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">flexbox</span></div>
       </div>
+
+      <div class="concept-card" id="anchor-links">
+        <h3>Links in JSX — <code>&lt;a&gt;</code> + <code>target="_blank"</code> always needs <code>rel</code></h3>
+        <p>In JSX an anchor is a normal <code>&lt;a&gt;</code> tag, but <code>href</code> and <code>target</code> take curly-brace expressions for dynamic values. To open in a new tab, add <code>target="_blank"</code> — and it must always ride with <code>rel="noopener noreferrer"</code>.</p>
+        <div class="code-block"><pre><span class="cm">// conditional link — only render an anchor when a url exists</span>
+&lt;b&gt;
+  {url ? (
+    &lt;a href={url} target="_blank" rel="noopener noreferrer"&gt;
+      {title}
+    &lt;/a&gt;
+  ) : (
+    title   <span class="cm">// no url → plain text, avoids href={undefined}</span>
+  )}
+&lt;/b&gt;</pre></div>
+        <div class="gotcha"><strong>Never ship <code>target="_blank"</code> without <code>rel="noopener noreferrer"</code>.</strong> Without <code>noopener</code>, the opened page receives a reference to your page via <code>window.opener</code> and can redirect it to a phishing site (reverse tabnabbing). <code>noreferrer</code> also strips the <code>Referer</code> header. Interviewers watch for this — it's a one-line security detail that's easy to forget.</div>
+        <div class="note">Render an anchor only when there's a real destination. A dead <code>&lt;a href={undefined}&gt;</code> is still clickable and confusing. The ternary falls back to the plain <code>title</code> string when <code>url</code> is absent (common on Hacker News job posts).</div>
+        <div class="tags"><span class="tag">HTML</span><span class="tag">anchor</span><span class="tag">target=_blank</span><span class="tag">security</span></div>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════════════ -->
