@@ -35,6 +35,9 @@
   li b{color:var(--ink)}
   code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
   .note{font-size:13px;color:var(--muted);font-style:italic;margin:6px 0}
+  .use{font-size:13px;color:#374357;background:#ecfdf5;border-left:3px solid var(--accent);border-radius:0 7px 7px 0;padding:6px 10px;margin:6px 0}
+  .tell{font-size:13px;color:#374357;background:#fff7ed;border-left:3px solid var(--warn);border-radius:0 7px 7px 0;padding:6px 10px;margin:6px 0}
+  .use b{color:#15803d} .tell b{color:#b45309}
   pre{background:#282c34;color:#abb2bf;border-radius:10px;padding:13px 15px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;overflow-x:auto;margin:8px 0 6px;line-height:1.55}
   pre .k{color:#c678dd} pre .f{color:#61afef} pre .s{color:#98c379}
   pre .n{color:#d19a66} pre .t{color:#e5c07b} pre .c{color:#5c6370;font-style:italic}
@@ -52,7 +55,7 @@
 <body>
 <div class="wrap">
   <h1>Cheatsheet <span>[DS/A]</span></h1>
-  <div class="sub">Built against your learning journal (last entry June 23) and training plan. Four interviews in two weeks means: patch the four gap patterns below, drill the priority problems, and skip everything in the skip list. Pills mark who asks it: <span class="pill pg">Google</span> <span class="pill pp">Plaid</span> <span class="pill pb">Both</span></div>
+  <div class="sub">Built against your learning journal (last entry June 23) and training plan. Four interviews in two weeks means: patch the gap patterns below, drill the priority problems, and skip everything in the skip list. Every pattern panel now leads with <b>when to use it</b> (green) and the <b>question tells</b> (orange) that point to it — that's the recognition step interviewers actually grade. Pills mark who asks it: <span class="pill pg">Google</span> <span class="pill pp">Plaid</span> <span class="pill pb">Both</span></div>
 
   <div class="cols">
 
@@ -61,7 +64,7 @@
       <ul>
         <li><b>Sliding window</b> (#3, #424, #76 incl. have/need optimization) — Google's favorite string pattern. One timed re-solve of #76.</li>
         <li><b>Two pointers</b> (#125, #167, #15, #11) and <b>arrays/hashmaps</b> (#49, #238, #560 prefix-sum, #347 bucket sort).</li>
-        <li><b>Stacks</b> (#394, #739 monotonic) and <b>linked lists</b> (#206, #21, #141, #19, #138).</li>
+        <li><b>Stacks</b> (#394, #739 monotonic) and <b>linked lists</b> (#206, #21, #141, #19, #138). Deepen monotonic stack (#496/#503/#84) and prefix sum (#560/#724/#437) — see their new panels below; you have the base, these lock the tells.</li>
         <li><b>Tree BFS/DFS</b> (#102, #199 level-snapshot, #236 LCA, #98 bounds-down) and <b>graphs</b> (#200, #207 Kahn's, Dijkstra #743/#1514).</li>
         <li>You're ahead of the curve on graphs — Dijkstra + topo sort is more than most L4/L5 loops need. Don't invest further there.</li>
       </ul>
@@ -95,6 +98,8 @@
 
     <div class="panel">
       <h2>Binary search — the gap template</h2>
+      <div class="use"><b>When to use:</b> the input is sorted (or monotonic — a yes/no that flips exactly once), or you're searching over an <i>answer range</i> where you can test "is X feasible?" in O(n). Turns O(n) scans into O(log n).</div>
+      <div class="tell"><b>Tells:</b> "sorted array" · "rotated sorted" · find the first/last/smallest/largest value that satisfies X · "minimize the maximum" / "maximum the minimum" · input size up to 1e9 so you can't iterate · answer is a threshold.</div>
       <div class="note">Two forms. Exact-match you know. The one to internalize is <b>boundary search</b> (find leftmost true) — it solves #153, #33, #981, and "first bad version" shapes. Invariant: <code>lo</code> is always in the unknown zone, <code>hi</code> the candidate answer.</div>
       <pre><span class="c"># Exact match — lo &lt;= hi, both move past mid</span>
 lo, hi = <span class="n">0</span>, <span class="f">len</span>(arr) - <span class="n">1</span>
@@ -124,7 +129,9 @@ lo, hi = <span class="n">0</span>, <span class="f">len</span>(arr) - <span class
     </div>
 
     <div class="panel">
-      <h2>Intervals — the gap template</h2>
+      <h2>Overlapping intervals — the gap template</h2>
+      <div class="use"><b>When to use:</b> you have a list of <code>[start, end]</code> ranges and need to merge, count, or detect overlaps — meetings, time windows, transaction periods, booked ranges. Almost always: sort by start first, then one linear pass.</div>
+      <div class="tell"><b>Tells:</b> "intervals" / "ranges" / "[start, end]" · merge overlapping · "can this person attend all meetings" · minimum rooms/resources · insert into a sorted set of ranges · "do any two overlap". If the problem gives you pairs and asks about overlap, it's this.</div>
       <div class="note">One template covers #56, #57, and Plaid's transaction-window merging: sort by start, then a single pass comparing each interval to the last merged one.</div>
       <pre><span class="c"># 56. Merge Intervals — sort, then extend-or-append</span>
 intervals.<span class="f">sort</span>(key=<span class="k">lambda</span> x: x[<span class="n">0</span>])
@@ -145,7 +152,9 @@ merged = [intervals[<span class="n">0</span>]]
     </div>
 
     <div class="panel">
-      <h2>Heap patterns — beyond Dijkstra</h2>
+      <h2>Heap / Top-K — beyond Dijkstra</h2>
+      <div class="use"><b>When to use:</b> you need the k largest/smallest/most-frequent, or repeated access to the current min/max as data streams in. Heap gives O(log n) push/pop of the extreme without sorting everything.</div>
+      <div class="tell"><b>Tells:</b> "top K" / "k closest" / "k most frequent" · "largest/smallest" with a k · "median of a stream" · merge k sorted lists · schedule tasks by frequency/deadline · any "at each step take the biggest/smallest available".</div>
       <div class="note">You know heapq mechanics. The two shapes you haven't done: <b>top-k with a size-k heap</b>, and <b>greedy scheduling</b>.</div>
       <pre><span class="c"># 215. Kth largest — MIN-heap of size k (not max-heap of size n)</span>
 <span class="c"># Root is always the kth largest seen so far.</span>
@@ -168,6 +177,8 @@ heapq.<span class="f">heapify</span>(arr)                  <span class="c"># O(n
 
     <div class="panel">
       <h2>Design — LRU + TTL store</h2>
+      <div class="use"><b>When to use:</b> the problem asks you to <i>build a class</i> with specific method-level time guarantees — get/put in O(1), expiry, eviction. It's an API design + pick-the-right-data-structures exercise, not one algorithm.</div>
+      <div class="tell"><b>Tells:</b> "design a X" / "implement a class" · "each operation must be O(1)" · cache / eviction / capacity / LRU/LFU · "with a TTL" / "expires after" · get and set with a twist. Combo of hashmap (lookup) + ordering structure (recency/time) is the giveaway.</div>
       <div class="note">#146: dict gives O(1) lookup, recency order gives O(1) eviction. In Python, <code>OrderedDict</code> does both — lead with it, mention the dict + doubly-linked-list version as what it wraps.</div>
       <pre><span class="k">from</span> collections <span class="k">import</span> OrderedDict
 
@@ -196,6 +207,8 @@ heapq.<span class="f">heapify</span>(arr)                  <span class="c"># O(n
 
     <div class="panel">
       <h2>Backtracking — one template, all three problems</h2>
+      <div class="use"><b>When to use:</b> you must enumerate <i>all</i> valid combinations/permutations/arrangements, or find one that satisfies constraints, by building a partial solution and undoing choices that dead-end. The search space is exponential and there's no clean formula.</div>
+      <div class="tell"><b>Tells:</b> "all possible" / "generate every" / "find all combinations/permutations/subsets" · partition / place N things without conflict (N-Queens, Sudoku) · word search on a grid · "return all paths" · small n (≤ ~12–15) because it's exponential.</div>
       <div class="note">Choose → explore → <b>unchoose</b>. The undo step is the whole pattern. #46/#78 on arrays, #79 on a grid (your grid-DFS skills transfer directly).</div>
       <pre><span class="c"># 46. Permutations</span>
 <span class="k">def</span> <span class="f">backtrack</span>(path, remaining):
@@ -212,6 +225,50 @@ heapq.<span class="f">heapify</span>(arr)                  <span class="c"># O(n
       <ul>
         <li>Gotcha: appending <code>path</code> instead of <code>path[:]</code> — every result ends up empty (all point to the same mutated list).</li>
         <li>Gotcha: forgetting the restore in #79 — cells stay blocked for sibling paths, misses valid answers.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Monotonic stack — next greater / smaller</h2>
+      <div class="use"><b>When to use:</b> for each element you need the <i>nearest</i> larger or smaller element to its left or right. A stack kept sorted (increasing or decreasing) answers all of these in one O(n) pass instead of O(n²) nested loops.</div>
+      <div class="tell"><b>Tells:</b> "next greater/smaller element" · "how many days until a warmer temperature" · "largest rectangle" / "trapping rain water" · "stock span" · any "for each i, find the first j to the right that is bigger/smaller". Answer array same length as input.</div>
+      <div class="note">You have #739 solid. The rule: <b>pop while the stack top loses to the current element</b>, then push. Whether you keep increasing or decreasing depends on next-greater vs next-smaller.</div>
+      <pre><span class="c"># 496/739. Next greater element to the right — decreasing stack of indices</span>
+<span class="f">res</span> = [-<span class="n">1</span>] * <span class="f">len</span>(nums)
+stack = []                          <span class="c"># holds indices, values decreasing</span>
+<span class="k">for</span> i, x <span class="k">in</span> <span class="f">enumerate</span>(nums):
+    <span class="k">while</span> stack <span class="k">and</span> nums[stack[-<span class="n">1</span>]] &lt; x:   <span class="c"># current x beats the top</span>
+        j = stack.<span class="f">pop</span>()
+        res[j] = x                  <span class="c"># x is j's next greater</span>
+    stack.<span class="f">append</span>(i)
+<span class="c"># 503 circular: iterate i in range(2n), use nums[i % n], only push i &lt; n</span></pre>
+      <ul>
+        <li>Decide direction by the goal: <b>next greater</b> → pop while <code>top &lt; x</code> (stack stays decreasing). <b>Next smaller</b> → pop while <code>top &gt; x</code>.</li>
+        <li>Store <b>indices</b>, not values, when you need distance ("how many days"): <code>i - j</code>.</li>
+        <li>Circular array (#503): walk <code>range(2*len)</code> with <code>i % n</code>; only push real indices.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Prefix sum — range totals in O(1)</h2>
+      <div class="use"><b>When to use:</b> you make many range-sum queries, or you're counting subarrays whose sum equals / is divisible by k. Precompute a running total once, then any window is a subtraction. Prefix + hashmap turns "count subarrays summing to k" from O(n²) to O(n).</div>
+      <div class="tell"><b>Tells:</b> "sum of subarray" / "range sum query" · "subarray summing to k" · "count subarrays where..." · "continuous subarray, sum divisible by k" · running balance / cumulative total · a fixed array with repeated <code>sum(i..j)</code> lookups. On a tree: "path sum equals target."</div>
+      <div class="note">Two flavors: the <b>prefix array</b> for repeated range queries, and <b>prefix + hashmap</b> (the real interview move) for counting subarrays with a target sum — that's #560, and #437 is the same trick down a tree path.</div>
+      <pre><span class="c"># Range sum: prefix[i] = sum of first i elements; sum(l..r) = prefix[r+1]-prefix[l]</span>
+prefix = [<span class="n">0</span>]
+<span class="k">for</span> x <span class="k">in</span> nums: prefix.<span class="f">append</span>(prefix[-<span class="n">1</span>] + x)
+
+<span class="c"># 560. Count subarrays summing to k — running sum + hashmap of seen sums</span>
+count = curr = <span class="n">0</span>
+seen = {<span class="n">0</span>: <span class="n">1</span>}                    <span class="c"># empty prefix seen once</span>
+<span class="k">for</span> x <span class="k">in</span> nums:
+    curr += x
+    count += seen.<span class="f">get</span>(curr - k, <span class="n">0</span>)   <span class="c"># a prior prefix makes a window == k</span>
+    seen[curr] = seen.<span class="f">get</span>(curr, <span class="n">0</span>) + <span class="n">1</span></pre>
+      <ul>
+        <li>Seed the map with <code>{0: 1}</code> — otherwise you miss subarrays that start at index 0.</li>
+        <li>Count vs locate: hashmap of <b>counts</b> answers "how many"; hashmap of <b>first index</b> answers "longest such subarray" (#325).</li>
+        <li>Divisible-by-k variant: key on <code>curr % k</code> instead of <code>curr</code>.</li>
       </ul>
     </div>
 

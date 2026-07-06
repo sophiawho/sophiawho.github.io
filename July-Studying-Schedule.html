@@ -51,7 +51,7 @@
 <body>
 <div class="wrap">
   <h1>July Studying Schedule — <span>2-Week Sprint</span></h1>
-  <div class="sub">Sat July 4 → Fri July 17. Five interviews: Waymo (7/6) · Gem (7/8, warm-up) · <b>Plaid (7/13)</b> · <b>Retool (7/14)</b> · <b>Google (7/17)</b>. Weekdays 2h, weekends 4–5h, interview days keep a full 2h block. Systems design deferred to July 18+ (onsites) — only touch it if a day ends early. All three TO DOs are scheduled and tagged.</div>
+  <div class="sub">Sat July 4 → Fri July 17. Five interviews: Waymo (7/6) · Gem (7/8, warm-up) · <b>Plaid (7/13)</b> · <b>Retool (7/14)</b> · <b>Google (7/17)</b>. Weekdays 2h, weekends 4–5h, interview days keep a full 2h block. Systems design deferred to July 18+ (onsites) — only touch it if a day ends early. All three TO DOs are scheduled and tagged. <b>Four gap patterns folded in this pass</b>: backtracking, overlapping intervals, more monotonic stack, prefix sum — see the tagged lines below and the new panels in <code>leetcode_cheatsheet.html</code>.</div>
   <div class="legend">
     <span class="cat dsa">DS/A</span><span class="cat ui">React/UI</span><span class="cat beh">Behavioural</span><span class="cat sd">Sys Design (deferred)</span><span class="cat iv">Interview day</span>
   </div>
@@ -86,6 +86,7 @@
     <div class="dh"><h3>Tue July 7</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[DS/A · 2h]</b> <b>#57 Insert Interval</b> (completes the intervals pair, ~30 min), then heap gap day: <b>#215 Kth Largest</b> (size-k min-heap, state the O(n log k) vs sort comparison out loud) + <b>#621 Task Scheduler</b>, ~45 min each. These double as Gem warm-up — narrate complexity the whole way.</li>
+      <li><b>[DS/A · 15 min warm-up · Monotonic stack]</b> Quick re-touch of the pattern before heap: <b>#496 Next Greater Element I</b> from memory. #739 is already solid, so this is just re-firing the "pop while stack top is smaller" reflex. Log only if it wobbled.</li>
     </ul>
   </div>
 
@@ -119,6 +120,7 @@
     <ul>
       <li><b>[Behavioural/Project · 1.5h]</b> Deep dive day 2 — <b>deliver it out loud</b>, twice: 5-minute overview version and 15-minute walkthrough version. Record yourself once. Refine the doc where you stumbled.</li>
       <li><b>[DS/A · 3h]</b> Plaid practical block: re-solve <b>#56 with extensions</b> (windows carry amounts — sum per merged window; then events arrive out of order), build a <b>TTL key-value store</b> from scratch (lazy expiry, say the trade-off), and a <b>duplicate-transaction detector</b> (normalization + hashmap, watch cents-vs-dollars and duplicate timestamps).</li>
+      <li><b>[DS/A · 30 min · Prefix sum]</b> Running-balance shape (Plaid-flavored): <b>#560 Subarray Sum Equals K</b> re-solve (prefix-sum + hashmap of counts), then <b>#724 Find Pivot Index</b> cold. Say the invariant out loud: <code>prefix[j] − prefix[i]</code> = sum of the window. This is the same math as a running account balance.</li>
     </ul>
   </div>
 
@@ -126,7 +128,8 @@
     <div class="dh"><h3>Sun July 12</h3><div class="hrs">4.5 h</div><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[DS/A · 2h — Plaid mock]</b> One full practical mock in CoderPad-style conditions: start with a simple parser/aggregator, layer requirements every 15 min, run your tests. Debrief against the Plaid panel in <code>leetcode_cheatsheet.html</code>.</li>
-      <li><b>[DS/A · 2h — Retool]</b> <b>#79 Word Search</b> (grid DFS + undo) and <b>#46 Permutations</b> (choose/explore/unchoose), both timed. 30 min: skim Retool's product (app builder) — their DS/A leans practical; expect object/tree manipulation (a component tree is a tree).</li>
+      <li><b>[DS/A · 2h — Retool · Backtracking]</b> <b>#79 Word Search</b> (grid DFS + undo) and <b>#46 Permutations</b> (choose/explore/unchoose), both timed — this is the backtracking pair. If both land fast, add <b>#78 Subsets</b> (same template, include/exclude each element) to lock the shape. 30 min: skim Retool's product (app builder) — their DS/A leans practical; expect object/tree manipulation (a component tree is a tree).</li>
+      <li><b>[DS/A · 30 min · Monotonic stack]</b> Beyond the warm-up: <b>#503 Next Greater Element II</b> (circular — iterate the array twice mod n) and, if time, glance at <b>#84 Largest Rectangle in Histogram</b> as the hard boss of the pattern (don't grind it, just see why the stack stays increasing). Journal #503.</li>
     </ul>
   </div>
 
@@ -173,6 +176,7 @@
     <h2>Overflow rules — if a day ends early</h2>
     <ul>
       <li>Before July 13: extra time goes to <b>Plaid practical shapes</b> (parser, rate limiter, extensions of #56), never new patterns.</li>
+      <li>Gap-pattern reserve, only if a block ends early and the core work is done: <b>backtracking</b> #22 Generate Parentheses · <b>intervals</b> #435 Non-overlapping Intervals · <b>monotonic stack</b> #84 Largest Rectangle · <b>prefix sum</b> #437 Path Sum III (prefix sum on a tree — a real Google shape). Pick from the pattern that felt shakiest that day.</li>
       <li>July 15–16: extra time goes to <b>behavioural polish</b>, not more LeetCode.</li>
       <li>Systems design only if a <b>weekend</b> block finishes with 1h+ spare: read one Week-1 day of <code>systems_design_study_guide.html</code>, nothing more.</li>
       <li>Slipped day? Cut in this order: Gem prep → Retool company research → heap second problem. Never cut: Coupons (7/9), deep dive (7/10–11), STAR days (7/15–16).</li>
