@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upcoming Interviews</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📆</text></svg>">
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784; --line:#dde3ee;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);color:var(--ink);line-height:1.45;padding:24px 18px 44px;font-size:14px}
+  .wrap{max-width:1300px;margin:0 auto}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:#0284c7}
+  .sub{color:var(--muted);font-size:13.5px;margin:4px 0 14px;max-width:900px}
+  .legend{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .lg{font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;letter-spacing:.2px}
+  .screen{background:#dcfce7;color:#15803d}
+  .onsite{background:#fae8ff;color:#a21caf}
+  .ooo{background:#ffe4e6;color:#be123c}
+  .oncall{background:#ffedd5;color:#c2410c}
+  .focuskey{background:#ede9fe;color:#6d28d9}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr) 1.15fr;gap:6px}
+  .dow{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center;padding:4px 0}
+  .dow.we{color:#a1abc0}
+  .dow.fcol{color:#6d28d9;text-align:left;padding-left:4px}
+  .cell{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:8px 9px;min-height:84px;box-shadow:0 1px 2px rgba(20,30,60,.04);display:flex;flex-direction:column;gap:5px}
+  .cell.today{border:2px solid #0284c7;box-shadow:0 0 0 3px rgba(2,132,199,.12)}
+  .cell.oncallday{background:linear-gradient(180deg,#fff8f2 0,var(--card) 45%);border-color:#fed7aa}
+  .cell.oooday{background:linear-gradient(180deg,#fff1f3 0,var(--card) 45%);border-color:#fecdd3}
+  .cell.empty{background:#f7f9fc}
+  .dnum{font-size:12.5px;font-weight:800;color:var(--ink);display:flex;justify-content:space-between;align-items:baseline}
+  .dnum .mo{font-size:10px;font-weight:700;color:var(--muted)}
+  .todaytag{font-size:9px;font-weight:800;color:#0284c7;background:#e0f2fe;border-radius:999px;padding:1px 6px}
+  .chip{font-size:10.5px;font-weight:700;border-radius:6px;padding:3px 7px;line-height:1.3}
+  .chip.screen{background:#dcfce7;color:#15803d}
+  .chip.onsite{background:#fae8ff;color:#a21caf}
+  .chip.ooo{background:#ffe4e6;color:#be123c}
+  .chip.oncall{background:#ffedd5;color:#c2410c}
+  .chip b{font-weight:800}
+  .chip .t{display:block;font-weight:600;opacity:.85;font-size:9.5px}
+  /* weekly focus column */
+  .focus{background:linear-gradient(180deg,#f6f3ff 0,#fbfaff 60%);border:1px solid #ddd6fe;border-radius:11px;padding:9px 11px;display:flex;flex-direction:column;gap:6px}
+  .focus .fh{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed}
+  .focus ol{list-style:none;counter-reset:f;display:flex;flex-direction:column;gap:5px}
+  .focus li{font-size:11.5px;font-weight:700;color:#4c1d95;counter-increment:f;position:relative;padding-left:19px;line-height:1.3}
+  .focus li::before{content:counter(f);position:absolute;left:0;top:1px;background:#7c3aed;color:#fff;font-size:9px;font-weight:800;width:14px;height:14px;border-radius:4px;display:flex;align-items:center;justify-content:center}
+  .focus li .s{display:block;font-weight:600;color:#7c6aa8;font-size:10px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:14px}
+  @media(max-width:900px){.cal{grid-template-columns:repeat(7,1fr)}.focus{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px}.focus ol{flex-direction:row;flex-wrap:wrap;gap:10px}.dow.fcol{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Upcoming <span>Interviews</span> — Jul 6 → Aug 16, 2026</h1>
+  <div class="sub">At-a-glance view of interviews only. Phone screens in green, onsite loops in fuchsia, OOO and oncall shaded. The right column ranks each week's study focus. Onsite dates after Waymo are targets to confirm. Full day-by-day detail lives in July-Studying-Schedule.html.</div>
+
+  <div class="legend">
+    <span class="lg screen">Phone screen / technical</span>
+    <span class="lg onsite">Onsite loop</span>
+    <span class="lg ooo">OOO</span>
+    <span class="lg oncall">Oncall</span>
+    <span class="lg focuskey">Weekly focus (ranked)</span>
+  </div>
+
+  <div class="cal">
+    <div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow we">Sat</div><div class="dow we">Sun</div><div class="dow fcol">This week's focus</div>
+
+    <!-- Week: Jul 6–12 -->
+    <div class="cell"><div class="dnum">6</div><div class="chip screen"><b>WAYMO</b><span class="t">React/UI screen</span></div></div>
+    <div class="cell empty"><div class="dnum">7</div></div>
+    <div class="cell"><div class="dnum">8</div><div class="chip screen"><b>GEM</b><span class="t">DS/A screen</span></div></div>
+    <div class="cell empty"><div class="dnum">9</div></div>
+    <div class="cell empty"><div class="dnum">10</div></div>
+    <div class="cell empty"><div class="dnum">11</div></div>
+    <div class="cell empty"><div class="dnum">12</div></div>
+    <div class="focus"><div class="fh">Focus · Jul 6–12</div><ol>
+      <li>DS/A gap patterns<span class="s">intervals, heap, coupons</span></li>
+      <li>Plaid project deep dive</li>
+    </ol></div>
+
+    <!-- Week: Jul 13–19 -->
+    <div class="cell"><div class="dnum">13</div><div class="chip screen"><b>PLAID</b><span class="t">DS/A + deep dive</span></div></div>
+    <div class="cell"><div class="dnum">14</div><div class="chip screen"><b>RETOOL</b><span class="t">DS/A screen</span></div></div>
+    <div class="cell empty"><div class="dnum">15</div></div>
+    <div class="cell"><div class="dnum">16</div><div class="chip screen"><b>SCALE.AI</b><span class="t">DS/A · 1–2pm PT</span></div></div>
+    <div class="cell"><div class="dnum">17</div><div class="chip screen"><b>GOOGLE</b><span class="t">DS/A + behavioural</span></div></div>
+    <div class="cell empty"><div class="dnum">18</div></div>
+    <div class="cell empty"><div class="dnum">19</div></div>
+    <div class="focus"><div class="fh">Focus · Jul 13–19</div><ol>
+      <li>STAR / behavioural</li>
+      <li>DS/A tune-up</li>
+      <li>Sys design kickoff<span class="s">Jul 18–19</span></li>
+    </ol></div>
+
+    <!-- Week: Jul 20–26 -->
+    <div class="cell oooday"><div class="dnum">20</div><div class="chip ooo"><b>OOO</b></div></div>
+    <div class="cell oooday"><div class="dnum">21</div><div class="chip ooo"><b>OOO</b></div></div>
+    <div class="cell oooday"><div class="dnum">22</div><div class="chip ooo"><b>OOO</b></div></div>
+    <div class="cell empty"><div class="dnum">23</div></div>
+    <div class="cell empty"><div class="dnum">24</div></div>
+    <div class="cell empty"><div class="dnum">25</div></div>
+    <div class="cell empty"><div class="dnum">26</div></div>
+    <div class="focus"><div class="fh">Focus · Jul 20–26</div><ol>
+      <li>Systems design<span class="s">part 1 · OOO Jul 20–22</span></li>
+      <li>React — Waymo<span class="s">pivot Jul 23+</span></li>
+      <li>Waymo behavioural</li>
+    </ol></div>
+
+    <!-- Week: Jul 27–Aug 2 -->
+    <div class="cell oncallday"><div class="dnum">27</div><div class="chip oncall"><b>ONCALL</b> starts</div></div>
+    <div class="cell oncallday"><div class="dnum">28</div><div class="chip oncall"><b>ONCALL</b></div><div class="chip onsite"><b>WAYMO</b><span class="t">onsite 1–5pm</span></div></div>
+    <div class="cell oncallday"><div class="dnum">29</div><div class="chip oncall"><b>ONCALL</b></div><div class="chip onsite"><b>WAYMO</b><span class="t">onsite 1–5pm</span></div></div>
+    <div class="cell oncallday"><div class="dnum">30</div><div class="chip oncall"><b>ONCALL</b></div><div class="chip onsite"><b>WAYMO</b><span class="t">onsite 1–5pm</span></div></div>
+    <div class="cell oncallday"><div class="dnum">31</div><div class="chip oncall"><b>ONCALL</b></div><div class="chip onsite"><b>WAYMO</b><span class="t">onsite 1–5pm</span></div></div>
+    <div class="cell oncallday"><div class="dnum">1 <span class="mo">Aug</span></div><div class="chip oncall"><b>ONCALL</b></div></div>
+    <div class="cell oncallday"><div class="dnum">2 <span class="mo">Aug</span></div><div class="chip oncall"><b>ONCALL</b></div></div>
+    <div class="focus"><div class="fh">Focus · Jul 27–Aug 2</div><ol>
+      <li>Waymo onsite<span class="s">React + behavioural</span></li>
+      <li>Oncall coverage<span class="s">swap the loop afternoon</span></li>
+      <li>Rest before the loop</li>
+    </ol></div>
+
+    <!-- Week: Aug 3–9 -->
+    <div class="cell oncallday"><div class="dnum">3</div><div class="chip oncall"><b>ONCALL</b> ends</div></div>
+    <div class="cell"><div class="dnum">4</div><div class="chip onsite"><b>PLAID</b><span class="t">onsite — target</span></div></div>
+    <div class="cell empty"><div class="dnum">5</div></div>
+    <div class="cell"><div class="dnum">6</div><div class="chip onsite"><b>RETOOL</b><span class="t">onsite — target</span></div></div>
+    <div class="cell empty"><div class="dnum">7</div></div>
+    <div class="cell empty"><div class="dnum">8</div></div>
+    <div class="cell empty"><div class="dnum">9</div></div>
+    <div class="focus"><div class="fh">Focus · Aug 3–9</div><ol>
+      <li>Systems design<span class="s">part 2 · Plaid/Retool loops</span></li>
+      <li>Practical DS/A</li>
+    </ol></div>
+
+    <!-- Week: Aug 10–16 -->
+    <div class="cell empty"><div class="dnum">10</div></div>
+    <div class="cell"><div class="dnum">11</div><div class="chip onsite"><b>GOOGLE</b><span class="t">onsite — target</span></div></div>
+    <div class="cell"><div class="dnum">12</div><div class="chip onsite"><b>GOOGLE</b><span class="t">onsite — target</span></div></div>
+    <div class="cell empty"><div class="dnum">13</div></div>
+    <div class="cell empty"><div class="dnum">14</div></div>
+    <div class="cell empty"><div class="dnum">15</div></div>
+    <div class="cell empty"><div class="dnum">16</div></div>
+    <div class="focus"><div class="fh">Focus · Aug 10–16</div><ol>
+      <li>Systems design</li>
+      <li>STAR<span class="s">Googliness rubric</span></li>
+      <li>DS/A polish</li>
+    </ol></div>
+  </div>
+
+</div>
+<script>
+  // Highlight the real "today" cell dynamically. Day cells are in date order
+  // starting Jul 6, 2026; .focus cells are skipped by the .cell selector.
+  (function () {
+    var cells = document.querySelectorAll('.cal .cell');
+    var start = new Date(2026, 6, 6);            // months are 0-indexed → 6 = July
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    cells.forEach(function (cell, i) {
+      cell.classList.remove('today');
+      var old = cell.querySelector('.todaytag');
+      if (old) old.remove();
+      var d = new Date(start); d.setDate(start.getDate() + i);
+      if (d.getTime() === today.getTime()) {
+        cell.classList.add('today');
+        var dn = cell.querySelector('.dnum');
+        if (dn) {
+          var tag = document.createElement('span');
+          tag.className = 'todaytag';
+          tag.textContent = 'TODAY';
+          dn.appendChild(tag);
+        }
+      }
+    });
+  })();
+</script>
+</body>
+</html>

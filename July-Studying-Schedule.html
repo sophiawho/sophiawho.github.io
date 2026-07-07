@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>July Studying Schedule — 2-Week Interview Sprint</title>
+<title>Studying Schedule</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗓️</text></svg>">
 <style>
   :root{
@@ -46,19 +46,36 @@
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
   .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--warn);margin-bottom:8px}
   .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:14px}
+
+  /* collapsible days/weeks */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+  .controls button{font-size:12px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;border-radius:8px;padding:5px 11px;cursor:pointer}
+  .controls button:hover{background:#d0eafc}
+  .week{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px}
+  .week .caret{font-size:12px;color:var(--muted);transition:transform .15s}
+  .week.collapsed .caret{transform:rotate(-90deg)}
+  .day .dh{cursor:pointer}
+  .day .caret{margin-left:auto;font-size:13px;color:var(--muted);transition:transform .15s;padding-left:8px}
+  .day.collapsed .caret{transform:rotate(-90deg)}
+  .day.collapsed ul{display:none}
+  .day.collapsed .dh{margin-bottom:0}
+  .day.collapsed{opacity:.72}
+  .day.is-past .dh h3{color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>July Studying Schedule — <span>2-Week Sprint</span></h1>
-  <div class="sub">Sat July 4 → Fri July 17. Five interviews: Waymo (7/6) · Gem (7/8, warm-up) · <b>Plaid (7/13)</b> · <b>Retool (7/14)</b> · <b>Google (7/17)</b>. Weekdays 2h, weekends 4–5h, interview days keep a full 2h block. Systems design deferred to July 18+ (onsites) — only touch it if a day ends early. All three TO DOs are scheduled and tagged. <b>Four gap patterns folded in this pass</b>: backtracking, overlapping intervals, more monotonic stack, prefix sum — see the tagged lines below and the new panels in <code>leetcode_cheatsheet.html</code>.</div>
+  <h1>Studying <span>Schedule</span></h1>
+  <div class="sub">Weekdays 2h, weekends 4–5h. The sys design sprint (Jul 18+) splits around the Waymo onsite — see the blue panel below. Gap patterns folded in: backtracking, overlapping intervals, monotonic stack, prefix sum. Click any day or week header to collapse it; past days auto-collapse.</div>
   <div class="legend">
     <span class="cat dsa">DS/A</span><span class="cat ui">React/UI</span><span class="cat beh">Behavioural</span><span class="cat sd">Sys Design (deferred)</span><span class="cat iv">Interview day</span>
   </div>
 
+  <div class="controls"><button id="expandAll">Expand all</button><button id="collapsePast">Collapse past</button></div>
+
   <div class="week">Week 1 — Waymo, Gem, and the gap patterns</div>
 
-  <div class="day weekend">
+  <div class="day weekend" data-date="2026-07-04">
     <div class="dh"><h3>Sat July 4</h3><div class="hrs">4.5 h</div><span class="cat ui">React/UI</span><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[UI · 3.5h]</b> Timed Battleship-style grid build (30 min, no references) → diff against <code>ui_cheatsheet.html</code> panel 2. Timed <code>FleetList</code> rebuild (30 min) → diff against <code>react/FleetList.jsx</code>. Drills: useCallback+React.memo pair and hand-rolled debounce, each written from memory twice. Then one new build: <b>expandable tree view</b> (nested folder object, click to expand/collapse) — combines recursion with rendering, a known Waymo shape.</li>
@@ -66,7 +83,7 @@
     </ul>
   </div>
 
-  <div class="day weekend">
+  <div class="day weekend" data-date="2026-07-05">
     <div class="dh"><h3>Sun July 5</h3><div class="hrs">4.5 h</div><span class="cat ui">React/UI</span><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[UI · 3.5h]</b> Full Waymo dress rehearsal, twice: two unseen components (pull from GreatFrontEnd — e.g. star rating, transfer list, tic-tac-toe), 45 min each, out loud, following <code>ui_interview_playbook.html</code> time budgets. Debrief 20 min after each against the scoring panel. Close with the Waymo-traps panel + CoderPad quirks (<code>@ts-nocheck</code>, no formatter) and one spoken run-through of the memoization talk track.</li>
@@ -74,7 +91,7 @@
     </ul>
   </div>
 
-  <div class="day interview">
+  <div class="day interview" data-date="2026-07-06">
     <div class="dh"><h3>Mon July 6</h3><span class="ivtag">WAYMO — React/UI</span><div class="hrs">2 h study</div><span class="cat ui">React/UI</span><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[UI · 1h, before]</b> Skim only: <code>ui_cheatsheet.html</code> top to bottom + playbook time budgets. One 15-min finger warm-up: render a 3×3 grid with click cycling. Nothing new.</li>
@@ -82,7 +99,7 @@
     </ul>
   </div>
 
-  <div class="day">
+  <div class="day" data-date="2026-07-07">
     <div class="dh"><h3>Tue July 7</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span><span class="todo">TO DO · Rewrite #981 TimeMap</span></div>
     <ul>
       <li><b>[DS/A · TODO · Binary search cleanup]</b> Rewrite <b>#981 Time Based Key-Value Store</b> <code>get</code> using a single <code>result candidate</code> variable and returning after the loop, not inside it. Goal: one exit point instead of the four early-returns in the working version. Boundary-search template with <code>high = mid - 1</code>, so no mid-bias trap. Re-derive from scratch, don't copy.</li>
@@ -91,7 +108,7 @@
     </ul>
   </div>
 
-  <div class="day interview">
+  <div class="day interview" data-date="2026-07-08">
     <div class="dh"><h3>Wed July 8</h3><span class="ivtag">GEM — DS/A</span><div class="hrs">2 h study</div><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[DS/A · 45 min, before]</b> Template skim: binary search, intervals, heap, BFS/DFS from <code>leetcode_cheatsheet.html</code>. One easy warm-up problem, untimed.</li>
@@ -100,7 +117,7 @@
     </ul>
   </div>
 
-  <div class="day">
+  <div class="day" data-date="2026-07-09">
     <div class="dh"><h3>Thu July 9</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span><span class="todo">TO DO · Plaid Coupons</span></div>
     <ul>
       <li><b>[DS/A · 2h]</b> The Plaid <b>Coupons question</b> — this is a <b>DS/A optimization problem, not a service/design build</b>. Items have <code>price</code> + <code>category</code>; coupons have <code>category</code>, <code>type</code> (amount | percent), <code>value</code>.<br>
@@ -110,7 +127,7 @@
     </ul>
   </div>
 
-  <div class="day">
+  <div class="day" data-date="2026-07-10">
     <div class="dh"><h3>Fri July 10</h3><div class="hrs">2 h</div><span class="cat beh">Behavioural</span><span class="todo">TO DO · Deep dive day 1</span></div>
     <ul>
       <li><b>[Behavioural/Project · 2h]</b> Plaid project deep dive, day 1 — <b>write it down</b>: pick the project, then document architecture (draw it), the 3 hardest technical decisions and their trade-offs, your specific role ("I", not "we"), measurable impact, what failed and what you'd redo. Prepare for the standard probes: "why not X instead?", "what broke in production?", "how did you test it?"</li>
@@ -119,7 +136,7 @@
 
   <div class="week">Week 2 — Plaid, Retool, Google</div>
 
-  <div class="day weekend">
+  <div class="day weekend" data-date="2026-07-11">
     <div class="dh"><h3>Sat July 11</h3><div class="hrs">4.5 h</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span><span class="todo">TO DO · Deep dive day 2</span></div>
     <ul>
       <li><b>[Behavioural/Project · 1.5h]</b> Deep dive day 2 — <b>deliver it out loud</b>, twice: 5-minute overview version and 15-minute walkthrough version. Record yourself once. Refine the doc where you stumbled.</li>
@@ -128,7 +145,7 @@
     </ul>
   </div>
 
-  <div class="day weekend">
+  <div class="day weekend" data-date="2026-07-12">
     <div class="dh"><h3>Sun July 12</h3><div class="hrs">4.5 h</div><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[DS/A · 2h — Plaid mock]</b> One full practical mock in CoderPad-style conditions: start with a simple parser/aggregator, layer requirements every 15 min, run your tests. Debrief against the Plaid panel in <code>leetcode_cheatsheet.html</code>.</li>
@@ -137,7 +154,7 @@
     </ul>
   </div>
 
-  <div class="day interview">
+  <div class="day interview" data-date="2026-07-13">
     <div class="dh"><h3>Mon July 13</h3><span class="ivtag">PLAID — DS/A + Project Deep Dive</span><div class="hrs">2 h study</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span></div>
     <ul>
       <li><b>[1h, before]</b> Deliver the deep dive out loud once (5-min version). Skim coupons solution + intervals template. Nothing new.</li>
@@ -145,7 +162,7 @@
     </ul>
   </div>
 
-  <div class="day interview">
+  <div class="day interview" data-date="2026-07-14">
     <div class="dh"><h3>Tue July 14</h3><span class="ivtag">RETOOL — DS/A</span><div class="hrs">2 h study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span></div>
     <ul>
       <li><b>[DS/A · 45 min, before]</b> Template skim + one easy warm-up. Review yesterday's Plaid journal notes — patterns repeat across companies in the same week.</li>
@@ -153,14 +170,14 @@
     </ul>
   </div>
 
-  <div class="day">
+  <div class="day" data-date="2026-07-15">
     <div class="dh"><h3>Wed July 15</h3><div class="hrs">2 h</div><span class="cat beh">Behavioural</span><span class="todo">TO DO · STAR day 1</span></div>
     <ul>
       <li><b>[Behavioural · 2h]</b> Google behavioural, day 1 — <b>write all 5 STAR stories in full</b>: quantified results, "I" not "we", 90-second spoken length. Map each story to the Googliness rubric (collaboration, ambiguity, ownership). Prepare "why Google" and "tell me about yourself" in 3 sentences each.</li>
     </ul>
   </div>
 
-  <div class="day interview">
+  <div class="day interview" data-date="2026-07-16">
     <div class="dh"><h3>Thu July 16</h3><span class="ivtag">SCALE.AI — DS/A · 1–2pm PT</span><div class="hrs">2 h study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span><span class="todo">TO DO · STAR day 2</span></div>
     <ul>
       <li><b>[Morning · Behavioural, 45 min]</b> STAR day 2 <b>moved earlier</b> so the afternoon is clear for the live round: all 5 stories out loud, timed to 90 sec, once more for the two weakest, one cold follow-up each. Bank it before noon.</li>
@@ -169,11 +186,134 @@
     </ul>
   </div>
 
-  <div class="day interview">
+  <div class="day interview" data-date="2026-07-17">
     <div class="dh"><h3>Fri July 17</h3><span class="ivtag">GOOGLE — DS/A + Behavioural</span><div class="hrs">~1 h, morning only</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span></div>
     <ul>
       <li><b>[Before]</b> One pass through STAR stories out loud. Skim the two templates that feel shakiest. One 10-minute easy warm-up. Sleep was last night's prep — trust the two weeks.</li>
-      <li><b>[After]</b> Journal it, close the laptop. Systems design sprint (<code>systems_design_study_guide.html</code>) starts July 18.</li>
+      <li><b>[After]</b> Journal it, close the laptop. Systems design sprint (<code>systems_design_study_guide.html</code>) starts July 18 — but note it splits around the Waymo onsite (below).</li>
+    </ul>
+  </div>
+
+  <div class="week">Week 3 — Sys design (part 1) + Waymo onsite prep</div>
+
+  <div class="panel" style="background:#eef6ff;border-color:#c9e0fb">
+    <h2 style="color:#0369a1">How the back half works — read first</h2>
+    <ul>
+      <li>The sys design sprint serves your <b>August onsites</b> (Plaid, Retool, Google), which include a design round. Waymo's onsite does <b>not</b> — it's coding + behavioural only.</li>
+      <li>So the sprint <b>splits in two</b>: Part 1 (Jul 18–22) → <b>pause for Waymo prep + onsite</b> (Jul 23–31) → Part 2 (Aug 1–10). Pausing sys design costs nothing because your first design onsite isn't until ~Aug 4.</li>
+      <li><b>Waymo onsite is one afternoon, Jul 28–31, day TBD.</b> Be fully ready by Jul 27 and treat the whole week as the deadline.</li>
+    </ul>
+  </div>
+
+  <div class="day weekend" data-date="2026-07-18">
+    <div class="dh"><h3>Sat July 18</h3><div class="hrs">4 h</div><span class="cat sd">Sys Design</span></div>
+    <ul>
+      <li><b>[Sys Design · 4h]</b> Sprint kickoff (for August onsites). Week-1 of <code>systems_design_study_guide.html</code>: core building blocks (load balancer, cache, DB, queue) and the framing template — requirements → estimate → API → data model → scale. One end-to-end out loud (URL shortener or news feed).</li>
+    </ul>
+  </div>
+
+  <div class="day weekend" data-date="2026-07-19">
+    <div class="dh"><h3>Sun July 19</h3><div class="hrs">4 h</div><span class="cat sd">Sys Design</span><span class="cat ui">React</span></div>
+    <ul>
+      <li><b>[Sys Design · 3.5h]</b> Continue Week-1: caching strategies, DB indexing/sharding, consistency vs availability. Second timed design out loud.</li>
+      <li><b>[React · 30 min]</b> One component build to keep React warm — it shouldn't rust before the Waymo pivot on Thu.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-07-20">
+    <div class="dh"><h3>Mon July 20</h3><div class="hrs">deep block</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <ul>
+      <li><b>[Sys Design · OOO, full focus]</b> Rate limiter design (ties to your Plaid practical work) + one design end-to-end with capacity estimation. This is your carved-out time — protect it, no meetings.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-07-21">
+    <div class="dh"><h3>Tue July 21</h3><div class="hrs">deep block</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <ul>
+      <li><b>[Sys Design · OOO]</b> Real-time / streaming systems, pub-sub, websockets vs polling. Design a live monitoring dashboard out loud — conceptually close to Waymo's Fleet Monitoring, useful framing to have.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-07-22">
+    <div class="dh"><h3>Wed July 22</h3><div class="hrs">deep block</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <ul>
+      <li><b>[Sys Design · OOO]</b> Synthesis. Re-do your two weakest designs cold. Write a one-page personal design template you can run in any round. <b>Part 1 ends here — pivot to Waymo tomorrow.</b></li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-07-23">
+    <div class="dh"><h3>Thu July 23</h3><div class="hrs">2 h</div><span class="cat ui">React</span><span class="todo">Waymo pivot</span></div>
+    <ul>
+      <li><b>[Waymo React · day 1]</b> Stop sys design — onsite is 5 days out. Re-drill the onsite shapes: <b>tree/recursion rendering</b> and <b>setState placement</b> (your two misses from the 7/6 technical — see <code>js-learning-journal.html</code>), the memoization talk track, and one longer timed build (45+ min, GreatFrontEnd). Onsites run longer than screens — practice sustaining focus.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-07-24">
+    <div class="dh"><h3>Fri July 24</h3><div class="hrs">2 h</div><span class="cat ui">React</span><span class="cat beh">Behavioural</span><span class="todo">Waymo pivot</span></div>
+    <ul>
+      <li><b>[Waymo React · 1h]</b> One more timed build, unseen component. Diff against the playbook time budgets.</li>
+      <li><b>[Waymo behavioural · 1h]</b> Re-tailor your 5 Google STAR stories to Waymo's frame — safety culture, the AV mission, collaboration under ambiguity. Draft a real <b>"why Waymo"</b> in 3 sentences. Reuse the stories, re-aim them.</li>
+    </ul>
+  </div>
+
+  <div class="week">Week 4 — Waymo onsite (Jul 28–31)</div>
+
+  <div class="day weekend" data-date="2026-07-25">
+    <div class="dh"><h3>Sat July 25</h3><div class="hrs">3.5 h</div><span class="cat ui">React</span><span class="cat beh">Behavioural</span></div>
+    <ul>
+      <li><b>[Waymo dress rehearsal]</b> Mock the loop out loud: one 45-min React build + a full behavioural pass (5 stories Waymo-framed + "why Waymo"). Debrief against <code>ui_interview_playbook.html</code> scoring. Record one build and watch it back.</li>
+    </ul>
+  </div>
+
+  <div class="day weekend" data-date="2026-07-26">
+    <div class="dh"><h3>Sun July 26</h3><div class="hrs">2.5 h</div><span class="cat ui">React</span><span class="cat beh">Behavioural</span></div>
+    <ul>
+      <li><b>[Waymo dress rehearsal · day 2]</b> Second mock, hit the two weakest spots only. Skim <code>ui_cheatsheet.html</code> + CoderPad quirks (<code>@ts-nocheck</code>, no formatter). Keep it light — you're ready, don't cram new material.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-07-27">
+    <div class="dh"><h3>Mon July 27</h3><div class="hrs">1 h</div><span class="cat ui">React</span><span class="todo">Oncall starts · logistics</span></div>
+    <ul>
+      <li><b>[Waymo · light review + logistics]</b> Oncall starts today. <b>Confirm interview-day pager coverage / swap</b> for your booked Waymo afternoon — this is real prep, not optional. 30-min React finger warm-up. Then rest.</li>
+    </ul>
+  </div>
+
+  <div class="day interview" data-date="2026-07-28" data-end="2026-07-31">
+    <div class="dh"><h3>Tue–Fri, Jul 28–31</h3><span class="ivtag">WAYMO ONSITE — 1–5pm PT (day TBD)</span><div class="hrs">the loop</div><span class="cat ui">React/UI</span><span class="cat beh">Behavioural</span></div>
+    <ul>
+      <li><b>[The onsite]</b> One afternoon this week, 4h loop — coding/React + behavioural, <b>no sys design</b>. Before: 15-min warm-up, nothing new, trust the prep. After: journal it in detail (<code>js-learning-journal.html</code>) and log the round in <code>interview_history.html</code>, then rest.</li>
+      <li><b>Oncall overlap:</b> make sure the booked afternoon is covered. A 4h loop plus live pages is the one avoidable risk this week.</li>
+    </ul>
+  </div>
+
+  <div class="week">August — onsite loops (targets, confirm with recruiters)</div>
+
+  <div class="day" data-date="2026-08-01" data-end="2026-08-03">
+    <div class="dh"><h3>Aug 1–3</h3><div class="hrs">flex</div><span class="cat sd">Sys Design</span><span class="todo">Oncall ends 8/3</span></div>
+    <ul>
+      <li><b>[Sys Design · part 2 resumes]</b> Back to the sprint for the August onsites. Week-2 of the study guide — deeper designs, trade-off drills. Keep it lighter Aug 1–2 while oncall is live; ramp up once it ends Aug 3.</li>
+    </ul>
+  </div>
+
+  <div class="day interview" data-date="2026-08-04" data-end="2026-08-07">
+    <div class="dh"><h3>Aug 4–7</h3><span class="ivtag">PLAID + RETOOL onsites — target</span><div class="hrs">loops</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
+    <ul>
+      <li><b>[Onsite loops]</b> Plaid ~Aug 4, Retool ~Aug 6 (confirm). These include sys design + practical coding. Before each: skim your design template + the company's reported shapes (<code>leetcode_cheatsheet.html</code> Plaid panel). Journal each the same day.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-08" data-end="2026-08-10">
+    <div class="dh"><h3>Aug 8–10</h3><div class="hrs">flex</div><span class="cat sd">Sys Design</span><span class="cat beh">Behavioural</span></div>
+    <ul>
+      <li><b>[Google onsite prep]</b> Final sys design push + re-do weakest designs cold. Re-run the 5 STAR stories for Google's Googliness rubric. One full mock loop.</li>
+    </ul>
+  </div>
+
+  <div class="day interview" data-date="2026-08-11" data-end="2026-08-12">
+    <div class="dh"><h3>Aug 11–12</h3><span class="ivtag">GOOGLE onsite — target</span><div class="hrs">the loop</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="cat beh">Behavioural</span></div>
+    <ul>
+      <li><b>[The loop]</b> DS/A + sys design + behavioural. Full onsite. Skim the shakiest templates the morning of, trust the month of prep, journal it after. Offers from all four onsites should cluster mid-to-late August.</li>
     </ul>
   </div>
 
@@ -188,7 +328,38 @@
     </ul>
   </div>
 
-  <div class="foot">TO DOs covered: Coupons 2h (Jul 9) · deep dive 2 days (Jul 10–11) · behavioural 2 days (Jul 15–16). Log every session in learning_journal.html / js-learning-journal.html.</div>
+  <div class="foot">Screens Jul 6–17 · sys design part 1 (Jul 18–22) · Waymo prep + onsite (Jul 23–31) · sys design part 2 + Aug onsites. Onsite dates past Waymo are targets — confirm with recruiters. Log every session in learning_journal.html / js-learning-journal.html.</div>
 </div>
+
+<script>
+(function(){
+  var today=new Date(); today.setHours(0,0,0,0);
+  function parse(d){var a=d.split('-');return new Date(+a[0],+a[1]-1,+a[2]);}
+  var days=[].slice.call(document.querySelectorAll('.day'));
+  var weeks=[].slice.call(document.querySelectorAll('.week'));
+  function daysOf(week){var els=[],n=week.nextElementSibling;while(n&&!n.classList.contains('week')){if(n.classList.contains('day'))els.push(n);n=n.nextElementSibling;}return els;}
+  function syncWeeks(){weeks.forEach(function(w){var ds=daysOf(w);if(ds.length){var allC=ds.every(function(d){return d.classList.contains('collapsed');});w.classList.toggle('collapsed',allC);}});}
+  days.forEach(function(day){
+    var dh=day.querySelector('.dh');
+    if(dh&&!dh.querySelector('.caret')){var c=document.createElement('span');c.className='caret';c.textContent='\u25BE';dh.appendChild(c);}
+    var end=day.getAttribute('data-end')||day.getAttribute('data-date');
+    if(end&&parse(end)<today){day.classList.add('collapsed','is-past');}
+    if(dh){dh.addEventListener('click',function(){day.classList.toggle('collapsed');syncWeeks();});}
+  });
+  weeks.forEach(function(week){
+    if(!week.querySelector('.caret')){var c=document.createElement('span');c.className='caret';c.textContent='\u25BE';week.appendChild(c);}
+    week.addEventListener('click',function(){
+      var ds=daysOf(week);
+      var anyOpen=ds.some(function(d){return !d.classList.contains('collapsed');});
+      ds.forEach(function(d){d.classList.toggle('collapsed',anyOpen);});
+      week.classList.toggle('collapsed',anyOpen);
+    });
+  });
+  syncWeeks();
+  var ea=document.getElementById('expandAll'),cp=document.getElementById('collapsePast');
+  if(ea)ea.addEventListener('click',function(){days.forEach(function(d){d.classList.remove('collapsed');});weeks.forEach(function(w){w.classList.remove('collapsed');});});
+  if(cp)cp.addEventListener('click',function(){days.forEach(function(d){var end=d.getAttribute('data-end')||d.getAttribute('data-date');d.classList.toggle('collapsed',!!(end&&parse(end)<today));});syncWeeks();});
+})();
+</script>
 </body>
 </html>
