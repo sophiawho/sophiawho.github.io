@@ -288,7 +288,6 @@
           <h3>Search in Rotated Sorted Array</h3>
           <p>Modified binary search. At every step, at least one half around <code>mid</code> is sorted. Check whether target falls inside the <em>sorted</em> half's bounds — if yes, search there; if not, search the other (rotated) half. This stays O(log n) single-path binary search.</p>
           <div class="note"><strong>Trap avoided:</strong> the instinct that you must "look into the rotated half AND possibly branch" leads toward DFS or a queue. Wrong. Once you rule the target out of the sorted half, the search collapses to exactly one remaining half. It never branches into two.</div>
-          <p style="margin-top:10px"><strong>Two bugs that bit me first:</strong> (1) <code>high = len(nums)</code> should be <code>len(nums) - 1</code> — last valid index — else <code>mid</code> can point past the end. (2) <code>mid = low + high // 2</code> is <code>low + (high // 2)</code> because <code>//</code> binds before <code>+</code>. Use <code>(low + high) // 2</code> or <code>low + (high - low) // 2</code>. Same mid-calc point as the concept note below.</p>
           <div class="code-block"><pre><span class="kw">while</span> low &lt;= high:
     mid = (low + high) // 2
     <span class="kw">if</span> nums[mid] == target:
@@ -347,10 +346,10 @@
 
       <div class="concept-card">
         <h3>Binary Search — mid calculation and the mid-bias rule</h3>
-        <p>Standard mid is <code>(low + high) / 2</code> with integer division (rounds down). In fixed-size integer languages (Java, C++) <code>low + high</code> can overflow, so prefer <code>low + (high - low) / 2</code> — same value, no overflow. JS: <code>Math.floor((low + high) / 2)</code>. Python: <code>(low + high) // 2</code> (no overflow).</p>
+        <p>We're using Python, so mid is just <code>(low + high) // 2</code>. Integer division rounds down, and Python ints don't overflow, so there's nothing else to memorize.</p>
         <ul style="margin-top:10px; padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem; color:#3d6b55; line-height:1.6;">
           <li><strong>The infinite-loop trap:</strong> with <code>low = 0</code>, <code>high = 1</code>, round-down mid gives <code>mid = 0 = low</code>. If a branch does <code>low = mid</code> (keeps mid in the window), <code>low</code> never moves and the loop freezes.</li>
-          <li><strong>Mid-bias rule:</strong> match rounding to your update. If any branch does <code>low = mid</code>, round <em>up</em>: <code>mid = low + (high - low + 1) / 2</code>. If any branch does <code>high = mid</code>, round <em>down</em>. Mismatch causes the freeze.</li>
+          <li><strong>Mid-bias rule:</strong> Python rounds down, so pair it with <code>high = mid</code>. Match rounding to your update. If any branch does <code>low = mid</code>, round <em>up</em>: <code>mid = low + (high - low + 1) / 2</code>. If any branch does <code>high = mid</code>, round <em>down</em>. Mismatch causes the freeze.</li>
         </ul>
       </div>
 
