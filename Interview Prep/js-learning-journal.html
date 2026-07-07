@@ -303,6 +303,7 @@
     <a class="toc-section" href="#react-state">React — State</a>
     <a class="toc-sub" href="#controlled-inputs">Controlled Inputs</a>
     <a class="toc-sub" href="#rerenders">Re-renders</a>
+    <a class="toc-sub" href="#setstate-in-render">setState in Render (loop)</a>
     <a class="toc-sub" href="#stale-state">Stale State</a>
     <a class="toc-sub" href="#derived-state">Derive Don't Store</a>
     <a class="toc-sub" href="#batching">Batching</a>
@@ -420,6 +421,27 @@ idRef.current++;               <span class="ok">// increment — no re-render</s
 id: Date.now()                 <span class="cm">// fine for click-driven demos</span>
 id: crypto.randomUUID()        <span class="cm">// cleanest, no setup</span></pre></div>
         <div class="tags"><span class="tag">re-render</span><span class="tag">useRef</span></div>
+      </div>
+
+      <div class="concept-card" id="setstate-in-render">
+        <h3>Never call setState in the render body — infinite loop</h3>
+        <p>Calling a <code>set</code> function directly during render schedules a re-render, which re-runs the body, which calls <code>set</code> again, forever. State updates belong in <strong>event handlers</strong>, in <strong><code>useEffect</code></strong>, or in the <strong>lazy initializer</strong> of <code>useState</code> when it's just seeding initial state.</p>
+        <div class="code-block"><pre><span class="cm">// ✗ runs on every render → schedules render → infinite loop</span>
+function FileTree({ input_list }) {
+  const [toggles, setToggles] = useState(new Map());
+  for (const item of input_list) setToggles(...);  <span class="bad">// ✗ in render body</span>
+
+<span class="cm">// ✓ seed once — lazy initializer, runs only on first mount</span>
+  const [toggles, setToggles] = useState(() => collectFolderIds(input_list));
+
+<span class="cm">// ✓ or derive from changing props/state inside an effect</span>
+  useEffect(() => {
+    setToggles(collectFolderIds(input_list));
+  }, [input_list]);
+}</pre></div>
+        <div class="gotcha"><strong>Waymo interview — Mon Jul 6, 2026 (Fleet Monitoring, 45 min).</strong> File-tree component with indentation + open/close toggling, plus extensions. Landed the rendered tree and per-node toggle. Two misses: (1) put <code>setToggleSettings</code> in the render body → infinite re-render, should have used the lazy initializer or a <code>useEffect</code>; (2) didn't reach for <strong>recursion</strong> to collect all folder IDs until too late — a tree or "get all X in the structure" is the recursion/BFS tell, decide traversal before writing render code. Articulated the full fix and the interviewer agreed, but didn't finish in time.</div>
+        <div class="note"><strong>Review:</strong> re-solve the expandable tree view from scratch, timed to 30 min, on <strong>Jul 12</strong> (already the Retool block). Two reps: one recursive collect + lifted Map state, one BFS. Retry the setState-placement decision out loud each time (handler vs effect vs lazy init). Cross-ref the DSA journal's tree traversal notes.</div>
+        <div class="tags"><span class="tag">setState</span><span class="tag">useEffect</span><span class="tag">lazy initializer</span><span class="tag amber">gotcha</span><span class="tag">interview log</span><span class="tag">high priority</span></div>
       </div>
 
       <div class="concept-card" id="stale-state">

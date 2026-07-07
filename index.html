@@ -56,7 +56,10 @@
       overflow: hidden;
     }
     .subfolder-label {
-      padding: 8px 16px 5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 16px 6px;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
@@ -64,7 +67,25 @@
       color: #2a1030;
       background: #93adb4;
       border-top: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      width: 100%;
+      text-align: left;
     }
+    .subfolder-label:hover { background: #87a4ab; }
+    .subfolder-chevron {
+      font-size: 9px;
+      opacity: 0.6;
+      transition: transform 0.18s ease;
+      display: inline-block;
+    }
+    .subfolder-label.collapsed .subfolder-chevron { transform: rotate(-90deg); }
+    .subfolder-group {
+      overflow: hidden;
+      transition: max-height 0.22s ease;
+    }
+    .subfolder-group.collapsed { max-height: 0 !important; }
     .page-link {
       display: flex;
       align-items: center;
@@ -198,81 +219,57 @@
         Interview Prep
       </div>
       <div class="folder-body">
-        <div class="subfolder-label">General Programming (DS/A)</div>
-        <a class="page-link" href="Interview Prep/interview_training_plan.html">
-          <span class="link-name">
-            <span class="page-icon">📚</span>
-            Study Guide <span class="tag-label">[DS/A]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/learning_journal.html">
-          <span class="link-name">
-            <span class="page-icon">✍️</span>
-            Learning Log <span class="tag-label">[DS/A]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/coding_interview_playbook.html">
-          <span class="link-name">
-            <span class="page-icon">🗣️</span>
-            Interview Playbook <span class="tag-label">[DS/A]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/leetcode_cheatsheet.html">
-          <span class="link-name">
-            <span class="page-icon">🧠</span>
-            Cheatsheet <span class="tag-label">[DS/A]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
+        <button class="subfolder-label" data-section="dsa">General Programming (DS/A)<span class="subfolder-chevron">▼</span></button>
+        <div class="subfolder-group" id="group-dsa">
+          <a class="page-link" href="Interview Prep/interview_training_plan.html">
+            <span class="link-name"><span class="page-icon">📚</span>Study Guide <span class="tag-label">[DS/A]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/learning_journal.html">
+            <span class="link-name"><span class="page-icon">✍️</span>Learning Log <span class="tag-label">[DS/A]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/coding_interview_playbook.html">
+            <span class="link-name"><span class="page-icon">🗣️</span>Interview Playbook <span class="tag-label">[DS/A]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/leetcode_cheatsheet.html">
+            <span class="link-name"><span class="page-icon">🧠</span>Cheatsheet <span class="tag-label">[DS/A]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+        </div>
 
-        <div class="subfolder-label">React / UI</div>
-        <a class="page-link" href="Interview Prep/js-learning-journal.html">
-          <span class="link-name">
-            <span class="page-icon">✍️</span>
-            Learning Log <span class="tag-label">[Front-End]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/typescript-prep-plan.html">
-          <span class="link-name">
-            <span class="page-icon">📚</span>
-            Study Guide <span class="tag-label">[Front-End]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/ui_interview_playbook.html">
-          <span class="link-name">
-            <span class="page-icon">🗣️</span>
-            Interview Playbook <span class="tag-label">[Front-End]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/ui_cheatsheet.html">
-          <span class="link-name">
-            <span class="page-icon">🧠</span>
-            Cheatsheet <span class="tag-label">[Front-End]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
+        <button class="subfolder-label" data-section="frontend">React / UI<span class="subfolder-chevron">▼</span></button>
+        <div class="subfolder-group" id="group-frontend">
+          <a class="page-link" href="Interview Prep/js-learning-journal.html">
+            <span class="link-name"><span class="page-icon">✍️</span>Learning Log <span class="tag-label">[Front-End]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/typescript-prep-plan.html">
+            <span class="link-name"><span class="page-icon">📚</span>Study Guide <span class="tag-label">[Front-End]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/ui_interview_playbook.html">
+            <span class="link-name"><span class="page-icon">🗣️</span>Interview Playbook <span class="tag-label">[Front-End]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/ui_cheatsheet.html">
+            <span class="link-name"><span class="page-icon">🧠</span>Cheatsheet <span class="tag-label">[Front-End]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+        </div>
 
-        <div class="subfolder-label">Systems Design</div>
-        <a class="page-link" href="Interview Prep/systems_design_playbook.html">
-          <span class="link-name">
-            <span class="page-icon">🗣️</span>
-            Interview Playbook <span class="tag-label">[Systems Design]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
-        <a class="page-link" href="Interview Prep/systems_design_study_guide.html">
-          <span class="link-name">
-            <span class="page-icon">📚</span>
-            Study Guide <span class="tag-label">[Systems Design]</span>
-          </span>
-          <span class="link-arrow">→</span>
-        </a>
+        <button class="subfolder-label" data-section="sysdesign">Systems Design<span class="subfolder-chevron">▼</span></button>
+        <div class="subfolder-group" id="group-sysdesign">
+          <a class="page-link" href="Interview Prep/systems_design_playbook.html">
+            <span class="link-name"><span class="page-icon">🗣️</span>Interview Playbook <span class="tag-label">[Systems Design]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/systems_design_study_guide.html">
+            <span class="link-name"><span class="page-icon">📚</span>Study Guide <span class="tag-label">[Systems Design]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -333,5 +330,54 @@
 
     <footer>last synced from Claude Code</footer>
   </div>
+
+  <script>
+    (function () {
+      var SECTIONS = ['dsa', 'frontend', 'sysdesign'];
+
+      function getState(id) {
+        var stored = localStorage.getItem('subfolder-' + id);
+        return stored === null ? true : stored === 'true';
+      }
+
+      function setState(id, open) {
+        localStorage.setItem('subfolder-' + id, open);
+        apply(id, open);
+      }
+
+      function apply(id, open) {
+        var btn = document.querySelector('[data-section="' + id + '"]');
+        var group = document.getElementById('group-' + id);
+        if (!btn || !group) return;
+        if (open) {
+          group.style.maxHeight = group.scrollHeight + 'px';
+          btn.classList.remove('collapsed');
+        } else {
+          group.style.maxHeight = '0';
+          btn.classList.add('collapsed');
+        }
+      }
+
+      // Init
+      SECTIONS.forEach(function (id) {
+        var open = getState(id);
+        var group = document.getElementById('group-' + id);
+        // Set initial max-height without transition so there's no animation on load
+        if (group) group.style.transition = 'none';
+        apply(id, open);
+        requestAnimationFrame(function () {
+          if (group) group.style.transition = '';
+        });
+
+        var btn = document.querySelector('[data-section="' + id + '"]');
+        if (btn) {
+          btn.addEventListener('click', function () {
+            var nowOpen = btn.classList.contains('collapsed');
+            setState(id, nowOpen);
+          });
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
