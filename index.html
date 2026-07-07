@@ -104,6 +104,15 @@
     .link-arrow { color: #5a7a80; font-size: 0.8rem; transition: color 0.1s; }
     .tag-label { color: #3a5a60; font-size: 0.8rem; font-weight: 500; }
 
+    .standalone-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .standalone-row .standalone-link {
+      flex: 1;
+      margin-bottom: 0;
+    }
     .standalone-link {
       display: flex;
       align-items: center;
@@ -205,21 +214,22 @@
       <p class="subtitle">synced from Claude Code</p>
     </header>
 
-    <a class="standalone-link" href="July-Studying-Schedule.html">
-      <span class="link-name">
-        <span class="page-icon">🗓️</span>
-        July Studying Schedule
-      </span>
-      <span class="link-arrow">→</span>
-    </a>
-
-    <a class="standalone-link" href="Upcoming-Interviews.html">
-      <span class="link-name">
-        <span class="page-icon">📅</span>
-        Upcoming Interviews
-      </span>
-      <span class="link-arrow">→</span>
-    </a>
+    <div class="standalone-row">
+      <a class="standalone-link" href="July-Studying-Schedule.html">
+        <span class="link-name">
+          <span class="page-icon">🗓️</span>
+          July Studying Schedule
+        </span>
+        <span class="link-arrow">→</span>
+      </a>
+      <a class="standalone-link" href="Upcoming-Interviews.html">
+        <span class="link-name">
+          <span class="page-icon">📅</span>
+          Upcoming Interviews
+        </span>
+        <span class="link-arrow">→</span>
+      </a>
+    </div>
 
     <div class="folder">
       <div class="folder-header">
