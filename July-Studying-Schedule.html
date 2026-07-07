@@ -103,7 +103,10 @@
   <div class="day">
     <div class="dh"><h3>Thu July 9</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span><span class="todo">TO DO · Plaid Coupons</span></div>
     <ul>
-      <li><b>[DS/A · 2h]</b> The Plaid <b>Coupons question</b>, full block: build an in-memory coupon service — <code>addCoupon(code, discount, expiresAt, totalLimit, perUserLimit)</code> and <code>redeem(userId, code, now)</code>. Write it like production: small methods, error handling, tests you actually run. Then self-extend twice (stacking rules; idempotent redeem retries) to simulate Plaid's layered-requirements style.</li>
+      <li><b>[DS/A · 2h]</b> The Plaid <b>Coupons question</b> — this is a <b>DS/A optimization problem, not a service/design build</b>. Items have <code>price</code> + <code>category</code>; coupons have <code>category</code>, <code>type</code> (amount | percent), <code>value</code>.<br>
+      <b>Phase 1 — single coupon:</b> per item apply at most one coupon. <code>amount</code> → <code>price − value</code>; <code>percent</code> → <code>price × (1 − value/100)</code>. It's simple simulation — the interviewer scores you on the <b>edge cases</b>: clamp percent to [0,100], clamp final price to ≥ 0, discount exceeding price → 0. (Variant seen: coupon must have exactly one of amount/percent or it's invalid → throw; optional <code>minQuantity</code> / <code>minPurchase</code> gates that can be null.)<br>
+      <b>Phase 2 — multiple coupons:</b> each coupon single-use, each item ≤ one coupon → <b>allocate to minimize total payment</b>. Key insight: it <b>decomposes by category</b>. Within a category, convert each coupon to its saving (amount = <code>min(value, price)</code>; percent = <code>price × value/100</code>, monotonic in price), then assign bigger savings to larger prices (<b>rearrangement inequality</b>). Target <b>O(n log n)</b> via group-by-category + sort.<br>
+      Close with the two extension discussions the interviewer pushes: same category appearing in multiple coupons, and a coupon reusable across items. Log the greedy argument in learning_journal.html.</li>
     </ul>
   </div>
 
@@ -157,11 +160,12 @@
     </ul>
   </div>
 
-  <div class="day">
-    <div class="dh"><h3>Thu July 16</h3><div class="hrs">2 h</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span><span class="todo">TO DO · STAR day 2</span></div>
+  <div class="day interview">
+    <div class="dh"><h3>Thu July 16</h3><span class="ivtag">SCALE.AI — DS/A · 1–2pm PT</span><div class="hrs">2 h study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span><span class="todo">TO DO · STAR day 2</span></div>
     <ul>
-      <li><b>[Behavioural · 1h]</b> Day 2 — all 5 stories <b>out loud</b>, timed to 90 seconds. Once more for the two weakest. Practice one cold follow-up per story ("what would you do differently?").</li>
-      <li><b>[DS/A · 1h]</b> Final Google tune-up: one 45-min timed mock on a random unseen medium (playbook discipline, brute-force-then-optimize, complexity stated). 15 min: skim binary search + heap + LRU templates. Then stop — no cramming.</li>
+      <li><b>[Morning · Behavioural, 45 min]</b> STAR day 2 <b>moved earlier</b> so the afternoon is clear for the live round: all 5 stories out loud, timed to 90 sec, once more for the two weakest, one cold follow-up each. Bank it before noon.</li>
+      <li><b>[Before 1pm · DS/A warm-up, 20 min]</b> Scale coding round with Dave Guo (SWE). Template skim (binary search, intervals, heap) + one easy untimed problem to get loose. Nothing new. Playbook discipline: brute-force-then-optimize, narrate complexity.</li>
+      <li><b>[After · 45 min]</b> Journal the Scale questions immediately while fresh (learning_journal.html). Then a light Google tune-up only if you have gas left — one 45-min timed medium is optional now that Scale ate the afternoon. <b>Priority is a light evening before Google tomorrow</b>, no cramming.</li>
     </ul>
   </div>
 
