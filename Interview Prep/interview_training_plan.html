@@ -1,16 +1,17 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;📚&lt;/text&gt;&lt;/svg&gt;" rel="icon"/>
 <title>Study Guide [DS/A]</title>
-<meta name="description" content="6–8 week interview prep plan for L4 Product SWE roles at Google and Notion. Covers LeetCode problems, system design, behavioral stories, and Python patterns.">
-<meta name="author" content="Sophia">
-<meta property="og:title" content="L4 SWE Interview Plan">
-<meta property="og:description" content="6–8 week structured prep plan for Google and Notion L4 interviews — LeetCode, system design, and behavioral.">
-<meta property="og:type" content="website">
-<meta name="robots" content="noindex, nofollow">
+<meta content="6–8 week interview prep plan for L4 Product SWE roles at Google and Notion. Covers LeetCode problems, system design, behavioral stories, and Python patterns." name="description"/>
+<meta content="Sophia" name="author"/>
+<meta content="L4 SWE Interview Plan" property="og:title"/>
+<meta content="6–8 week structured prep plan for Google and Notion L4 interviews — LeetCode, system design, and behavioral." property="og:description"/>
+<meta content="website" property="og:type"/>
+<meta content="noindex, nofollow" name="robots"/>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -312,521 +313,52 @@
 </head>
 <body>
 <div class="layout">
+<!-- TOC Sidebar -->
+<nav class="toc">
 
-  <!-- TOC Sidebar -->
-  <nav class="toc">
-    <div class="toc-label">Contents</div>
 
-    <a class="toc-phase" href="#phase1">Phase 1 — Base</a>
-    <a class="toc-sub" href="#p1-w1">Week 1 Problems</a>
-    <a class="toc-sub" href="#p1-w2">Week 2 Problems</a>
-    <a class="toc-sub" href="#p1-drills">Python Drills</a>
-    <a class="toc-sub" href="#p1-behavioral">Behavioral Bank</a>
 
-    <hr class="toc-divider">
 
-    <a class="toc-phase" href="#phase2">Phase 2 — Build</a>
-    <a class="toc-sub" href="#p2-w3">Week 3 Problems</a>
-    <a class="toc-sub" href="#p2-w4">Week 4 Problems</a>
-    <a class="toc-sub" href="#p2-w5">Week 5 Problems</a>
-    <a class="toc-sub" href="#p2-sysdesign">System Design</a>
 
-    <hr class="toc-divider">
 
-    <a class="toc-phase" href="#phase3">Phase 3 — Peak</a>
-    <a class="toc-sub" href="#p3-hard">Hard Problems</a>
-    <a class="toc-sub" href="#p3-company">Company Prep</a>
-    <a class="toc-sub" href="#p3-mock">Mock Protocol</a>
 
-    <hr class="toc-divider">
 
-    <a class="toc-phase" href="#phase4">Phase 4 — Taper</a>
 
-    <hr class="toc-divider">
 
-    <a class="toc-ref" href="#interview-approach">Interview Approach</a>
-    <a class="toc-ref" href="#companies">Target Companies</a>
-    <a class="toc-ref" href="#lc-premium">LeetCode Premium</a>
-    <a class="toc-ref" href="#py-cheatsheet">Python Cheatsheet</a>
-    <a class="toc-ref" href="#py-drills-ref">Syntax Drills</a>
-  </nav>
 
+
+
+
+
+
+
+
+
+
+
+</nav>
 <div class="container">
+<!-- Header -->
+<div class="header">
+<h1>Study Guide <span>[DS/A]</span></h1>
 
-  <!-- Header -->
-  <div class="header">
-    <h1>Study Guide <span>[DS/A]</span></h1>
-    <p>Google · Notion · San Francisco</p>
-    <div class="meta-pills">
-      <span class="pill">6–8 weeks</span>
-      <span class="pill">1–2 hrs / day</span>
-      <span class="pill">5 days / week</span>
-      <span class="pill">Python</span>
-      <span class="pill">Product-focused SWE</span>
-    </div>
-    <div class="note" style="margin-top:14px">
-      <strong>To review:</strong> brush up on React / front-end fundamentals — interviewers may probe a mid-level SWE's front-end comfort (component lifecycle, state vs. props, hooks like useState/useEffect, re-render behavior, common performance pitfalls).
-    </div>
-  </div>
 
-  <!-- State export/import -->
-  <div id="state-bar" style="display:flex;align-items:center;gap:10px;margin:16px 0 8px;flex-wrap:wrap;">
-    <button onclick="exportState()" style="font-size:12px;padding:5px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">Export progress</button>
-    <button onclick="document.getElementById('import-box').style.display=document.getElementById('import-box').style.display==='none'?'flex':'none'" style="font-size:12px;padding:5px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">Import progress</button>
-    <span id="state-msg" style="font-size:12px;color:#888;"></span>
-  </div>
-  <div id="import-box" style="display:none;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-    <textarea id="import-text" rows="2" placeholder="Paste exported state here…" style="font-size:11px;font-family:monospace;width:100%;max-width:480px;padding:6px 8px;border:1px solid #ccc;border-radius:6px;resize:vertical;"></textarea>
-    <button onclick="importState()" style="font-size:12px;padding:5px 12px;border:1px solid #5c6bc0;border-radius:6px;background:#5c6bc0;color:#fff;cursor:pointer;">Apply</button>
-  </div>
 
-  <!-- ── PHASE 1 ── -->
-  <div class="phase" id="phase1">
-    <div class="phase-header">
-      <div class="phase-badge green">1</div>
-      <div class="phase-title">
-        <h2>Base Building — Weeks 1–2</h2>
-        <span>Python fluency · core data structures · behavioral foundations</span>
-      </div>
-    </div>
-
-    <!-- Schedule -->
-    <div class="section">
-      <div class="section-title">Weekly Schedule</div>
-      <div class="section-body" style="padding:0">
-        <table>
-          <thead><tr>
-            <th class="day-col">Day</th>
-            <th>Session</th>
-            <th class="dur-col">Time</th>
-          </tr></thead>
-          <tbody>
-            <tr><td class="day-col">Mon</td><td class="session-col">Python syntax drills + 2 easy problems</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Tue</td><td class="session-col">Data structures deep dive (see problems below)</td><td class="dur-col">75 min</td></tr>
-            <tr><td class="day-col">Wed</td><td class="session-col">Write 5 STAR behavioral stories</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Thu</td><td class="session-col">Arrays &amp; strings pattern block</td><td class="dur-col">75 min</td></tr>
-            <tr><td class="day-col">Fri</td><td class="session-col">Review solutions + flashcard pass</td><td class="dur-col">45 min</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Week 1 Problems -->
-    <div class="section">
-      <div class="section-title" id="p1-w1">Week 1 Problems — Arrays, HashMaps, Sets</div>
-      <div class="section-body" style="padding:0">
-        <table class="lc-table">
-          <thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="lc-num">1</td><td class="lc-name"><a href="https://leetcode.com/problems/two-sum/" target="_blank">Two Sum</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">217</td><td class="lc-name"><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">Contains Duplicate</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
-            <tr><td class="lc-num">242</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">Valid Anagram</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
-            <tr><td class="lc-num">121</td><td class="lc-name"><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">Best Time to Buy and Sell Stock</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">49</td><td class="lc-name"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">Group Anagrams</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">238</td><td class="lc-name"><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">Product of Array Except Self</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">560</td><td class="lc-name"><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">Subarray Sum Equals K</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Week 2 Problems -->
-    <div class="section">
-      <div class="section-title" id="p1-w2">Week 2 Problems — Linked Lists, Stacks, Queues</div>
-      <div class="section-body" style="padding:0">
-        <table class="lc-table">
-          <thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="lc-num">206</td><td class="lc-name"><a href="https://leetcode.com/problems/reverse-linked-list/" target="_blank">Reverse Linked List</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
-            <tr><td class="lc-num">21</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-two-sorted-lists/" target="_blank">Merge Two Sorted Lists</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">20</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">Valid Parentheses</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">141</td><td class="lc-name"><a href="https://leetcode.com/problems/linked-list-cycle/" target="_blank">Linked List Cycle</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
-            <tr><td class="lc-num">19</td><td class="lc-name"><a href="https://leetcode.com/problems/remove-nth-node-from-end-of-list/" target="_blank">Remove Nth Node From End of List</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">138</td><td class="lc-name"><a href="https://leetcode.com/problems/copy-list-with-random-pointer/" target="_blank">Copy List with Random Pointer</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">739</td><td class="lc-name"><a href="https://leetcode.com/problems/daily-temperatures/" target="_blank">Daily Temperatures</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">394</td><td class="lc-name"><a href="https://leetcode.com/problems/decode-string/" target="_blank">Decode String</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Python Drills -->
-    <div class="section">
-      <div class="section-title" id="p1-drills">Python Syntax Drills — Learn These Cold</div>
-      <div class="section-body">
-        <ul class="checklist" id="py-drills">
-          <li><input type="checkbox" onchange="toggle(this)"><label><code>collections.defaultdict</code>, <code>Counter</code>, <code>deque</code></label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><code>heapq.heappush / heappop</code> (negate for max heap)</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>List comprehensions, <code>enumerate</code>, <code>zip</code></label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><code>sorted(arr, key=lambda x: ...)</code></label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><code>dict.get(key, default)</code>, <code>dict.setdefault</code></label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>String: <code>split</code>, <code>join</code>, <code>strip</code>, <code>''.isdigit()</code></label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><code>set</code> operations: <code>|</code>, <code>&amp;</code>, <code>-</code>, <code>in</code></label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><code>bisect.bisect_left / bisect_right</code></label></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Behavioral -->
-    <div class="section">
-      <div class="section-title" id="p1-behavioral">Behavioral Bank — 5 STAR Stories to Write</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Most impactful project you shipped</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Time you disagreed with your team or manager</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Time you failed — what you learned</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Time you simplified something complex for non-engineers</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Time you took ownership beyond your scope</label></li>
-        </ul>
-        <div class="note" style="margin-top:12px">Use "I", not "we". Quantify results where possible. Aim for 90-second verbal delivery each.</div>
-      </div>
-    </div>
-
-    <!-- Exit -->
-    <div class="section exit-section">
-      <div class="section-title">Phase 1 Exit Checklist</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Solving easy array/string problems in &lt;15 min, no syntax lookups</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Can implement stack and queue from scratch in Python</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>5 STAR stories written out</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Know Big-O for: array access, hash lookup, tree traversal, sorting</label></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PHASE 2 ── -->
-  <div class="phase" id="phase2">
-    <div class="phase-header">
-      <div class="phase-badge blue">2</div>
-      <div class="phase-title">
-        <h2>Build — Weeks 3–5</h2>
-        <span>Medium problems under time pressure · system design foundations</span>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Weekly Schedule</div>
-      <div class="section-body" style="padding:0">
-        <table>
-          <thead><tr><th class="day-col">Day</th><th>Session</th><th class="dur-col">Time</th></tr></thead>
-          <tbody>
-            <tr><td class="day-col">Mon</td><td class="session-col">Pattern block — 2 mediums, 25 min each</td><td class="dur-col">75 min</td></tr>
-            <tr><td class="day-col">Tue</td><td class="session-col">System design deep dive (one topic, see curriculum)</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Wed</td><td class="session-col">Behavioral practice out loud + pattern problems</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Thu</td><td class="session-col">Pattern block — 2 more mediums</td><td class="dur-col">75 min</td></tr>
-            <tr><td class="day-col">Fri</td><td class="session-col">Weak spot review + 1 easy warmup</td><td class="dur-col">45 min</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Week 3 Problems -->
-    <div class="section">
-      <div class="section-title" id="p2-w3">Week 3 Problems — Two Pointers · Sliding Window · Binary Search</div>
-      <div class="section-body" style="padding:0">
-        <table class="lc-table">
-          <thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="lc-num">125</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-palindrome/" target="_blank">Valid Palindrome</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">167</td><td class="lc-name"><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank">Two Sum II</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">15</td><td class="lc-name"><a href="https://leetcode.com/problems/3sum/" target="_blank">3Sum</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">11</td><td class="lc-name"><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">Container With Most Water</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">3</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">Longest Substring Without Repeating Characters</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">424</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-repeating-character-replacement/" target="_blank">Longest Repeating Character Replacement</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">76</td><td class="lc-name"><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank">Minimum Window Substring</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">33</td><td class="lc-name"><a href="https://leetcode.com/problems/search-in-rotated-sorted-array/" target="_blank">Search in Rotated Sorted Array</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">153</td><td class="lc-name"><a href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" target="_blank">Find Minimum in Rotated Sorted Array</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">981</td><td class="lc-name"><a href="https://leetcode.com/problems/time-based-key-value-store/" target="_blank">Time Based Key-Value Store</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Week 4 Problems -->
-    <div class="section">
-      <div class="section-title" id="p2-w4">Week 4 Problems — Trees · Graphs · Backtracking</div>
-      <div class="section-body" style="padding:0">
-        <table class="lc-table">
-          <thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="lc-num">104</td><td class="lc-name"><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">Maximum Depth of Binary Tree</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
-            <tr><td class="lc-num">102</td><td class="lc-name"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">Binary Tree Level Order Traversal</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">199</td><td class="lc-name"><a href="https://leetcode.com/problems/binary-tree-right-side-view/" target="_blank">Binary Tree Right Side View</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">98</td><td class="lc-name"><a href="https://leetcode.com/problems/validate-binary-search-tree/" target="_blank">Validate Binary Search Tree</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">236</td><td class="lc-name"><a href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank">Lowest Common Ancestor of a Binary Tree</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">200</td><td class="lc-name"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">Number of Islands</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">133</td><td class="lc-name"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">Clone Graph</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">207</td><td class="lc-name"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">Course Schedule</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">417</td><td class="lc-name"><a href="https://leetcode.com/problems/pacific-atlantic-water-flow/" target="_blank">Pacific Atlantic Water Flow</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">78</td><td class="lc-name"><a href="https://leetcode.com/problems/subsets/" target="_blank">Subsets</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">46</td><td class="lc-name"><a href="https://leetcode.com/problems/permutations/" target="_blank">Permutations</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">39</td><td class="lc-name"><a href="https://leetcode.com/problems/combination-sum/" target="_blank">Combination Sum</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">79</td><td class="lc-name"><a href="https://leetcode.com/problems/word-search/" target="_blank">Word Search</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Week 5 Problems -->
-    <div class="section">
-      <div class="section-title" id="p2-w5">Week 5 Problems — Dynamic Programming · Heaps</div>
-      <div class="section-body" style="padding:0">
-        <table class="lc-table">
-          <thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="lc-num">70</td><td class="lc-name"><a href="https://leetcode.com/problems/climbing-stairs/" target="_blank">Climbing Stairs</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
-            <tr><td class="lc-num">198</td><td class="lc-name"><a href="https://leetcode.com/problems/house-robber/" target="_blank">House Robber</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">322</td><td class="lc-name"><a href="https://leetcode.com/problems/coin-change/" target="_blank">Coin Change</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">91</td><td class="lc-name"><a href="https://leetcode.com/problems/decode-ways/" target="_blank">Decode Ways</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">139</td><td class="lc-name"><a href="https://leetcode.com/problems/word-break/" target="_blank">Word Break</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">62</td><td class="lc-name"><a href="https://leetcode.com/problems/unique-paths/" target="_blank">Unique Paths</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">1143</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-common-subsequence/" target="_blank">Longest Common Subsequence</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">215</td><td class="lc-name"><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank">Kth Largest Element in an Array</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">347</td><td class="lc-name"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">Top K Frequent Elements</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
-            <tr><td class="lc-num">621</td><td class="lc-name"><a href="https://leetcode.com/problems/task-scheduler/" target="_blank">Task Scheduler</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">295</td><td class="lc-name"><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">Find Median from Data Stream</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- System Design -->
-    <div class="section">
-      <div class="section-title" id="p2-sysdesign">System Design Curriculum</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label><strong>Week 3 — URL Shortener.</strong> Consistent hashing, base62 encoding, read-heavy caching, TTL.</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><strong>Week 4 — Activity / News Feed.</strong> Fan-out on write vs read, pagination, denormalization. Relevant for Notion's activity log.</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label><strong>Week 5 — Real-time Collaborative Editor.</strong> OT vs CRDT, WebSockets, conflict resolution, offline sync. This is Notion's core product.</label></li>
-        </ul>
-        <div class="note" style="margin-top:14px"><strong>Frontend system design</strong> — these come up at product-focused companies. Be ready to discuss:
-          <ul style="margin-top:8px; padding-left:16px; color:#2a4a80; font-size:13px;">
-            <li>How would you design a component library from scratch?</li>
-            <li>Client-side routing vs SSR — when to use which?</li>
-            <li>How do you handle state in a large React app?</li>
-            <li>What happens between typing a URL and seeing a page?</li>
-            <li>How would you optimize a slow React page?</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Exit -->
-    <div class="section exit-section">
-      <div class="section-title">Phase 2 Exit Checklist</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Solving 2 mediums per session within 25 min each, consistently</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Can whiteboard a URL shortener system design in 45 min</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Can explain 3 frontend system design questions fluently</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>3+ behavioral stories practiced out loud</label></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PHASE 3 ── -->
-  <div class="phase" id="phase3">
-    <div class="phase-header">
-      <div class="phase-badge red">3</div>
-      <div class="phase-title">
-        <h2>Peak — Weeks 6–7</h2>
-        <span>Full mock interviews · hard problems · company-specific prep</span>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Weekly Schedule</div>
-      <div class="section-body" style="padding:0">
-        <table>
-          <thead><tr><th class="day-col">Day</th><th>Session</th><th class="dur-col">Time</th></tr></thead>
-          <tbody>
-            <tr><td class="day-col">Mon</td><td class="session-col">Full mock coding interview — no hints, no pausing</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Tue</td><td class="session-col">System design full mock (45 min) + debrief</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Wed</td><td class="session-col">Hard problem — 45 min attempt, then study solution</td><td class="dur-col">75 min</td></tr>
-            <tr><td class="day-col">Thu</td><td class="session-col">Full mock coding interview</td><td class="dur-col">60 min</td></tr>
-            <tr><td class="day-col">Fri</td><td class="session-col">Behavioral mock + company research</td><td class="dur-col">60 min</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Hard Problems -->
-    <div class="section">
-      <div class="section-title" id="p3-hard">Hard Problems — At Least One Per Week</div>
-      <div class="section-body" style="padding:0">
-        <table class="lc-table">
-          <thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
-          <tbody>
-            <tr><td class="lc-num">42</td><td class="lc-name"><a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank">Trapping Rain Water</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">23</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-k-sorted-lists/" target="_blank">Merge K Sorted Lists</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">297</td><td class="lc-name"><a href="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" target="_blank">Serialize and Deserialize Binary Tree</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">127</td><td class="lc-name"><a href="https://leetcode.com/problems/word-ladder/" target="_blank">Word Ladder</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
-            <tr><td class="lc-num">146</td><td class="lc-name"><a href="https://leetcode.com/problems/lru-cache/" target="_blank">LRU Cache</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Company Prep -->
-    <div class="section">
-      <div class="section-title" id="p3-company">Company-Specific Prep</div>
-      <div class="section-body">
-        <p style="font-size:13px; font-weight:600; color:#fff; margin-bottom:10px;">Google</p>
-        <ul class="checklist" style="margin-bottom:20px">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Review L4 expectations — scope is a component, not a full system</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>LeetCode Premium → filter "Google" by frequency, do top 20</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Pick 2 Google products you use — be ready to improve them</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Behavioral: show you break down ambiguous problems independently</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Know the Googliness rubric — "role in team" matters as much as output</label></li>
-        </ul>
-        <p style="font-size:13px; font-weight:600; color:#fff; margin-bottom:10px;">Notion</p>
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Understand Notion's block-based data model deeply</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Read their engineering blog — Postgres migration, offline sync</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Have a clear answer to "What would you change about Notion?"</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Smaller team — emphasize ownership, taste, and product intuition</label></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Mock Protocol -->
-    <div class="section">
-      <div class="section-title" id="p3-mock">Mock Interview Protocol</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Set a 45-min timer — no pausing</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Talk out loud the entire time, even when stuck</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Write real code, not pseudocode</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>After: self-score on approach / communication / correctness / edge cases</label></li>
-        </ul>
-        <div class="note" style="margin-top:12px">Best mock resources: <strong>interviewing.io</strong> (real engineers, free tier), <strong>Pramp</strong> (peer mocks, free), <strong>LeetCode weekly contest</strong> (time pressure simulation).</div>
-      </div>
-    </div>
-
-    <!-- Exit -->
-    <div class="section exit-section">
-      <div class="section-title">Phase 3 Exit Checklist</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>Completed 4+ full mock coding interviews</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Completed 2+ full system design mocks</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Can answer "Why Google/Notion?" and "Tell me about yourself" cleanly</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Solving mediums consistently in 20–25 min</label></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PHASE 4 ── -->
-  <div class="phase" id="phase4">
-    <div class="phase-header">
-      <div class="phase-badge gold">4</div>
-      <div class="phase-title">
-        <h2>Taper — Week 8</h2>
-        <span>Trust your prep — sharpen, don't cram</span>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">Race Week Checklist</div>
-      <div class="section-body">
-        <ul class="checklist">
-          <li><input type="checkbox" onchange="toggle(this)"><label>1–2 easy warmups per day, nothing new</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Re-read your STAR stories, practice out loud once</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Applications sent (see target list below)</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Review your system design diagrams one final time</label></li>
-          <li><input type="checkbox" onchange="toggle(this)"><label>Sleep 8 hours before any interview day</label></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- Interview Approach -->
-  <div class="section" style="margin-bottom:32px" id="interview-approach">
-    <div class="section-title">Coding Interview Approach</div>
-    <div class="section-body">
-      <table>
-        <thead><tr><th style="width:28px">#</th><th>Step</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr>
-            <td class="day-col">1</td>
-            <td class="session-col" style="font-weight:600">Clarify the problem</td>
-            <td style="font-size:13px; color:#555">Restate it in your own words. Let the interviewer correct misunderstandings early before you've written any code.</td>
-          </tr>
-          <tr>
-            <td class="day-col">2</td>
-            <td class="session-col" style="font-weight:600">Ask about constraints and edge cases</td>
-            <td style="font-size:13px; color:#555">Input bounds, nulls, empty inputs, duplicates, negatives. Shows defensive thinking. Ask explicitly: "Can the input be empty?" "Can values be negative?"</td>
-          </tr>
-          <tr>
-            <td class="day-col">3</td>
-            <td class="session-col" style="font-weight:600">Talk through your approach before coding</td>
-            <td style="font-size:13px; color:#555"><strong>Most skipped step.</strong> Start with brute force, then optimize. Get the interviewer to confirm your direction before touching code — you might be heading somewhere wrong, or there's a better approach they're looking for.</td>
-          </tr>
-          <tr>
-            <td class="day-col">4</td>
-            <td class="session-col" style="font-weight:600">Write the code</td>
-            <td style="font-size:13px; color:#555">Talk through what you're doing as you go. Silence is a red flag. If stuck on a detail, say so and move on — come back to it.</td>
-          </tr>
-          <tr>
-            <td class="day-col">5</td>
-            <td class="session-col" style="font-weight:600">Test your code</td>
-            <td style="font-size:13px; color:#555">Trace through test cases on the <em>code you wrote</em>, not the algorithm in your head. This catches off-by-one errors and missed edge cases that feel correct mentally but aren't in the actual code.</td>
-          </tr>
-          <tr>
-            <td class="day-col">6</td>
-            <td class="session-col" style="font-weight:600">Discuss complexity</td>
-            <td style="font-size:13px; color:#555">Time and space, and explain <em>why</em>. O(n) isn't enough if it's actually O(n log n). Be precise.</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="note" style="margin-top:14px">Step 3 is where most candidates fail. Jumping straight to code without alignment is a red flag — you might solve the wrong problem, or miss an optimization the interviewer was looking for.</div>
-    </div>
-  </div>
-
-  <!-- Target Companies -->
-  <div class="section" style="margin-bottom:32px" id="companies">
-    <div class="section-title">Target Companies</div>
-    <div class="section-body" style="padding:0">
-      <table>
-        <thead><tr><th>Company</th><th>Notes</th><th class="dur-col">Apply</th></tr></thead>
-        <tbody>
-          <tr class="company-row"><td>Google</td><td style="font-size:13px; color:#888">Recruiter outreach or referral strongly preferred</td><td class="dur-col" style="color:#555">Week 6</td></tr>
-          <tr class="company-row"><td>Notion</td><td style="font-size:13px; color:#888">Apply direct + find an employee referral</td><td class="dur-col" style="color:#555">Week 6</td></tr>
-          <tr class="company-row"><td>Linear</td><td style="font-size:13px; color:#888">Smaller team, moves fast, strong eng culture</td><td class="dur-col" style="color:#555">Week 6</td></tr>
-          <tr class="company-row"><td>Figma</td><td style="font-size:13px; color:#888">Heavy frontend, design-system work</td><td class="dur-col" style="color:#555">Week 6</td></tr>
-          <tr class="company-row"><td>Vercel</td><td style="font-size:13px; color:#888">Full-stack, strong eng culture</td><td class="dur-col" style="color:#888">Week 7</td></tr>
-          <tr class="company-row"><td>Stripe</td><td style="font-size:13px; color:#888">High bar, very well-run process</td><td class="dur-col" style="color:#888">Week 7</td></tr>
-          <tr class="company-row"><td>Anthropic</td><td style="font-size:13px; color:#888">If open to AI product work</td><td class="dur-col" style="color:#888">Week 7</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- LeetCode -->
-  <div class="section" style="margin-bottom:32px" id="lc-premium">
-    <div class="section-title">LeetCode Premium — Get It</div>
-    <div class="section-body">
-      <ul class="checklist">
-        <li><input type="checkbox" onchange="toggle(this)"><label>Filter by "Google" tag, sort by frequency — do the top 20</label></li>
-        <li><input type="checkbox" onchange="toggle(this)"><label>Complete Blind 75</label></li>
-        <li><input type="checkbox" onchange="toggle(this)"><label>Complete NeetCode 150 (good explanations, more complete)</label></li>
-        <li><input type="checkbox" onchange="toggle(this)"><label>Attempt at least one LeetCode weekly contest</label></li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Python Cheatsheet -->
-  <div class="section" style="margin-bottom:32px" id="py-cheatsheet">
-    <div class="section-title">Python Patterns Cheatsheet</div>
-    <div class="section-body">
-
-      <!-- Core Data Structures -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">Core Data Structures</p>
+</div>
+<!-- State export/import -->
+<div id="state-bar" style="display:flex;align-items:center;gap:10px;margin:16px 0 8px;flex-wrap:wrap;">
+<button onclick="exportState()" style="font-size:12px;padding:5px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">Export progress</button>
+<button onclick="document.getElementById('import-box').style.display=document.getElementById('import-box').style.display==='none'?'flex':'none'" style="font-size:12px;padding:5px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">Import progress</button>
+<span id="state-msg" style="font-size:12px;color:#888;"></span>
+</div>
+<div id="import-box" style="display:none;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+<textarea id="import-text" placeholder="Paste exported state here…" rows="2" style="font-size:11px;font-family:monospace;width:100%;max-width:480px;padding:6px 8px;border:1px solid #ccc;border-radius:6px;resize:vertical;"></textarea>
+<button onclick="importState()" style="font-size:12px;padding:5px 12px;border:1px solid #5c6bc0;border-radius:6px;background:#5c6bc0;color:#fff;cursor:pointer;">Apply</button>
+</div><div class="section" id="py-cheatsheet" style="margin-bottom:32px">
+<div class="section-title">Python Patterns Cheatsheet</div>
+<div class="section-body">
+<!-- Core Data Structures -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">Core Data Structures</p>
 <pre><span class="code-comment"># Lists</span>
 arr = [1, 2, 3]
 arr.append(4)
@@ -857,9 +389,8 @@ t = (1, 2, 3)
 t[0]
 list(t)                   <span class="code-comment"># convert to list</span>
 tuple([1, 2, 3])          <span class="code-comment"># convert from list</span></pre>
-
-      <!-- Iteration Patterns -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Iteration Patterns</p>
+<!-- Iteration Patterns -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Iteration Patterns</p>
 <pre><span class="code-comment"># Arrays — prefer enumerate over range(len(...))</span>
 for x in arr: ...
 for i in range(len(arr)): ...
@@ -879,9 +410,8 @@ for k, v in mp.items(): ...           <span class="code-comment"># key + value (
 <span class="code-comment"># Sets — order not guaranteed</span>
 for x in s: ...
 for x in sorted(s): ...              <span class="code-comment"># if you need a stable order</span></pre>
-
-      <!-- 2D Grids -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">2D Grids</p>
+<!-- 2D Grids -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">2D Grids</p>
 <pre><span class="code-comment"># Initialize — m rows of n columns</span>
 rows, cols = 3, 4
 grid = [[0] * cols for _ in range(rows)]   <span class="code-comment"># CORRECT — independent rows</span>
@@ -905,15 +435,14 @@ dirs_8 = [(-1,0),(1,0),(0,-1),(0,1),(-1,-1),(-1,1),(1,-1),(1,1)]
 
 <span class="code-comment"># Bounds check helper</span>
 rows, cols = len(grid), len(grid[0])
-in_bounds = lambda r, c: 0 <= r &lt; rows and 0 <= c &lt; cols
+in_bounds = lambda r, c: 0 &lt;= r &lt; rows and 0 &lt;= c &lt; cols
 
 for dr, dc in dirs_4:
     nr, nc = r + dr, c + dc
     if in_bounds(nr, nc):
         ...   <span class="code-comment"># safe to access grid[nr][nc]</span></pre>
-
-      <!-- Algorithm Templates -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Algorithm Templates</p>
+<!-- Algorithm Templates -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Algorithm Templates</p>
 <pre><span class="code-comment"># Two pointers</span>
 l, r = 0, len(arr) - 1
 
@@ -943,7 +472,7 @@ from collections import deque
 def bfs_grid(grid, start_r, start_c):
     rows, cols = len(grid), len(grid[0])
     dirs = [(-1,0),(1,0),(0,-1),(0,1)]
-    in_bounds = lambda r, c: 0 <= r &lt; rows and 0 <= c &lt; cols
+    in_bounds = lambda r, c: 0 &lt;= r &lt; rows and 0 &lt;= c &lt; cols
     q = deque([(start_r, start_c)])
     visited = {(start_r, start_c)}
     while q:
@@ -976,9 +505,8 @@ def binary_search(arr, target):
         else:
             hi = mid - 1
     return -1</pre>
-
-      <!-- Common Gotchas -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Common Gotchas</p>
+<!-- Common Gotchas -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Common Gotchas</p>
 <pre><span class="code-comment"># 1. Mutable default arguments — shared across all calls</span>
 def f_bad(x, arr=[]):      <span class="code-comment"># BAD</span>
     arr.append(x); return arr
@@ -1012,19 +540,14 @@ range(start, end)     <span class="code-comment"># start .. end-1</span>
 for i in range(1, n + 1): ...   <span class="code-comment"># inclusive 1..n</span>
 
 <span class="code-comment"># 7. any() / all()</span>
-if any(x > 0 for x in arr): ...   <span class="code-comment"># at least one satisfies</span>
-if all(x >= 0 for x in arr): ...  <span class="code-comment"># every element satisfies</span></pre>
-
-    </div>
-  </div>
-
-  <!-- Python Syntax Drills Cheatsheet -->
-  <div class="section" style="margin-bottom:32px" id="py-drills-ref">
-    <div class="section-title">Python Syntax Drills — Code Examples &amp; Practice Problems</div>
-    <div class="section-body">
-
-      <!-- defaultdict -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">collections.defaultdict</p>
+if any(x &gt; 0 for x in arr): ...   <span class="code-comment"># at least one satisfies</span>
+if all(x &gt;= 0 for x in arr): ...  <span class="code-comment"># every element satisfies</span></pre>
+</div>
+</div><div class="section" id="py-drills-ref" style="margin-bottom:32px">
+<div class="section-title">Python Syntax Drills — Code Examples &amp; Practice Problems</div>
+<div class="section-body">
+<!-- defaultdict -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">collections.defaultdict</p>
 <pre><span class="code-comment"># Never KeyError — missing keys auto-initialize</span>
 graph = defaultdict(list)
 graph['a'].append('b')        <span class="code-comment"># no need to check if 'a' exists first</span>
@@ -1032,17 +555,16 @@ graph['a'].append('b')        <span class="code-comment"># no need to check if '
 freq = defaultdict(int)
 for c in "banana":
     freq[c] += 1              <span class="code-comment"># starts at 0 automatically</span></pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">49</td><td class="lc-name"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">Group Anagrams</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">207</td><td class="lc-name"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">Course Schedule</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">133</td><td class="lc-name"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">Clone Graph</a></td><td><span class="diff medium">Medium</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- Counter -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">collections.Counter</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">49</td><td class="lc-name"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">Group Anagrams</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">207</td><td class="lc-name"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">Course Schedule</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">133</td><td class="lc-name"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">Clone Graph</a></td><td><span class="diff medium">Medium</span></td></tr>
+</tbody>
+</table>
+<!-- Counter -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">collections.Counter</p>
 <pre>from collections import Counter
 
 c = Counter("banana")         <span class="code-comment"># Counter({'a': 3, 'n': 2, 'b': 1})</span>
@@ -1053,17 +575,16 @@ c['z']                        <span class="code-comment"># 0 — no KeyError</sp
 c1 = Counter("abc")
 c2 = Counter("ab")
 c1 - c2                       <span class="code-comment"># Counter({'c': 1})</span></pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">242</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">Valid Anagram</a></td><td><span class="diff easy">Easy</span></td></tr>
-          <tr><td class="lc-num">347</td><td class="lc-name"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">Top K Frequent Elements</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">76</td><td class="lc-name"><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank">Minimum Window Substring</a></td><td><span class="diff hard">Hard</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- deque -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">collections.deque</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">242</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">Valid Anagram</a></td><td><span class="diff easy">Easy</span></td></tr>
+<tr><td class="lc-num">347</td><td class="lc-name"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">Top K Frequent Elements</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">76</td><td class="lc-name"><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank">Minimum Window Substring</a></td><td><span class="diff hard">Hard</span></td></tr>
+</tbody>
+</table>
+<!-- deque -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">collections.deque</p>
 <pre>from collections import deque
 
 dq = deque([1, 2, 3])
@@ -1076,17 +597,16 @@ while queue:
     node = queue.popleft()
     for neighbor in graph[node]:
         queue.append(neighbor)</pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">102</td><td class="lc-name"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">Binary Tree Level Order Traversal</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">127</td><td class="lc-name"><a href="https://leetcode.com/problems/word-ladder/" target="_blank">Word Ladder</a></td><td><span class="diff hard">Hard</span></td></tr>
-          <tr><td class="lc-num">239</td><td class="lc-name"><a href="https://leetcode.com/problems/sliding-window-maximum/" target="_blank">Sliding Window Maximum</a></td><td><span class="diff hard">Hard</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- heapq -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">heapq</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">102</td><td class="lc-name"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">Binary Tree Level Order Traversal</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">127</td><td class="lc-name"><a href="https://leetcode.com/problems/word-ladder/" target="_blank">Word Ladder</a></td><td><span class="diff hard">Hard</span></td></tr>
+<tr><td class="lc-num">239</td><td class="lc-name"><a href="https://leetcode.com/problems/sliding-window-maximum/" target="_blank">Sliding Window Maximum</a></td><td><span class="diff hard">Hard</span></td></tr>
+</tbody>
+</table>
+<!-- heapq -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">heapq</p>
 <pre>import heapq
 
 h = []
@@ -1099,18 +619,17 @@ heapq.heappush(h, -5)
 
 heapq.heapify(nums)       <span class="code-comment"># in-place, O(n)</span>
 heapq.nlargest(3, nums)   <span class="code-comment"># [5, 4, 3]</span></pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">215</td><td class="lc-name"><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank">Kth Largest Element in an Array</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">23</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-k-sorted-lists/" target="_blank">Merge K Sorted Lists</a></td><td><span class="diff hard">Hard</span></td></tr>
-          <tr><td class="lc-num">295</td><td class="lc-name"><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">Find Median from Data Stream</a></td><td><span class="diff hard">Hard</span></td></tr>
-          <tr><td class="lc-num">621</td><td class="lc-name"><a href="https://leetcode.com/problems/task-scheduler/" target="_blank">Task Scheduler</a></td><td><span class="diff medium">Medium</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- enumerate / zip / list comp -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">List Comprehensions · enumerate · zip</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">215</td><td class="lc-name"><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank">Kth Largest Element in an Array</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">23</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-k-sorted-lists/" target="_blank">Merge K Sorted Lists</a></td><td><span class="diff hard">Hard</span></td></tr>
+<tr><td class="lc-num">295</td><td class="lc-name"><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">Find Median from Data Stream</a></td><td><span class="diff hard">Hard</span></td></tr>
+<tr><td class="lc-num">621</td><td class="lc-name"><a href="https://leetcode.com/problems/task-scheduler/" target="_blank">Task Scheduler</a></td><td><span class="diff medium">Medium</span></td></tr>
+</tbody>
+</table>
+<!-- enumerate / zip / list comp -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">List Comprehensions · enumerate · zip</p>
 <pre><span class="code-comment"># List comprehension</span>
 squares = [x**2 for x in range(10) if x % 2 == 0]
 
@@ -1124,17 +643,16 @@ for i, val in enumerate(nums):
 <span class="code-comment"># zip — pair two lists, or transpose a matrix</span>
 for a, b in zip(list1, list2): ...
 transposed = list(zip(*matrix))   <span class="code-comment"># [(1,4),(2,5),(3,6)]</span></pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">48</td><td class="lc-name"><a href="https://leetcode.com/problems/rotate-image/" target="_blank">Rotate Image</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">54</td><td class="lc-name"><a href="https://leetcode.com/problems/spiral-matrix/" target="_blank">Spiral Matrix</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">200</td><td class="lc-name"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">Number of Islands</a></td><td><span class="diff medium">Medium</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- sorted with key -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">sorted() with key=</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">48</td><td class="lc-name"><a href="https://leetcode.com/problems/rotate-image/" target="_blank">Rotate Image</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">54</td><td class="lc-name"><a href="https://leetcode.com/problems/spiral-matrix/" target="_blank">Spiral Matrix</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">200</td><td class="lc-name"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">Number of Islands</a></td><td><span class="diff medium">Medium</span></td></tr>
+</tbody>
+</table>
+<!-- sorted with key -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">sorted() with key=</p>
 <pre><span class="code-comment"># Sort by second element</span>
 sorted(pairs, key=lambda x: x[1])
 
@@ -1146,34 +664,32 @@ sorted(nums, reverse=True)
 
 <span class="code-comment"># In-place</span>
 intervals.sort(key=lambda x: x[0])  <span class="code-comment"># sort by start</span></pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">56</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">Merge Intervals</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">435</td><td class="lc-name"><a href="https://leetcode.com/problems/non-overlapping-intervals/" target="_blank">Non-overlapping Intervals</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">253</td><td class="lc-name"><a href="https://leetcode.com/problems/meeting-rooms-ii/" target="_blank">Meeting Rooms II</a></td><td><span class="diff medium">Medium</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- dict.get -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">dict.get(key, default)</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">56</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank">Merge Intervals</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">435</td><td class="lc-name"><a href="https://leetcode.com/problems/non-overlapping-intervals/" target="_blank">Non-overlapping Intervals</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">253</td><td class="lc-name"><a href="https://leetcode.com/problems/meeting-rooms-ii/" target="_blank">Meeting Rooms II</a></td><td><span class="diff medium">Medium</span></td></tr>
+</tbody>
+</table>
+<!-- dict.get -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">dict.get(key, default)</p>
 <pre>d = {"a": 1}
 d.get("b", 0)              <span class="code-comment"># 0, no KeyError</span>
 
 <span class="code-comment"># One-liner frequency count</span>
 freq = {}
 freq[c] = freq.get(c, 0) + 1</pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">1</td><td class="lc-name"><a href="https://leetcode.com/problems/two-sum/" target="_blank">Two Sum</a></td><td><span class="diff easy">Easy</span></td></tr>
-          <tr><td class="lc-num">560</td><td class="lc-name"><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">Subarray Sum Equals K</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">146</td><td class="lc-name"><a href="https://leetcode.com/problems/lru-cache/" target="_blank">LRU Cache</a></td><td><span class="diff medium">Medium</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- String methods -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">String Methods</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">1</td><td class="lc-name"><a href="https://leetcode.com/problems/two-sum/" target="_blank">Two Sum</a></td><td><span class="diff easy">Easy</span></td></tr>
+<tr><td class="lc-num">560</td><td class="lc-name"><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">Subarray Sum Equals K</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">146</td><td class="lc-name"><a href="https://leetcode.com/problems/lru-cache/" target="_blank">LRU Cache</a></td><td><span class="diff medium">Medium</span></td></tr>
+</tbody>
+</table>
+<!-- String methods -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">String Methods</p>
 <pre>s = "  hello world  "
 s.strip()               <span class="code-comment"># "hello world"</span>
 s.split()               <span class="code-comment"># ["hello", "world"]</span>
@@ -1183,17 +699,16 @@ s[::-1]                 <span class="code-comment"># reverse</span>
 "abc".isalpha()         <span class="code-comment"># True</span>
 "123".isdigit()         <span class="code-comment"># True</span>
 "abc123".isalnum()      <span class="code-comment"># True</span></pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">125</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-palindrome/" target="_blank">Valid Palindrome</a></td><td><span class="diff easy">Easy</span></td></tr>
-          <tr><td class="lc-num">151</td><td class="lc-name"><a href="https://leetcode.com/problems/reverse-words-in-a-string/" target="_blank">Reverse Words in a String</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">5</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-palindromic-substring/" target="_blank">Longest Palindromic Substring</a></td><td><span class="diff medium">Medium</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- set operations -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">set Operations</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">125</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-palindrome/" target="_blank">Valid Palindrome</a></td><td><span class="diff easy">Easy</span></td></tr>
+<tr><td class="lc-num">151</td><td class="lc-name"><a href="https://leetcode.com/problems/reverse-words-in-a-string/" target="_blank">Reverse Words in a String</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">5</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-palindromic-substring/" target="_blank">Longest Palindromic Substring</a></td><td><span class="diff medium">Medium</span></td></tr>
+</tbody>
+</table>
+<!-- set operations -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">set Operations</p>
 <pre>a = {1, 2, 3}
 b = {2, 3, 4}
 
@@ -1205,58 +720,339 @@ a - b    <span class="code-comment"># difference  {1}</span>
 seen = set()
 if x not in seen:
     seen.add(x)</pre>
-      <table class="lc-table" style="margin:8px 0 20px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">217</td><td class="lc-name"><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">Contains Duplicate</a></td><td><span class="diff easy">Easy</span></td></tr>
-          <tr><td class="lc-num">128</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">Longest Consecutive Sequence</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">141</td><td class="lc-name"><a href="https://leetcode.com/problems/linked-list-cycle/" target="_blank">Linked List Cycle</a></td><td><span class="diff easy">Easy</span></td></tr>
-        </tbody>
-      </table>
-
-      <!-- bisect -->
-      <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">bisect</p>
+<table class="lc-table" style="margin:8px 0 20px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">217</td><td class="lc-name"><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">Contains Duplicate</a></td><td><span class="diff easy">Easy</span></td></tr>
+<tr><td class="lc-num">128</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">Longest Consecutive Sequence</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">141</td><td class="lc-name"><a href="https://leetcode.com/problems/linked-list-cycle/" target="_blank">Linked List Cycle</a></td><td><span class="diff easy">Easy</span></td></tr>
+</tbody>
+</table>
+<!-- bisect -->
+<p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px">bisect</p>
 <pre>import bisect
 
 nums = [1, 3, 4, 7, 9]
 
-bisect.bisect_left(nums, 4)    <span class="code-comment"># 2 — first index >= 4</span>
-bisect.bisect_right(nums, 4)   <span class="code-comment"># 3 — first index > 4</span>
+bisect.bisect_left(nums, 4)    <span class="code-comment"># 2 — first index &gt;= 4</span>
+bisect.bisect_right(nums, 4)   <span class="code-comment"># 3 — first index &gt; 4</span>
 
 bisect.insort(nums, 5)         <span class="code-comment"># insert, keeping sorted — O(n)</span>
 
 <span class="code-comment"># Check membership in O(log n)</span>
 idx = bisect.bisect_left(nums, x)
 found = idx &lt; len(nums) and nums[idx] == x</pre>
-      <table class="lc-table" style="margin:8px 0 4px">
-        <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
-        <tbody>
-          <tr><td class="lc-num">981</td><td class="lc-name"><a href="https://leetcode.com/problems/time-based-key-value-store/" target="_blank">Time Based Key-Value Store</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">300</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-increasing-subsequence/" target="_blank">Longest Increasing Subsequence</a></td><td><span class="diff medium">Medium</span></td></tr>
-          <tr><td class="lc-num">315</td><td class="lc-name"><a href="https://leetcode.com/problems/count-of-smaller-numbers-after-self/" target="_blank">Count of Smaller Numbers After Self</a></td><td><span class="diff hard">Hard</span></td></tr>
-        </tbody>
-      </table>
+<table class="lc-table" style="margin:8px 0 4px">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
+<tbody>
+<tr><td class="lc-num">981</td><td class="lc-name"><a href="https://leetcode.com/problems/time-based-key-value-store/" target="_blank">Time Based Key-Value Store</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">300</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-increasing-subsequence/" target="_blank">Longest Increasing Subsequence</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">315</td><td class="lc-name"><a href="https://leetcode.com/problems/count-of-smaller-numbers-after-self/" target="_blank">Count of Smaller Numbers After Self</a></td><td><span class="diff hard">Hard</span></td></tr>
+</tbody>
+</table>
+<!-- Quick ref table -->
+<div class="note" style="margin-top:20px">
+<strong>Quick signal → tool lookup</strong><br/>
+<table style="margin-top:10px; font-size:12.5px; width:100%; border-collapse:collapse; color:#2a4a80">
+<tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0; width:50%">"top K" / "kth largest"</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>heapq</code></td></tr>
+<tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">BFS / shortest path</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>deque</code></td></tr>
+<tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">frequency / anagram</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>Counter</code></td></tr>
+<tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">graph adjacency / grouping</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>defaultdict(list)</code></td></tr>
+<tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">sorted input + O(log n) search</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>bisect</code></td></tr>
+<tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">membership / dedup</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>set</code></td></tr>
+<tr><td style="padding:4px 8px">sort by custom rule</td><td style="padding:4px 8px"><code>sorted(key=...)</code></td></tr>
+</table>
+</div>
+</div>
+</div>
+<!-- ── PHASE 1 ── -->
+<div class="phase" id="phase1">
+<div class="phase-header">
+<div class="phase-badge green">1</div>
+<div class="phase-title">
+<h2>Base Building — Weeks 1–2</h2>
+<span>Python fluency · core data structures · behavioral foundations</span>
+</div>
+</div>
+<!-- Schedule -->
 
-      <!-- Quick ref table -->
-      <div class="note" style="margin-top:20px">
-        <strong>Quick signal → tool lookup</strong><br>
-        <table style="margin-top:10px; font-size:12.5px; width:100%; border-collapse:collapse; color:#2a4a80">
-          <tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0; width:50%">"top K" / "kth largest"</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>heapq</code></td></tr>
-          <tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">BFS / shortest path</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>deque</code></td></tr>
-          <tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">frequency / anagram</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>Counter</code></td></tr>
-          <tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">graph adjacency / grouping</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>defaultdict(list)</code></td></tr>
-          <tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">sorted input + O(log n) search</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>bisect</code></td></tr>
-          <tr><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0">membership / dedup</td><td style="padding:4px 8px; border-bottom:1px solid #c0d0f0"><code>set</code></td></tr>
-          <tr><td style="padding:4px 8px">sort by custom rule</td><td style="padding:4px 8px"><code>sorted(key=...)</code></td></tr>
-        </table>
-      </div>
+<!-- Week 1 Problems -->
+<div class="section">
+<div class="section-title" id="p1-w1">Arrays, HashMaps, Sets</div>
+<div class="section-body" style="padding:0">
+<table class="lc-table">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
+<tbody>
+<tr><td class="lc-num">1</td><td class="lc-name"><a href="https://leetcode.com/problems/two-sum/" target="_blank">Two Sum</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">217</td><td class="lc-name"><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank">Contains Duplicate</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
+<tr><td class="lc-num">242</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank">Valid Anagram</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
+<tr><td class="lc-num">121</td><td class="lc-name"><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">Best Time to Buy and Sell Stock</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">49</td><td class="lc-name"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">Group Anagrams</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">238</td><td class="lc-name"><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">Product of Array Except Self</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">560</td><td class="lc-name"><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank">Subarray Sum Equals K</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Week 2 Problems -->
+<div class="section">
+<div class="section-title" id="p1-w2">Linked Lists, Stacks, Queues</div>
+<div class="section-body" style="padding:0">
+<table class="lc-table">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
+<tbody>
+<tr><td class="lc-num">206</td><td class="lc-name"><a href="https://leetcode.com/problems/reverse-linked-list/" target="_blank">Reverse Linked List</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
+<tr><td class="lc-num">21</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-two-sorted-lists/" target="_blank">Merge Two Sorted Lists</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">20</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank">Valid Parentheses</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">141</td><td class="lc-name"><a href="https://leetcode.com/problems/linked-list-cycle/" target="_blank">Linked List Cycle</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
+<tr><td class="lc-num">19</td><td class="lc-name"><a href="https://leetcode.com/problems/remove-nth-node-from-end-of-list/" target="_blank">Remove Nth Node From End of List</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">138</td><td class="lc-name"><a href="https://leetcode.com/problems/copy-list-with-random-pointer/" target="_blank">Copy List with Random Pointer</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">739</td><td class="lc-name"><a href="https://leetcode.com/problems/daily-temperatures/" target="_blank">Daily Temperatures</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">394</td><td class="lc-name"><a href="https://leetcode.com/problems/decode-string/" target="_blank">Decode String</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Python Drills -->
+<div class="section">
+<div class="section-title" id="p1-drills">Python Syntax Drills — Learn These Cold</div>
+<div class="section-body">
+<ul class="checklist" id="py-drills">
+<li><input onchange="toggle(this)" type="checkbox"/><label><code>collections.defaultdict</code>, <code>Counter</code>, <code>deque</code></label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><code>heapq.heappush / heappop</code> (negate for max heap)</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>List comprehensions, <code>enumerate</code>, <code>zip</code></label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><code>sorted(arr, key=lambda x: ...)</code></label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><code>dict.get(key, default)</code>, <code>dict.setdefault</code></label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>String: <code>split</code>, <code>join</code>, <code>strip</code>, <code>''.isdigit()</code></label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><code>set</code> operations: <code>|</code>, <code>&amp;</code>, <code>-</code>, <code>in</code></label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><code>bisect.bisect_left / bisect_right</code></label></li>
+</ul>
+</div>
+</div>
+<!-- Behavioral -->
+<div class="section">
+<div class="section-title" id="p1-behavioral">Behavioral Bank — 5 STAR Stories to Write</div>
+<div class="section-body">
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Most impactful project you shipped</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Time you disagreed with your team or manager</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Time you failed — what you learned</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Time you simplified something complex for non-engineers</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Time you took ownership beyond your scope</label></li>
+</ul>
+<div class="note" style="margin-top:12px">Use "I", not "we". Quantify results where possible. Aim for 90-second verbal delivery each.</div>
+</div>
+</div>
+<!-- Exit -->
+<div class="section exit-section">
+<div class="section-title">Phase 1 Exit Checklist</div>
+<div class="section-body">
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Solving easy array/string problems in &lt;15 min, no syntax lookups</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Can implement stack and queue from scratch in Python</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>5 STAR stories written out</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Know Big-O for: array access, hash lookup, tree traversal, sorting</label></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- ── PHASE 2 ── -->
+<div class="phase" id="phase2">
+<div class="phase-header">
+<div class="phase-badge blue">2</div>
+<div class="phase-title">
+<h2>Build — Weeks 3–5</h2>
+<span>Medium problems under time pressure · system design foundations</span>
+</div>
+</div>
 
-    </div>
-  </div>
+<!-- Week 3 Problems -->
+<div class="section">
+<div class="section-title" id="p2-w3">Two Pointers · Sliding Window · Binary Search</div>
+<div class="section-body" style="padding:0">
+<table class="lc-table">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
+<tbody>
+<tr><td class="lc-num">125</td><td class="lc-name"><a href="https://leetcode.com/problems/valid-palindrome/" target="_blank">Valid Palindrome</a></td><td><span class="diff easy">Easy</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">167</td><td class="lc-name"><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank">Two Sum II</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">15</td><td class="lc-name"><a href="https://leetcode.com/problems/3sum/" target="_blank">3Sum</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">11</td><td class="lc-name"><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">Container With Most Water</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">3</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">Longest Substring Without Repeating Characters</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">424</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-repeating-character-replacement/" target="_blank">Longest Repeating Character Replacement</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">76</td><td class="lc-name"><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank">Minimum Window Substring</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">33</td><td class="lc-name"><a href="https://leetcode.com/problems/search-in-rotated-sorted-array/" target="_blank">Search in Rotated Sorted Array</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">153</td><td class="lc-name"><a href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" target="_blank">Find Minimum in Rotated Sorted Array</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">981</td><td class="lc-name"><a href="https://leetcode.com/problems/time-based-key-value-store/" target="_blank">Time Based Key-Value Store</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Week 4 Problems -->
+<div class="section">
+<div class="section-title" id="p2-w4">Trees · Graphs · Backtracking</div>
+<div class="section-body" style="padding:0">
+<table class="lc-table">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
+<tbody>
+<tr><td class="lc-num">104</td><td class="lc-name"><a href="https://leetcode.com/problems/maximum-depth-of-binary-tree/" target="_blank">Maximum Depth of Binary Tree</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
+<tr><td class="lc-num">102</td><td class="lc-name"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank">Binary Tree Level Order Traversal</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">199</td><td class="lc-name"><a href="https://leetcode.com/problems/binary-tree-right-side-view/" target="_blank">Binary Tree Right Side View</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">98</td><td class="lc-name"><a href="https://leetcode.com/problems/validate-binary-search-tree/" target="_blank">Validate Binary Search Tree</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">236</td><td class="lc-name"><a href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank">Lowest Common Ancestor of a Binary Tree</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">200</td><td class="lc-name"><a href="https://leetcode.com/problems/number-of-islands/" target="_blank">Number of Islands</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">133</td><td class="lc-name"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">Clone Graph</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">207</td><td class="lc-name"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">Course Schedule</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">417</td><td class="lc-name"><a href="https://leetcode.com/problems/pacific-atlantic-water-flow/" target="_blank">Pacific Atlantic Water Flow</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">78</td><td class="lc-name"><a href="https://leetcode.com/problems/subsets/" target="_blank">Subsets</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">46</td><td class="lc-name"><a href="https://leetcode.com/problems/permutations/" target="_blank">Permutations</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">39</td><td class="lc-name"><a href="https://leetcode.com/problems/combination-sum/" target="_blank">Combination Sum</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">79</td><td class="lc-name"><a href="https://leetcode.com/problems/word-search/" target="_blank">Word Search</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Week 5 Problems -->
+<div class="section">
+<div class="section-title" id="p2-w5">Dynamic Programming · Heaps</div>
+<div class="section-body" style="padding:0">
+<table class="lc-table">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
+<tbody>
+<tr><td class="lc-num">70</td><td class="lc-name"><a href="https://leetcode.com/problems/climbing-stairs/" target="_blank">Climbing Stairs</a></td><td><span class="diff easy">Easy</span></td><td></td></tr>
+<tr><td class="lc-num">198</td><td class="lc-name"><a href="https://leetcode.com/problems/house-robber/" target="_blank">House Robber</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">322</td><td class="lc-name"><a href="https://leetcode.com/problems/coin-change/" target="_blank">Coin Change</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">91</td><td class="lc-name"><a href="https://leetcode.com/problems/decode-ways/" target="_blank">Decode Ways</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">139</td><td class="lc-name"><a href="https://leetcode.com/problems/word-break/" target="_blank">Word Break</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">62</td><td class="lc-name"><a href="https://leetcode.com/problems/unique-paths/" target="_blank">Unique Paths</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">1143</td><td class="lc-name"><a href="https://leetcode.com/problems/longest-common-subsequence/" target="_blank">Longest Common Subsequence</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">215</td><td class="lc-name"><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank">Kth Largest Element in an Array</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">347</td><td class="lc-name"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">Top K Frequent Elements</a></td><td><span class="diff medium">Medium</span></td><td></td></tr>
+<tr><td class="lc-num">621</td><td class="lc-name"><a href="https://leetcode.com/problems/task-scheduler/" target="_blank">Task Scheduler</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">295</td><td class="lc-name"><a href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank">Find Median from Data Stream</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- System Design -->
+<div class="section">
+<div class="section-title" id="p2-sysdesign">System Design Curriculum</div>
+<div class="section-body">
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label><strong>Week 3 — URL Shortener.</strong> Consistent hashing, base62 encoding, read-heavy caching, TTL.</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><strong>Week 4 — Activity / News Feed.</strong> Fan-out on write vs read, pagination, denormalization. Relevant for Notion's activity log.</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label><strong>Week 5 — Real-time Collaborative Editor.</strong> OT vs CRDT, WebSockets, conflict resolution, offline sync. This is Notion's core product.</label></li>
+</ul>
+<div class="note" style="margin-top:14px"><strong>Frontend system design</strong> — these come up at product-focused companies. Be ready to discuss:
+          <ul style="margin-top:8px; padding-left:16px; color:#2a4a80; font-size:13px;">
+<li>How would you design a component library from scratch?</li>
+<li>Client-side routing vs SSR — when to use which?</li>
+<li>How do you handle state in a large React app?</li>
+<li>What happens between typing a URL and seeing a page?</li>
+<li>How would you optimize a slow React page?</li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Exit -->
+<div class="section exit-section">
+<div class="section-title">Phase 2 Exit Checklist</div>
+<div class="section-body">
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Solving 2 mediums per session within 25 min each, consistently</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Can whiteboard a URL shortener system design in 45 min</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Can explain 3 frontend system design questions fluently</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>3+ behavioral stories practiced out loud</label></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- ── PHASE 3 ── -->
+<div class="phase" id="phase3">
+<div class="phase-header">
+<div class="phase-badge red">3</div>
+<div class="phase-title">
+<h2>Peak — Weeks 6–7</h2>
+<span>Full mock interviews · hard problems · company-specific prep</span>
+</div>
+</div>
+
+<!-- Hard Problems -->
+<div class="section">
+<div class="section-title" id="p3-hard">Hard Problems — At Least One Per Week</div>
+<div class="section-body" style="padding:0">
+<table class="lc-table">
+<thead><tr><th>#</th><th>Problem</th><th>Diff</th><th></th></tr></thead>
+<tbody>
+<tr><td class="lc-num">42</td><td class="lc-name"><a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank">Trapping Rain Water</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">23</td><td class="lc-name"><a href="https://leetcode.com/problems/merge-k-sorted-lists/" target="_blank">Merge K Sorted Lists</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">297</td><td class="lc-name"><a href="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" target="_blank">Serialize and Deserialize Binary Tree</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">127</td><td class="lc-name"><a href="https://leetcode.com/problems/word-ladder/" target="_blank">Word Ladder</a></td><td><span class="diff hard">Hard</span></td><td><span class="tag google">Google</span></td></tr>
+<tr><td class="lc-num">146</td><td class="lc-name"><a href="https://leetcode.com/problems/lru-cache/" target="_blank">LRU Cache</a></td><td><span class="diff medium">Medium</span></td><td><span class="tag google">Google</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Company Prep -->
+<div class="section">
+<div class="section-title" id="p3-company">Company-Specific Prep</div>
+<div class="section-body">
+<p style="font-size:13px; font-weight:600; color:#fff; margin-bottom:10px;">Google</p>
+<ul class="checklist" style="margin-bottom:20px">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Review L4 expectations — scope is a component, not a full system</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>LeetCode Premium → filter "Google" by frequency, do top 20</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Pick 2 Google products you use — be ready to improve them</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Behavioral: show you break down ambiguous problems independently</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Know the Googliness rubric — "role in team" matters as much as output</label></li>
+</ul>
+<p style="font-size:13px; font-weight:600; color:#fff; margin-bottom:10px;">Notion</p>
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Understand Notion's block-based data model deeply</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Read their engineering blog — Postgres migration, offline sync</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Have a clear answer to "What would you change about Notion?"</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Smaller team — emphasize ownership, taste, and product intuition</label></li>
+</ul>
+</div>
+</div>
+<!-- Mock Protocol -->
+
+<!-- Exit -->
+<div class="section exit-section">
+<div class="section-title">Phase 3 Exit Checklist</div>
+<div class="section-body">
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Completed 4+ full mock coding interviews</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Completed 2+ full system design mocks</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Can answer "Why Google/Notion?" and "Tell me about yourself" cleanly</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Solving mediums consistently in 20–25 min</label></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- ── PHASE 4 ── -->
+
+<hr/>
+<!-- Interview Approach -->
+
+<!-- Target Companies -->
+
+<!-- LeetCode -->
+<div class="section" id="lc-premium" style="margin-bottom:32px">
+<div class="section-title">LeetCode Premium — Get It</div>
+<div class="section-body">
+<ul class="checklist">
+<li><input onchange="toggle(this)" type="checkbox"/><label>Filter by "Google" tag, sort by frequency — do the top 20</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Complete Blind 75</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Complete NeetCode 150 (good explanations, more complete)</label></li>
+<li><input onchange="toggle(this)" type="checkbox"/><label>Attempt at least one LeetCode weekly contest</label></li>
+</ul>
+</div>
+</div>
+<!-- Python Cheatsheet -->
+
+<!-- Python Syntax Drills Cheatsheet -->
 
 </div>
 </div> <!-- /layout -->
-
 <script>
   function toggle(checkbox) {
     const li = checkbox.closest('li');
@@ -1344,10 +1140,10 @@ found = idx &lt; len(nums) and nums[idx] == x</pre>
   // Scroll spy
   function initScrollSpy() {
     const ids = [
+      'py-cheatsheet','py-drills-ref',
       'phase1','p1-w1','p1-w2','p1-drills','p1-behavioral',
       'phase2','p2-w3','p2-w4','p2-w5','p2-sysdesign',
-      'phase3','p3-hard','p3-company','p3-mock',
-      'phase4','interview-approach','companies','lc-premium','py-cheatsheet','py-drills-ref'
+      'phase3','p3-hard','p3-company','lc-premium'
     ];
     const tocLinks = {};
     ids.forEach(id => {
