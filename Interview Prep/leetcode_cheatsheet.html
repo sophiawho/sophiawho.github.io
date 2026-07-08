@@ -334,6 +334,14 @@ seen = {<span class="n">0</span>: <span class="n">1</span>}                    <
       </ul>
     </div>
 
+    <div class="panel full">
+      <h2>Python gotchas — quick traps to catch in any round</h2>
+      <ul>
+        <li><b>Presence check vs truthiness:</b> when a value can legitimately be <code>0</code> or empty, test <code>if x is not None</code>, not <code>if not x</code>. <code>0</code>, <code>0.0</code>, <code>""</code>, <code>[]</code>, <code>False</code> are all falsy — a real value of <code>0</code> makes <code>not x</code> wrongly read as "missing." (Bit me on #56 with a sentinel <code>last_end == 0</code>.)</li>
+        <li><b>Sort by a field:</b> <code>sorted(xs, key=lambda x: x[0])</code>; tuple key for tiebreaks <code>key=lambda x: (x[0], x[1])</code>. <code>sorted()</code> returns new, <code>.sort()</code> mutates in place.</li>
+      </ul>
+    </div>
+
   </div>
   <div class="foot">Coverage from learning_journal.html (through June 23) + interview_training_plan.html. Log new solves in the journal as you go — say the word and I'll add these to the plan schedule.</div>
 </div>

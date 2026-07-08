@@ -270,6 +270,130 @@
 <div class="journal">
 
 
+  <!-- ══════════════════════ July 7, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">July 7, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- PROBLEMS SOLVED -->
+    <div class="section">
+      <div class="section-title">Problems Solved</div>
+
+      <div class="problem-card">
+        <div class="problem-number">#56</div>
+        <div class="problem-info">
+          <h3>Merge Intervals</h3>
+          <p>Sort by start, then one pass: for each interval, either extend the last merged interval (if it overlaps) or append a new one. The "sort by start" key is what makes the single sweep correct.</p>
+          <div class="code-block"><pre>sorted_intervals = <span class="kw">sorted</span>(intervals, key=<span class="kw">lambda</span> x: x[<span class="cm">0</span>])
+merged = []
+<span class="kw">for</span> start, end <span class="kw">in</span> sorted_intervals:
+    last_end = <span class="kw">None if</span> <span class="kw">len</span>(merged) == 0 <span class="kw">else</span> merged[-1][1]
+    <span class="kw">if</span> last_end <span class="kw">is not None and</span> start &lt;= last_end:   <span class="cm"># overlaps</span>
+        merged[-1][1] = <span class="kw">max</span>(last_end, end)
+    <span class="kw">else</span>:
+        merged.append([start, end])
+<span class="kw">return</span> merged</pre></div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Intervals</span>
+            <span class="tag">Sorting</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#57</div>
+        <div class="problem-info">
+          <h3>Insert Interval</h3>
+          <p>Three regions, one linear pass (input is sorted): intervals entirely <em>before</em> the new one, intervals that <em>overlap</em> it, and intervals entirely <em>after</em>. Emit the first group as-is, collapse the overlapping group into one merged interval, then emit the rest. <code>output</code> starts empty; <code>new_start, new_end</code> come from <code>newInterval</code>.</p>
+          <div class="code-block"><pre><span class="cm"># phase 1: intervals strictly before the new one</span>
+<span class="kw">while</span> runner &lt; n <span class="kw">and</span> intervals[runner][1] &lt; new_start:
+    output.append(intervals[runner]); runner += 1
+
+<span class="cm"># phase 2: merge everything that overlaps</span>
+<span class="kw">while</span> runner &lt; n <span class="kw">and</span> intervals[runner][0] &lt;= new_end:
+    new_start = <span class="kw">min</span>(new_start, intervals[runner][0])
+    new_end   = <span class="kw">max</span>(new_end,   intervals[runner][1])
+    runner += 1
+
+output.append([new_start, new_end])
+<span class="kw">return</span> output + intervals[runner:]</pre></div>
+          <div class="note"><strong>Matched pair — the whole trick:</strong> phase 1 uses strict <code>&lt;</code> (<code>cur_end &lt; new_start</code>) so an interval ending exactly at the new start is <em>not</em> "before" — it touches, so it falls into phase 2. Phase 2 uses <code>&lt;=</code> (<code>cur_start &lt;= new_end</code>) so touching counts as overlap. Strict before, inclusive overlap. In the interview, state the touching assumption out loud and give complexity unprompted: O(n) time, O(n) space.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Intervals</span>
+            <span class="tag">Two Pointers</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#621</div>
+        <div class="problem-info">
+          <h3>Task Scheduler</h3>
+          <p>Max-heap of remaining counts (negate for Python's min-heap) plus a <strong>cooldown queue</strong>. Each tick: release any task whose cooldown expired back into the heap, then run the most frequent ready task and bench it with its ready-time. Count names don't matter once benched, so the heap holds counts only.</p>
+          <div class="code-block"><pre><span class="kw">from</span> collections <span class="kw">import</span> Counter, deque
+heap = [-c <span class="kw">for</span> c <span class="kw">in</span> Counter(tasks).values()]   <span class="cm"># counts only</span>
+heapq.heapify(heap)
+cooldown = deque()          <span class="cm"># (ready_time, remaining_count)</span>
+time = 0
+<span class="kw">while</span> heap <span class="kw">or</span> cooldown:
+    time += 1
+    <span class="kw">if</span> cooldown <span class="kw">and</span> cooldown[0][0] == time:
+        heapq.heappush(heap, cooldown.popleft()[1])   <span class="cm"># ready again</span>
+    <span class="kw">if</span> heap:
+        cnt = heapq.heappop(heap) + 1                 <span class="cm"># use one (toward 0)</span>
+        <span class="kw">if</span> cnt &lt; 0:
+            cooldown.append((time + n, cnt))          <span class="cm"># bench until time+n</span>
+<span class="kw">return</span> time</pre></div>
+          <div class="note"><strong>Runtime — O(L log D)</strong> where L = total scheduled length (the answer, includes idle slots) and D = distinct tasks. L outer ticks, each doing O(1) deque front-check plus O(log D) heap push/pop. Since tasks are letters, D ≤ 26, so this is effectively O(L). My earlier lastSeen + re-push simulation was O(L · D log D) — a factor of D worse because it popped and re-pushed every benched task each slot.</div>
+          <div class="note"><strong>Why a queue, not a heap, for cooldown:</strong> every task waits the same n, so tasks enter the cooldown in ready-time order and I only check the front — O(1). Different per-task cooldowns would break that and force a heap keyed on ready-time. Say that <em>why</em> out loud in the interview.</div>
+          <div class="note"><strong>The O(1) follow-up (no simulation):</strong> the busiest task fixes the layout. <code>maxFreq</code> = highest count, <code>k</code> = how many tie at it. Answer = <code>max(len(tasks), (maxFreq - 1) * (n + 1) + k)</code>. The <code>max(len(tasks), …)</code> is the gotcha — with many distinct tasks the gaps fill and there's zero idle. Reach for this when n is huge (a billion idle slots kills the simulation). Retry in ~1 week: derive the formula from the fencepost picture.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Heap</span>
+            <span class="tag">Greedy</span>
+            <span class="tag purple">Queue</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPTS LEARNED -->
+    <div class="section">
+      <div class="section-title">Concepts Learned</div>
+
+      <div class="concept-card">
+        <h3>Lambda as a sort key — <code>key=lambda x: x[0]</code></h3>
+        <p>To sort by a specific field, pass a <code>key</code> function that returns the value to sort on. <code>lambda x: x[0]</code> sorts a list of intervals by their start. For a secondary tiebreak, return a tuple: <code>key=lambda x: (x[0], x[1])</code>. <code>sorted()</code> returns a new list; <code>.sort()</code> mutates in place.</p>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Python</span>
+          <span class="tag purple">Sorting</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Falsy-zero bug — use <code>is not None</code>, not <code>not x</code></h3>
+        <p>I first wrote <code>if not last_end</code> to mean "there's no previous interval." Bug: a legitimate <code>last_end == 0</code> is falsy in Python, so <code>not last_end</code> is <code>True</code> and the code wrongly treats a real interval ending at 0 as "no interval." The fix is <code>if last_end is not None</code>, which tests presence, not truthiness.</p>
+        <ul style="margin-top:10px; padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem; color:#3d6b55; line-height:1.6;">
+          <li><strong>The trap:</strong> <code>0</code>, <code>0.0</code>, <code>""</code>, <code>[]</code>, and <code>False</code> are all falsy. Any of them as a valid value breaks a <code>not x</code> presence check.</li>
+          <li><strong>Rule:</strong> when a variable can legitimately hold <code>0</code> or empty and you only want to check "is it set," use <code>is None</code> / <code>is not None</code>. Reserve <code>not x</code> for when you actually mean "empty or zero."</li>
+        </ul>
+        <div class="note">Retry in ~1 week: re-solve #56 from scratch, and watch for the same falsy trap anywhere a sentinel could legitimately be 0.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Python</span>
+          <span class="tag amber">Gotcha</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ══════════════════════ end July 7 ══════════════════════ -->
+
+
   <!-- ══════════════════════ July 5, 2026 ══════════════════════ -->
   <div class="day">
 

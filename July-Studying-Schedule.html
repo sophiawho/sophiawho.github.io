@@ -104,17 +104,18 @@
     <ul>
       <li><b>[DS/A · TODO · Binary search cleanup]</b> Rewrite <b>#981 Time Based Key-Value Store</b> <code>get</code> using a single <code>result candidate</code> variable and returning after the loop, not inside it. Goal: one exit point instead of the four early-returns in the working version. Boundary-search template with <code>high = mid - 1</code>, so no mid-bias trap. Re-derive from scratch, don't copy.</li>
       <li><b>[DS/A · 2h]</b> <b>#56 Merge Intervals</b> (carried from Mon, ~30 min) → <b>#57 Insert Interval</b> (completes the intervals pair, ~30 min), then heap gap day: <b>#215 Kth Largest</b> (size-k min-heap, state the O(n log k) vs sort comparison out loud) + <b>#621 Task Scheduler</b>, ~45 min each. These double as Gem warm-up — narrate complexity the whole way.</li>
-      <li><b>[DS/A · 15 min warm-up · Monotonic stack]</b> Quick re-touch of the pattern before heap: <b>#496 Next Greater Element I</b> from memory. #739 is already solid, so this is just re-firing the "pop while stack top is smaller" reflex. Log only if it wobbled.</li>
     </ul>
   </div>
 
   <div class="day interview" data-date="2026-07-08">
-    <div class="dh"><h3>Wed July 8</h3><span class="ivtag">GEM — DS/A</span><div class="hrs">2 h study</div><span class="cat dsa">DS/A</span></div>
+    <div class="dh"><h3>Wed July 8</h3><span class="ivtag">GEM — DS/A</span><div class="hrs">2 h study</div><span class="cat dsa">DS/A</span><span class="todo">TO DO · Task Scheduler</span></div>
     <ul>
-      <li><b>[DS/A · 45 min, before]</b> Template skim: binary search, intervals, heap, BFS/DFS from <code>leetcode_cheatsheet.html</code>. One easy warm-up problem, untimed.</li>
+      <li><b>[Before Gem · 45 min]</b> Template skim: binary search, intervals, heap, BFS/DFS from <code>leetcode_cheatsheet.html</code>. Warm-up: <b>#496 Next Greater Element I</b> from memory (carried from Tue — re-fire the "pop while stack top is smaller" reflex). One easy problem untimed.</li>
       <li><b>Treat the interview as a live mock for Plaid/Retool/Google</b> — full playbook discipline, no shortcuts.</li>
-      <li><b>[DS/A · after, fresh material first]</b> Journal the Gem questions in detail while fresh, then the intervals pair (greedy-by-end template): <b>#435 Non-overlapping Intervals</b> (sort by end, greedy keep) then <b>#253 Meeting Rooms II</b> (min rooms via heap of end times). Skim the two-template "sort by start vs end" split in <code>leetcode_cheatsheet.html</code> first. #452 Burst Balloons is #435's twin — recognize, don't grind.</li>
-      <li><b>[DS/A · revision, only if gas left]</b> <b>#146 LRU Cache</b> (OrderedDict version, then explain the dict+DLL version aloud). This is review, so if Gem + the intervals pair ran long, push it to Thu.</li>
+      <li><b>[After · 1. journal]</b> Journal the Gem questions in detail while fresh.</li>
+      <li><b>[After · 2. fresh material]</b> Intervals pair (greedy-by-end template): <b>#435 Non-overlapping Intervals</b> (sort by end, greedy keep) then <b>#253 Meeting Rooms II</b> (min rooms via heap of end times). Skim the "sort by start vs end" split in <code>leetcode_cheatsheet.html</code> first. #452 Burst Balloons is #435's twin — recognize, don't grind.</li>
+      <li><b>[After · 3. today's focus]</b> <b>#621 Task Scheduler</b> from scratch with the <b>cooldown-queue</b> approach (heap of counts + deque of ready-times), no lastSeen bookkeeping. State the runtime (O(L log D)) and the O(1) formula follow-up aloud. Notes in <code>learning_journal.html</code> (Jul 7) — build first, check after.</li>
+      <li><b>[After · 4. revision, last]</b> <b>#146 LRU Cache</b> (OrderedDict version, then explain the dict+DLL version aloud). Review, so it's the last thing — but keep it on Wed; Thursday is packed.</li>
     </ul>
   </div>
 
