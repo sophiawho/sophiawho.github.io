@@ -144,8 +144,21 @@ merged = [intervals[<span class="n">0</span>]]
 
 <span class="c"># Overlap test between two intervals (memorize this form):</span>
 <span class="c"># a and b overlap  ⟺  a.start &lt;= b.end and b.start &lt;= a.end</span></pre>
+      <div class="note"><b>Two templates — don't mix the sort key.</b> Merge or count-overlap → sort by <b>START</b> (above). Greedy scheduling → sort by <b>END</b> (below): always keep the earliest-ending interval, which leaves the most room for the rest.</div>
+      <pre><span class="c"># 435. Non-overlapping Intervals — sort by END, greedy keep</span>
+intervals.<span class="f">sort</span>(key=<span class="k">lambda</span> x: x[<span class="n">1</span>])
+end = <span class="f">float</span>(<span class="s">"-inf"</span>); keep = <span class="n">0</span>
+<span class="k">for</span> s, e <span class="k">in</span> intervals:
+    <span class="k">if</span> s &gt;= end:               <span class="c"># doesn't overlap the last kept</span>
+        keep += <span class="n">1</span>; end = e
+<span class="k">return</span> <span class="f">len</span>(intervals) - keep      <span class="c"># removals; #452 arrows = keep itself</span>
+
+<span class="c"># 253. Meeting Rooms II — how many overlap at once (min rooms)</span>
+<span class="c"># min-heap of end times: push each end; if next start &gt;= heap[0],</span>
+<span class="c"># pop first (reuse that room). Answer = max heap size seen.</span></pre>
       <ul>
-        <li>Gotcha: <b>touching intervals</b> — does [1,3] merge with [3,5]? Ask; it flips <code>&lt;=</code> vs <code>&lt;</code>.</li>
+        <li><b>Which sort?</b> "merge them / how many at peak" → sort by <b>start</b>. "max non-overlapping / fewest removals / fewest arrows" → sort by <b>end</b>. Wrong key is the classic interval miss.</li>
+        <li>Gotcha: <b>touching intervals</b> — does [1,3] merge with [3,5]? Ask; it flips <code>&lt;=</code> vs <code>&lt;</code>. (In #435, <code>s &gt;= end</code> treats touching as non-overlapping.)</li>
         <li>Gotcha: <code>max()</code> on the end — [1,10] then [2,3] must not shrink the merged end to 3.</li>
         <li>Plaid twist to expect: intervals arrive as transactions with timestamps + amounts; same merge, then aggregate per merged window.</li>
       </ul>
