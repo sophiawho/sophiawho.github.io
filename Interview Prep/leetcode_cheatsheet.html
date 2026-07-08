@@ -317,30 +317,68 @@ seen = <span class="f">set</span>()
       </ul>
     </div>
 
-    <div class="panel">
-      <h2>Coupons — greedy allocation <span class="pill pp">Plaid</span></h2>
-      <div class="use"><b>When to use:</b> you're assigning a limited set of discounts/resources to items to optimize a total, and each choice is independent once grouped. Phase 1 is pure simulation with edge cases; Phase 2 is a matching you can solve greedily because the problem decomposes by category.</div>
-      <div class="tell"><b>Tells:</b> "minimize/maximize the total" · each item takes at most one X, each X used at most once · discounts/values that depend on the item (percent-off) · "allocate optimally" · large n (up to 2e5) so brute-force pairing is out. The category constraint splitting it into independent subproblems is the unlock.</div>
-      <div class="note">Phase 1, apply one coupon per item and <b>clamp hard</b>. Phase 2, minimize total payment across single-use coupons. The trap: a percent coupon's saving depends on the item's price, so you can't treat coupons as fixed savings and sort once.</div>
-      <pre><span class="c"># Phase 1 — single coupon per item, edge cases are the whole score</span>
-<span class="k">def</span> <span class="f">final_price</span>(price, kind, value):
-    <span class="k">if</span> kind == <span class="s">"amount"</span>:  saving = <span class="f">min</span>(value, price)   <span class="c"># never negative</span>
-    <span class="k">else</span>:                  saving = price * <span class="f">min</span>(value, <span class="n">100</span>) / <span class="n">100</span>  <span class="c"># clamp %</span>
-    <span class="k">return</span> <span class="f">max</span>(<span class="n">0</span>, price - saving)             <span class="c"># clamp to 0</span>
+    <div class="panel full">
+      <h2>Coupons — apply &amp; allocate discounts <span class="pill pp">Plaid</span></h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="min-width:0">
+          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Setup</div>
+          <ul>
+            <li><b>Items:</b> each has <code>price</code> (non-negative) and <code>category</code> (string).</li>
+            <li><b>Coupons:</b> <code>category</code>, <code>type</code> (<code>"amount"</code> = $ off | <code>"percent"</code> = % off), <code>value</code>. A coupon applies only if <code>item.category == coupon.category</code>.</li>
+          </ul>
+          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">Phase 1 — single coupon</div>
+          <ul>
+            <li>Apply at most one coupon per item; only one coupon exists. Return <code>final_prices</code>.</li>
+            <li><code>amount</code> → <code>price − value</code>; <code>percent</code> → <code>price × (1 − value/100)</code>.</li>
+            <li><b>Clamp:</b> final price never below <code>0</code>; if <code>percent &gt; 100</code>, treat as 100 (price → 0).</li>
+          </ul>
+          <div class="note" style="font-size:12.5px"><b>Phase 1 tests:</b><br>
+          <code>[(10,A),(20,B),(5,A)]</code>, coupon <code>(A,amount,7)</code> → <code>[3, 20, 0]</code><br>
+          <code>[(10,A)]</code>, <code>(A,percent,20)</code> → <code>[8]</code> · <code>(A,percent,150)</code> → <code>[0]</code></div>
+        </div>
+        <div style="min-width:0">
+          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Phase 2 — multiple coupons</div>
+          <ul>
+            <li>Each item takes <b>at most one</b> coupon; each coupon used <b>at most once</b>. Allocate to <b>minimize total payment</b>; output the min total.</li>
+            <li>Decomposes by category — coupons only apply within their category, so solve each category independently.</li>
+          </ul>
+          <div class="note" style="font-size:12.5px"><b>Phase 2 tests:</b><br>
+          <code>[(10,A),(10,A)]</code>, <code>[(A,amount,7)]</code> → <code>13</code> (one item 10→3, other unhelped)<br>
+          <code>[(10,A),(20,B)]</code>, <code>[(A,percent,50),(B,amount,5)]</code> → <code>20</code><br>
+          <code>[(5,A)]</code>, <code>[(A,amount,10)]</code> → <code>0</code> (clamp)</div>
+          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">Extensions they push</div>
+          <ul>
+            <li>Same category appears in multiple coupons → still allocate optimally within the category.</li>
+            <li>A coupon reusable across many items → the greedy changes (apply best coupon to every item independently).</li>
+          </ul>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">Constraints: items, coupons ≤ 2e5, integer prices/values → aim <b>O(n log n)</b>.</div>
+        </div>
+      </div>
 
-<span class="c"># Phase 2 — minimize total: group by category, greedy within each</span>
-<span class="c"># saving per coupon depends on price, so match BIG savings to the items</span>
-<span class="c"># they help most. Sort prices desc, sort coupon-savings desc, pair them.</span>
+      <div class="use"><b>When to use:</b> assigning a limited set of discounts/resources to items to optimize a total, where each choice is independent once grouped. Phase 1 is pure simulation scored on edge cases; Phase 2 is a category-decomposed greedy allocation.</div>
+      <div class="tell"><b>Tells:</b> "minimize/maximize the total" · each item takes at most one X, each X used once · a value that depends on the item (percent-off) · "allocate optimally".</div>
+
+      <pre><span class="c"># Phase 1 — single coupon per item. The clamps ARE the question.</span>
+<span class="k">def</span> <span class="f">final_price</span>(price, kind, value):
+    <span class="k">if</span> kind == <span class="s">"amount"</span>:  saving = <span class="f">min</span>(value, price)              <span class="c"># discount &gt; price → 0, not negative</span>
+    <span class="k">else</span>:                  saving = price * <span class="f">min</span>(value, <span class="n">100</span>) / <span class="n">100</span>   <span class="c"># percent &gt; 100 → cap at 100</span>
+    <span class="k">return</span> <span class="f">max</span>(<span class="n">0</span>, price - saving)
+
+<span class="c"># Phase 2 — minimize total = maximize total saving. Per category:</span>
+<span class="c"># the saving a coupon gives DEPENDS on the item's price (percent case),</span>
+<span class="c"># so you can't sort coupons once. Match biggest savings to priciest items.</span>
 <span class="k">for</span> cat, prices <span class="k">in</span> by_category.<span class="f">items</span>():
-    prices.<span class="f">sort</span>(reverse=<span class="k">True</span>)
-    amount_cuts = <span class="f">sorted</span>((c.value <span class="k">for</span> c <span class="k">in</span> coupons[cat] <span class="k">if</span> c.kind==<span class="s">"amount"</span>), reverse=<span class="k">True</span>)
-    <span class="c"># percent coupons: biggest % on the priciest item → apply to prices[0], etc.</span>
-    <span class="c"># take the best saving available for each price, largest price first</span></pre>
+    prices.<span class="f">sort</span>(reverse=<span class="k">True</span>)                 <span class="c"># priciest first</span>
+    <span class="k">for</span> price <span class="k">in</span> prices:
+        best = <span class="f">max</span>((<span class="f">final_price</span>(price, c.kind, c.value) <span class="k">for</span> c <span class="k">in</span> avail[cat]),
+                   default=price)               <span class="c"># cheapest final for this item</span>
+        total += best
+        <span class="c"># remove the coupon that achieved `best` from avail[cat] (single-use)</span></pre>
       <ul>
-        <li>Rearrangement-inequality intuition: to maximize total saving, the largest discount should land on the item where it saves the most. For percent coupons that's the priciest item; for amount coupons the saving is <code>min(value, price)</code>.</li>
-        <li>Because amount and percent savings interleave differently per price, compute each coupon's actual saving <i>against a given price</i>, then pick greedily per item (a small heap or re-sort), don't assume one global order.</li>
-        <li>Edge cases they drill: discount &gt; price, percent &gt; 100, exactly one of amount/percent set or it's invalid (throw), optional <code>minQuantity</code> / <code>minPurchase</code> gates that may be null.</li>
-        <li>Complexity: group-by-category + sort within groups is O(n log n) overall, which is what the 2e5 constraint is asking for.</li>
+        <li><b>Rearrangement-inequality intuition:</b> the biggest discount should land where it saves most — for percent coupons that's the priciest item; for amount coupons saving is <code>min(value, price)</code>. Because the two types interleave differently per price, evaluate each coupon <i>against the actual price</i> and pick greedily per item, don't assume one global coupon order.</li>
+        <li><b>The mixed-type caveat to say out loud:</b> plain greedy is clean when a category has one coupon type. If amount and percent coupons compete for the same items, greedy can miss the optimum — that's a min-cost assignment (matching) problem. Name that; don't over-claim the greedy always wins.</li>
+        <li><b>Validation variant (2025 report):</b> coupon = <code>(category / categories, percent, amount, minQuantity, minPurchase)</code>. <b>Exactly one</b> of percent/amount must be set — both or neither → <b>throw</b>. <code>minQuantity</code> / <code>minPurchase</code> are gates that may be null; only apply if met. If one coupon covers multiple categories, apply it where it yields the <b>max</b> discount; if two coupons hit the same category → <b>throw</b>.</li>
+        <li><b>Money edge cases that score:</b> discount &gt; price, percent &gt; 100, zero-price items, empty coupon list, cents-vs-dollars (percent gives fractions — clarify rounding), duplicate/out-of-order input.</li>
       </ul>
     </div>
 
