@@ -286,6 +286,38 @@ seen = {<span class="n">0</span>: <span class="n">1</span>}                    <
     </div>
 
     <div class="panel">
+      <h2>BFS vs DFS — templates + when to use</h2>
+      <div class="use"><b>When to use BFS:</b> shortest path / fewest steps in an <i>unweighted</i> graph, or level-by-level processing. BFS reaches each node by the fewest edges, so first arrival = shortest. <b>When to use DFS:</b> explore whole paths — does a path exist, count components/islands, cycle detection, all-paths enumeration, tree traversals, flood fill, topological sort.</div>
+      <div class="tell"><b>Tells → BFS:</b> "minimum moves/steps", "shortest path" (unweighted), "nearest", level order, something spreading (rotting oranges). <b>Tells → DFS:</b> "all paths", "does a route exist", "count islands/regions", "cycle", any pre/in/post-order tree walk.</div>
+      <div class="note">Both need a <b>visited</b> set on a graph or you loop forever. For BFS, mark visited <b>when you enqueue</b>, not when you dequeue, or the same node gets added many times.</div>
+      <pre><span class="c"># BFS — shortest steps, unweighted. Queue + level snapshot.</span>
+<span class="k">from</span> collections <span class="k">import</span> deque
+q = <span class="f">deque</span>([start]); seen = {start}; steps = <span class="n">0</span>
+<span class="k">while</span> q:
+    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(<span class="f">len</span>(q)):        <span class="c"># one whole level per steps++</span>
+        node = q.<span class="f">popleft</span>()
+        <span class="k">if</span> node == target: <span class="k">return</span> steps
+        <span class="k">for</span> nb <span class="k">in</span> graph[node]:
+            <span class="k">if</span> nb <span class="k">not in</span> seen:
+                seen.<span class="f">add</span>(nb); q.<span class="f">append</span>(nb)   <span class="c"># mark on enqueue</span>
+    steps += <span class="n">1</span>
+
+<span class="c"># DFS — explore fully. Recursion (implicit stack) + visited.</span>
+seen = <span class="f">set</span>()
+<span class="k">def</span> <span class="f">dfs</span>(node):
+    seen.<span class="f">add</span>(node)
+    <span class="k">for</span> nb <span class="k">in</span> graph[node]:
+        <span class="k">if</span> nb <span class="k">not in</span> seen:
+            <span class="f">dfs</span>(nb)
+<span class="c"># Grid: neighbors = 4 dirs; guard 0&lt;=r&lt;R, 0&lt;=c&lt;C before recursing.</span></pre>
+      <ul>
+        <li><b>Shortest path is BFS only.</b> DFS finds <i>a</i> path, not the shortest — the classic mix-up. Weighted edges → neither, use Dijkstra.</li>
+        <li>Tree level-order (#102) is just the BFS template without a <code>seen</code> set (a tree can't revisit). The inner <code>for</code> loop is the level snapshot for #199 / zigzag.</li>
+        <li>Deep DFS can blow the recursion stack (~1000 in Python). If depth could be large, convert to an explicit stack loop.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
       <h2>Coupons — greedy allocation <span class="pill pp">Plaid</span></h2>
       <div class="use"><b>When to use:</b> you're assigning a limited set of discounts/resources to items to optimize a total, and each choice is independent once grouped. Phase 1 is pure simulation with edge cases; Phase 2 is a matching you can solve greedily because the problem decomposes by category.</div>
       <div class="tell"><b>Tells:</b> "minimize/maximize the total" · each item takes at most one X, each X used at most once · discounts/values that depend on the item (percent-off) · "allocate optimally" · large n (up to 2e5) so brute-force pairing is out. The category constraint splitting it into independent subproblems is the unlock.</div>
