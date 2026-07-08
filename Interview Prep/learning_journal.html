@@ -334,21 +334,28 @@ output.append([new_start, new_end])
         <div class="problem-number">#621</div>
         <div class="problem-info">
           <h3>Task Scheduler</h3>
-          <p>Max-heap of remaining counts (negate for Python's min-heap) plus a <strong>cooldown queue</strong>. Each tick: release any task whose cooldown expired back into the heap, then run the most frequent ready task and bench it with its ready-time. Count names don't matter once benched, so the heap holds counts only.</p>
+          <p>Max-heap of remaining counts (negate for Python's min-heap) plus a <strong>cooldown queue</strong>. Each tick: run the most frequent ready task and bench it with its ready-time, then release anything whose cooldown has elapsed back into the heap. Task names don't matter once benched, so the heap holds counts only.</p>
           <div class="code-block"><pre><span class="kw">from</span> collections <span class="kw">import</span> Counter, deque
-heap = [-c <span class="kw">for</span> c <span class="kw">in</span> Counter(tasks).values()]   <span class="cm"># counts only</span>
-heapq.heapify(heap)
-cooldown = deque()          <span class="cm"># (ready_time, remaining_count)</span>
-time = 0
-<span class="kw">while</span> heap <span class="kw">or</span> cooldown:
-    time += 1
-    <span class="kw">if</span> cooldown <span class="kw">and</span> cooldown[0][0] == time:
-        heapq.heappush(heap, cooldown.popleft()[1])   <span class="cm"># ready again</span>
-    <span class="kw">if</span> heap:
-        cnt = heapq.heappop(heap) + 1                 <span class="cm"># use one (toward 0)</span>
-        <span class="kw">if</span> cnt &lt; 0:
-            cooldown.append((time + n, cnt))          <span class="cm"># bench until time+n</span>
-<span class="kw">return</span> time</pre></div>
+
+freq = Counter(tasks)
+max_heap = [-count <span class="kw">for</span> count <span class="kw">in</span> freq.values()]   <span class="cm"># counts only</span>
+heapq.heapify(max_heap)
+cooldown_queue = deque()          <span class="cm"># (ready_time, remaining_count)</span>
+cpu_time = <span class="cm">0</span>
+
+<span class="kw">while</span> max_heap <span class="kw">or</span> cooldown_queue:
+    <span class="kw">if</span> max_heap:                                <span class="cm"># else this tick is idle</span>
+        count = heapq.heappop(max_heap) + 1     <span class="cm"># use one (toward 0)</span>
+        <span class="kw">if</span> count &lt; 0:
+            cooldown_queue.append((cpu_time + n, count))   <span class="cm"># bench until cpu_time+n</span>
+
+    <span class="cm"># release cooled-down tasks back into the heap</span>
+    <span class="kw">while</span> cooldown_queue <span class="kw">and</span> cpu_time &gt;= cooldown_queue[<span class="cm">0</span>][<span class="cm">0</span>]:
+        heapq.heappush(max_heap, cooldown_queue.popleft()[<span class="cm">1</span>])
+
+    cpu_time += <span class="cm">1</span>
+
+<span class="kw">return</span> cpu_time</pre></div>
           <div class="note"><strong>Runtime — O(L log D)</strong> where L = total scheduled length (the answer, includes idle slots) and D = distinct tasks. L outer ticks, each doing O(1) deque front-check plus O(log D) heap push/pop. Since tasks are letters, D ≤ 26, so this is effectively O(L). My earlier lastSeen + re-push simulation was O(L · D log D) — a factor of D worse because it popped and re-pushed every benched task each slot.</div>
           <div class="note"><strong>Why a queue, not a heap, for cooldown:</strong> every task waits the same n, so tasks enter the cooldown in ready-time order and I only check the front — O(1). Different per-task cooldowns would break that and force a heap keyed on ready-time. Say that <em>why</em> out loud in the interview.</div>
           <div class="note"><strong>The O(1) follow-up (no simulation):</strong> the busiest task fixes the layout. <code>maxFreq</code> = highest count, <code>k</code> = how many tie at it. Answer = <code>max(len(tasks), (maxFreq - 1) * (n + 1) + k)</code>. The <code>max(len(tasks), …)</code> is the gotcha — with many distinct tasks the gaps fill and there's zero idle. Reach for this when n is huge (a billion idle slots kills the simulation). Retry in ~1 week: derive the formula from the fencepost picture.</div>
