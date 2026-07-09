@@ -318,6 +318,78 @@
       </div>
     </div>
 
+    <!-- PROBLEMS SOLVED -->
+    <div class="section">
+      <div class="section-title">Problems Solved</div>
+
+      <div class="problem-card">
+        <div class="problem-number">#435</div>
+        <div class="problem-info">
+          <h3>Non-overlapping Intervals</h3>
+          <p>Greedy, sort by <em>end</em> time ascending. Keep an interval if its start is <span class="math">≥</span> the previous kept interval's end; the answer is <code>n - count_kept</code>. Sorting by end (not start) is the key choice: always keeping the interval that frees up time earliest leaves the most room for everything after it.</p>
+          <div class="code-block"><pre><span class="kw">def</span> <span class="fn">eraseOverlapIntervals</span>(intervals):
+    sorted_intervals = <span class="kw">sorted</span>(intervals, key=<span class="kw">lambda</span> x: x[1])
+    count = 0
+    prev_end = <span class="fn">float</span>(<span class="str">'-inf'</span>)
+
+    <span class="kw">for</span> cur_start, cur_end <span class="kw">in</span> sorted_intervals:
+        <span class="kw">if</span> cur_start &gt;= prev_end:
+            count += 1
+            prev_end = cur_end
+
+    <span class="kw">return</span> <span class="fn">len</span>(intervals) - count</pre></div>
+          <div class="note"><strong>Bug caught in your version:</strong> <code>float(-inf)</code> evaluates the bare name <code>inf</code> first, which isn't defined unless you separately imported it — that line throws <code>NameError</code> on its own. You want the string form, <code>float('-inf')</code>, or <code>import math; math.inf</code>. Same trap as <code>float(-infinity)</code> — <code>inf</code> is only special inside a string literal passed to <code>float()</code>.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Intervals</span>
+            <span class="tag">Greedy</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#252</div>
+        <div class="problem-info">
+          <h3>Meeting Rooms II</h3>
+          <p>Two approaches, both O(n log n) from sorting, O(n) space.</p>
+          <p style="margin-top:10px"><strong>Min-heap (end times):</strong> sort by start, push each end time onto a min-heap; before pushing, pop off any room whose end time is <span class="math">≤</span> the current start (that room is free again). The heap size at any point is the number of rooms in use, so the max size seen is the answer. Worth reaching for when you need more than just the count — e.g. which physical room a meeting was assigned to.</p>
+          <div class="code-block"><pre>sorted_intervals = <span class="kw">sorted</span>(intervals, key=<span class="kw">lambda</span> x: x[<span class="cm">0</span>])
+end_time_heap = []
+max_rooms = 0
+
+<span class="kw">for</span> start, end <span class="kw">in</span> sorted_intervals:
+    <span class="kw">while</span> end_time_heap <span class="kw">and</span> start &gt;= end_time_heap[<span class="cm">0</span>]:
+        heapq.heappop(end_time_heap)
+    heapq.heappush(end_time_heap, end)
+    max_rooms = <span class="kw">max</span>(max_rooms, <span class="kw">len</span>(end_time_heap))
+
+<span class="kw">return</span> max_rooms</pre></div>
+          <p style="margin-top:10px"><strong>Sweep line (cleaner when you only need the count):</strong> turn every interval into a <code>+1</code> event at its start and a <code>-1</code> event at its end, sort all events by time, and run a prefix sum, tracking the max.</p>
+          <div class="code-block"><pre>events = []
+<span class="kw">for</span> start, end <span class="kw">in</span> intervals:
+    events.append((start, 1))
+    events.append((end, -1))
+
+sorted_events = <span class="kw">sorted</span>(events, key=<span class="kw">lambda</span> x: (x[<span class="cm">0</span>], x[<span class="cm">1</span>]))
+
+max_count = 0
+current_count = 0
+<span class="kw">for</span> time, delta <span class="kw">in</span> sorted_events:
+    current_count += delta
+    max_count = <span class="kw">max</span>(max_count, current_count)
+
+<span class="kw">return</span> max_count</pre></div>
+          <div class="note"><strong>Why the tuple tiebreak <code>(x[0], x[1])</code> matters:</strong> when a meeting ends exactly when another starts, the <code>-1</code> end event must be processed before the <code>+1</code> start event at the same timestamp, otherwise you'd double-count a room that's actually free. Sorting by <code>(time, delta)</code> puts <code>-1</code> before <code>+1</code> automatically since <code>-1 &lt; 1</code> — no extra tiebreak logic needed.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Intervals</span>
+            <span class="tag">Heap</span>
+            <span class="tag purple">Sweep Line</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
   <!-- ══════════════════════ end July 8 ══════════════════════ -->
 
