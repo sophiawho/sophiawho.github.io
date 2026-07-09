@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design L5 Guide</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --text: #2b2b2b;
+  --muted: #6b6255;
+  --accent: #c2571b;
+  --accent-dark: #9a4415;
+  --accent-bg: #fdf0e7;
+  --border: #e5ddd2;
+  --code-bg: #f2ede5;
+  --callout-bg: #fef6e9;
+  --callout-border: #e0a458;
+  --sidebar-w: 270px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Sidebar */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  overflow-y: auto;
+  background: #f4efe8;
+  border-right: 1px solid var(--border);
+  padding: 18px 14px 40px;
+  font-size: 13.5px;
+}
+#sidebar .toc-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--accent-dark);
+  margin-bottom: 10px;
+}
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li { margin: 1px 0; }
+#sidebar a {
+  display: block;
+  padding: 3px 8px;
+  border-radius: 5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+#sidebar a:hover { background: #eae3d8; text-decoration: none; }
+#sidebar li.chapter > a { color: var(--text); font-weight: 600; margin-top: 7px; }
+#sidebar li.sub > a { padding-left: 22px; font-size: 12.5px; }
+#sidebar a.active {
+  background: var(--accent-bg);
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+#toc-toggle {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 20;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Main */
+main {
+  margin-left: var(--sidebar-w);
+  padding: 36px 28px 100px;
+}
+.content { max-width: 750px; margin: 0 auto; }
+
+h1 {
+  font-size: 30px;
+  color: var(--accent-dark);
+  margin: 0 0 4px;
+  line-height: 1.25;
+}
+.subtitle { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+h2 {
+  font-size: 23px;
+  color: var(--accent-dark);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 6px;
+  margin: 52px 0 16px;
+}
+h3 { font-size: 17.5px; color: var(--accent-dark); margin: 30px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { margin: 8px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+strong { color: #1e1e1e; }
+
+code {
+  font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+pre code { background: none; padding: 0; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 14px 0;
+  font-size: 14px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: var(--accent-bg); color: var(--accent-dark); }
+tr:nth-child(even) td { background: #f6f2ec; }
+
+.soundbite {
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-border);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 22px 0 6px;
+}
+.soundbite .sb-label {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-dark);
+  margin-bottom: 5px;
+}
+.soundbite p { margin: 6px 0; font-size: 14.5px; }
+
+.keycard {
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 24px 0;
+}
+.keycard h2 { border: none; margin: 0 0 8px; padding: 0; font-size: 19px; }
+.keycard table { font-size: 13.5px; }
+
+details.quiz {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+details.quiz summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+details.quiz summary:hover { color: var(--accent-dark); }
+details.quiz .answer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: 14.5px;
+}
+
+@media (max-width: 900px) {
+  #toc-toggle { display: block; }
+  #sidebar { transform: translateX(-100%); transition: transform 0.2s ease; z-index: 15; }
+  #sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+  main { margin-left: 0; padding-top: 60px; }
+}
+</style>
+</head>
+<body>
+
+<button id="toc-toggle">☰ Contents</button>
+
+<nav id="sidebar">
+  <div class="toc-title">System Design L5</div>
+  <ul id="toc">
+    <li class="chapter"><a href="#key-numbers">Key numbers card</a></li>
+    <li class="chapter"><a href="#ch1">1. SQL vs NoSQL mechanics</a></li>
+    <li class="sub"><a href="#ch1-framing">Core framing</a></li>
+    <li class="sub"><a href="#ch1-sql-slow">When SQL is actually slow</a></li>
+    <li class="sub"><a href="#ch1-nosql-mech">NoSQL mechanisms</a></li>
+    <li class="sub"><a href="#ch1-denorm">Denormalization tradeoff</a></li>
+    <li class="sub"><a href="#ch1-lockin">Access pattern lock-in</a></li>
+    <li class="chapter"><a href="#ch2">2. Real-world choices</a></li>
+    <li class="chapter"><a href="#ch3">3. How interviewers probe</a></li>
+    <li class="chapter"><a href="#ch4">4. Back-of-envelope math</a></li>
+    <li class="chapter"><a href="#ch5">5. Read/write ratio</a></li>
+    <li class="chapter"><a href="#ch6">6. Caching</a></li>
+    <li class="sub"><a href="#ch6-patterns">Patterns</a></li>
+    <li class="sub"><a href="#ch6-invalidation">Invalidation</a></li>
+    <li class="sub"><a href="#ch6-failures">Failure modes</a></li>
+    <li class="sub"><a href="#ch6-layers">Where caches live</a></li>
+    <li class="sub"><a href="#ch6-redis">Redis specifics</a></li>
+    <li class="chapter"><a href="#ch7">7. Queues and async</a></li>
+    <li class="sub"><a href="#ch7-kafka">Kafka fundamentals</a></li>
+    <li class="sub"><a href="#ch7-delivery">Delivery semantics</a></li>
+    <li class="sub"><a href="#ch7-usecases">Use cases</a></li>
+    <li class="sub"><a href="#ch7-backpressure">Backpressure</a></li>
+    <li class="sub"><a href="#ch7-queue-stream">Queue vs stream</a></li>
+    <li class="chapter"><a href="#ch8">8. Failure handling</a></li>
+    <li class="chapter"><a href="#ch9">9. Process and API design</a></li>
+    <li class="sub"><a href="#ch9-process">First 5-10 minutes</a></li>
+    <li class="sub"><a href="#ch9-api">API design deep dive</a></li>
+    <li class="sub"><a href="#ch9-frontend">Frontend concerns</a></li>
+    <li class="sub"><a href="#ch9-tradeoffs">Tradeoff sentences</a></li>
+    <li class="chapter"><a href="#ch10">10. Five canonical designs</a></li>
+    <li class="sub"><a href="#ch10-twitter">Twitter / newsfeed</a></li>
+    <li class="sub"><a href="#ch10-shortener">URL shortener</a></li>
+    <li class="sub"><a href="#ch10-chat">Chat (WhatsApp)</a></li>
+    <li class="sub"><a href="#ch10-ratelimit">Rate limiter + notifications</a></li>
+    <li class="sub"><a href="#ch10-video">Netflix / YouTube</a></li>
+    <li class="chapter"><a href="#ch11">11. Rapid-fire topics</a></li>
+    <li class="chapter"><a href="#ch12">12. Self-quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+<div class="content">
+
+<h1>System Design for L5 Full-Stack Interviews</h1>
+<p class="subtitle">A cram guide. Mechanics first, folklore never.</p>
+
+<section id="key-numbers" class="keycard">
+<h2>Key numbers card</h2>
+<table>
+<tr><th>Thing</th><th>Number</th></tr>
+<tr><td>Redis, single node</td><td>~1M QPS (simple gets)</td></tr>
+<tr><td>SQL database, single node</td><td>~10K QPS</td></tr>
+<tr><td>Page load budget</td><td>100-200ms</td></tr>
+<tr><td>One machine holds comfortably</td><td>~1-2TB</td></tr>
+<tr><td>Network hop vs RAM access</td><td>~1000x slower</td></tr>
+<tr><td>B-tree lookup, 1B rows</td><td>3-4 disk reads</td></tr>
+<tr><td>Seconds per day (round it)</td><td>~100K (86,400)</td></tr>
+<tr><td>100M DAU, 10 reads/user/day</td><td>~12K QPS avg, ~50K peak</td></tr>
+<tr><td>Char / int / UUID</td><td>1B / 4B / 16B</td></tr>
+<tr><td>Tweet-sized record</td><td>~1KB with metadata</td></tr>
+</table>
+</section>
+
+<h2 id="ch1">Chapter 1: SQL vs NoSQL, the mechanics</h2>
+
+<h3 id="ch1-framing">Core framing</h3>
+<p>SQL's superpowers are JOINs and ACID transactions. Both quietly assume all the data lives together on one machine. A JOIN is cheap when both tables are on the same disk. A transaction is cheap when one lock manager sees everything. NoSQL is not magic scaling technology. It is a family of databases that <strong>refuse to do those expensive things</strong>, and that refusal is exactly what lets them spread data across hundreds of machines.</p>
+
+<h3 id="ch1-sql-slow">When SQL is actually slow</h3>
+<p>Not "big data" in general, and not the RAM boundary. A B-tree index lookup on a billion rows takes 3-4 disk reads. Disk-resident indexed lookups are fast. The real cliffs are two specific events.</p>
+<ul>
+<li><strong>Data exceeds one machine.</strong> Now a JOIN becomes a cross-shard network operation. You are shipping rows over the wire and merging them, which is orders of magnitude slower than a local join.</li>
+<li><strong>ACID across shards.</strong> A transaction touching two shards needs two-phase commit. 2PC means multiple network round trips, locks held across them, and a coordinator that can stall everyone if it dies.</li>
+</ul>
+<p>Below those cliffs, a well-indexed Postgres with read replicas handles more than most people think.</p>
+
+<h3 id="ch1-nosql-mech">NoSQL mechanisms, what it does instead</h3>
+<table>
+<tr><th>Mechanism</th><th>What it replaces</th><th>How it works</th></tr>
+<tr><td>Hash partitioning on a partition key</td><td>Query planner + shared storage</td><td><code>hash(key) → node</code>, O(1) routing. Every query goes to exactly one node, no scatter-gather.</td></tr>
+<tr><td>Denormalization</td><td>JOINs</td><td>Pre-assemble the document at write time. A read is one fetch of one blob, no assembly.</td></tr>
+<tr><td>LSM trees</td><td>B-trees</td><td>Writes are sequential appends to a memtable then flushed to SSTables. Writes are very fast. Reads may check multiple SSTables, so reads pay instead.</td></tr>
+<tr><td>Tunable / eventual consistency</td><td>Full ACID</td><td>A write returns after 1-2 replicas ack instead of all. Faster and more available, readers may see stale data briefly.</td></tr>
+</table>
+
+<h3 id="ch1-denorm">The denormalization tradeoff, concretely</h3>
+<p>Take an avatar URL. In SQL it lives in one row in <code>users</code> and every tweet display JOINs to it. In a document store you copy it inside <strong>every tweet, comment, and notification document</strong> so each read is a single fetch.</p>
+<p>Now the user changes their photo. You either rewrite thousands or millions of documents (a background fan-out job) or you accept staleness until documents get touched again. That is the trade in one sentence. <strong>SQL pays at read time, NoSQL pays at update time.</strong> Read-heavy data with rarely changing attributes is the sweet spot for denormalization.</p>
+
+<h3 id="ch1-lockin">Access pattern lock-in</h3>
+<p>The partition key fixes your primary query. Partition tweets by <code>user_id</code> and "all tweets by user" is one-node fast, but "all tweets containing a hashtag" hits every node. Escape hatches exist and each one costs a full copy of the data.</p>
+<ul>
+<li><strong>DynamoDB GSIs.</strong> An extra copy of the table sorted by a different key, maintained async, eventually consistent.</li>
+<li><strong>Cassandra dual-write tables.</strong> Application writes the same data to two tables with different partition keys.</li>
+<li><strong>Stream to Elasticsearch.</strong> CDC or a queue feeds a search cluster for flexible ad hoc queries.</li>
+</ul>
+<p>Rule of thumb, each additional access pattern is another full data copy plus the machinery to keep it in sync.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"SQL optimizes for query flexibility on one copy of the data. NoSQL optimizes for known access patterns declared upfront, at horizontal scale."</p>
+<p>"SQL isn't slow because data is big. It gets slow when data outgrows one machine and JOINs become cross-shard network calls, or when transactions need two-phase commit."</p>
+<p>"Denormalization means SQL pays at read time and NoSQL pays at update time. For read-heavy data that rarely changes, that's a great trade."</p>
+</div>
+
+<h2 id="ch2">Chapter 2: Real-world choices</h2>
+
+<table>
+<tr><th>System</th><th>Storage</th><th>Why</th></tr>
+<tr><td>Twitter timeline</td><td>Redis + Manhattan</td><td>Precomputed feeds, fan-out on write. Timeline reads must be one cheap fetch, so feeds are materialized into Redis at tweet time.</td></tr>
+<tr><td>Facebook Messages</td><td>HBase, later MyRocks</td><td>Write firehose. LSM storage absorbs the constant stream of message writes with sequential appends.</td></tr>
+<tr><td>Netflix viewing history</td><td>Cassandra</td><td>Partitioned by user. Every query is "this user's history", a perfect single-partition access pattern, and eventual consistency is fine.</td></tr>
+<tr><td>Payments / billing (everywhere)</td><td>SQL. Spanner, Vitess, sharded MySQL</td><td>Money needs atomicity. Nobody accepts "eventually your balance will be right."</td></tr>
+<tr><td>Airbnb / Uber bookings</td><td>Sharded MySQL / Postgres</td><td>Double-booking prevention needs strong consistency and transactions on the contended row.</td></tr>
+</table>
+
+<p>Two corrections to folklore. <strong>Instagram ran sharded Postgres for years at hundreds of millions of users.</strong> SQL scales much further than the conference-talk narrative suggests. And <strong>NewSQL (Spanner, CockroachDB) blurs the line</strong>, giving distributed horizontal scale with real transactions, at the cost of latency and money.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Companies pick per workload, not per company. Twitter serves timelines from Redis but runs ads billing on SQL, because the timeline tolerates staleness and money doesn't."</p>
+<p>"Instagram ran sharded Postgres to hundreds of millions of users. I'd default to Postgres and reach for NoSQL when a specific access pattern demands it."</p>
+</div>
+
+<h2 id="ch3">Chapter 3: How interviewers probe database choices</h2>
+
+<p><strong>"Why Cassandra?"</strong> Bad answer, "it scales." Good answer names the workload shape, the access pattern, and the consistency tolerance. "Write-heavy time-series data, always queried by user_id, staleness of a few seconds is fine, so an LSM-based store partitioned by user fits."</p>
+
+<p><strong>"What's your partition key?"</strong> They are testing hot partitions. Partition by <code>celebrity_id</code> and Justin Bieber's partition melts while thousands of nodes idle. Know your answer, compound keys, salting the key, or handling hot entities on a separate path.</p>
+
+<p><strong>"What happens when the user updates their profile photo?"</strong> They are testing whether you understand the denormalization you just chose. If you copied the avatar into every document, say out loud that updates fan out or go stale, and pick one deliberately.</p>
+
+<p><strong>CAP, one level deep.</strong> Enough for L5. Cassandra is AP-leaning with tunable consistency per query (ONE, QUORUM, ALL). DynamoDB is tunable per read. A single-cluster SQL database is CP-ish, it stays consistent and a partition can make it unavailable. Say "tunable" and you signal you know it is not a binary.</p>
+
+<p><strong>"Could you do this with Postgres?"</strong> Often yes, and saying so scores points. "Sharded Postgres works until cross-shard queries dominate, but this access pattern is single-user lookups at high write volume, which favors Cassandra" beats reflexive NoSQL every time.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"I pick a database by naming the workload shape, the dominant access pattern, and the consistency tolerance. If I can't name all three, I don't have enough requirements yet."</p>
+<p>"My partition key is user_id, and the hot-partition risk is a celebrity account, so I'd handle accounts above a follower threshold on a separate read-time path."</p>
+</div>
+
+<h2 id="ch4">Chapter 4: Back-of-envelope math</h2>
+
+<p>Do this out loud in the first ten minutes. It sets the scale for every later decision and it is the cheapest seniority signal available.</p>
+
+<pre><code>100M DAU, 10 reads/user/day
+= 1B reads/day
+÷ ~100K seconds/day  ≈ 12K QPS average
+× 3-4 peak factor    ≈ 50K QPS peak
+
+One SQL node ≈ 10K QPS  →  can't serve this raw.
+So: cache (Redis ~1M QPS/node) or read replicas, decided in minute five.</code></pre>
+
+<p>Storage side, same speed. 100M users × 1KB profile = 100GB, fits one machine. 1B tweets/year × 1KB = 1TB/year, one machine for now, plan shards for year three. Photos and video blow past this instantly, which is why they go to object storage and CDN, never the database.</p>
+
+<p>Keep the divisions crude. 86,400 seconds is 100K. Nobody wants three significant figures, they want to see you reason about orders of magnitude.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Let me do quick math before drawing anything. 100M DAU at 10 reads a day is a billion reads, divided by 100K seconds is about 12K QPS, call it 50K at peak. That's past a single database, so caching is a requirement, not an optimization."</p>
+</div>
+
+<h2 id="ch5">Chapter 5: Read/write ratio drives design</h2>
+
+<p>State the ratio before choosing storage, every time. It is one sentence and it drives everything downstream.</p>
+
+<table>
+<tr><th>Workload</th><th>Ratio</th><th>Design consequence</th></tr>
+<tr><td>Timeline / feed</td><td>~1000:1 reads</td><td>Precompute at write time, cache aggressively, denormalize. Pay the write cost to make reads one fetch.</td></tr>
+<tr><td>Metrics / logging</td><td>Write heavy</td><td>LSM stores, batch and buffer writes, reads are rare scans and can be slow.</td></tr>
+<tr><td>Chat</td><td>Roughly balanced</td><td>Both paths matter. Fast append for sends, indexed fetch per conversation.</td></tr>
+<tr><td>Bookings / payments</td><td>Low volume, high value</td><td>Consistency dominates throughput. SQL, transactions, no shortcuts.</td></tr>
+</table>
+
+<p>Saying "this is roughly 1000 to 1 read heavy, so I'll optimize the read path and accept expensive writes" before touching the whiteboard is the habit that signals seniority.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Before I pick storage, the read/write ratio. Timelines are about 1000 to 1 reads, so I'll precompute on write and make reads a single cache fetch. If this were a metrics pipeline I'd flip that and reach for an LSM store."</p>
+</div>
+
+<h2 id="ch6">Chapter 6: Caching</h2>
+
+<h3 id="ch6-patterns">Patterns</h3>
+<table>
+<tr><th>Pattern</th><th>How it works</th><th>When it fits</th></tr>
+<tr><td>Cache-aside</td><td>App checks cache, on miss reads DB and populates cache. Cache is passive.</td><td>The default. Read-heavy, tolerates a miss penalty, cache failure just means slower reads.</td></tr>
+<tr><td>Write-through</td><td>Writes go to cache and DB synchronously.</td><td>Reads must never see stale data and you can pay write latency. Cache is always warm for recently written keys.</td></tr>
+<tr><td>Write-behind</td><td>Writes hit cache, flushed to DB async in batches.</td><td>Extreme write volume (counters, likes). Danger, cache dies before flush and you lose writes. Needs a durable buffer or acceptance of loss.</td></tr>
+</table>
+
+<h3 id="ch6-invalidation">Invalidation</h3>
+<p><strong>TTL</strong> is the blunt instrument. Set 60s and worst-case staleness is 60s, no coordination needed. <strong>Explicit invalidation</strong> (delete the key on write) gives freshness but now every write path must know every cache key that depends on it, and a missed one serves stale data forever. "There are only two hard problems in computer science, cache invalidation and naming things" is a real warning, the dependency graph between data and cached views grows until nobody fully knows it. Practical answer, TTL as a backstop plus explicit invalidation on the hot paths you control.</p>
+
+<h3 id="ch6-failures">Failure modes with fixes</h3>
+<table>
+<tr><th>Failure</th><th>What happens</th><th>Fix</th></tr>
+<tr><td>Thundering herd</td><td>A hot key expires, 10K concurrent requests all miss and hit the DB at once.</td><td>Request coalescing (one request refills, others wait), jittered TTLs so keys don't expire together, serve-stale-while-refreshing.</td></tr>
+<tr><td>Hot keys</td><td>One key (celebrity profile) gets so much traffic a single cache node saturates.</td><td>Local in-process cache in front of Redis, or replicate the key across N nodes and read randomly.</td></tr>
+<tr><td>Cache penetration</td><td>Requests for keys that don't exist skip the cache and hammer the DB every time.</td><td>Negative caching, cache the "not found" with a short TTL. Bloom filter on IDs for higher volume.</td></tr>
+<tr><td>Cold start</td><td>Deploy or restart wipes the cache, DB takes full load and may fall over.</td><td>Cache warming before taking traffic, gradual traffic ramp, persistent cache tier that survives app deploys.</td></tr>
+</table>
+
+<h3 id="ch6-layers">Where caches live</h3>
+<p>Client (browser memory, HTTP cache headers), CDN (static assets and cacheable API responses at the edge), edge/reverse proxy (Varnish, nginx), application tier (Redis or Memcached, the layer interviews mean by default), and the database's own buffer pool (a well-provisioned Postgres serves hot pages from RAM, which is why "the DB is slow" sometimes just means the working set outgrew memory). Say the layers exist, then go deep on the application tier.</p>
+
+<h3 id="ch6-redis">Redis specifics</h3>
+<p>Redis is a data-structure server, not a string cache. Sorted sets power leaderboards and timelines (score = timestamp, <code>ZRANGE</code> gives you a page of the feed in one call). Lists make simple queues, hashes store objects field by field, sets do membership. Persistence is optional, RDB snapshots (fast, can lose recent writes) or AOF logs (slower, more durable), and many shops run it as pure cache with none. It is single-threaded per core for command execution, so one slow command like <code>KEYS *</code> blocks everything, and throughput scales by adding shards, not threads.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"I'll use cache-aside with a TTL backstop plus explicit invalidation on the write path. The TTL bounds worst-case staleness if an invalidation gets missed."</p>
+<p>"The failure mode I'd watch here is a thundering herd when a hot key expires, so I'd add request coalescing and jitter the TTLs."</p>
+<p>"Timelines go in Redis sorted sets keyed by user, score is the timestamp, so a page of the feed is one ZRANGE call."</p>
+</div>
+
+<h2 id="ch7">Chapter 7: Queues and async</h2>
+
+<p>The rule. <strong>Anything not needed in the request path leaves the request path.</strong> The user needs the tweet accepted, not the fan-out done. Ack fast, queue the rest.</p>
+
+<h3 id="ch7-kafka">Kafka fundamentals</h3>
+<p>A <strong>topic</strong> is a named stream. It is split into <strong>partitions</strong>, each an append-only ordered log. Producers write to a partition (usually by hashing a key, so one user's events stay ordered). A <strong>consumer group</strong> divides partitions among its members, each partition is owned by exactly one consumer in the group, and each consumer tracks its <strong>offset</strong>, the position in the log it has processed. Committing offsets is how progress survives restarts.</p>
+<p>Key consequence, <strong>partition count caps parallelism</strong>. 8 partitions means at most 8 consumers in a group doing work, a 9th sits idle. Choose partition count for target throughput, and know that resizing later reshuffles key-to-partition mapping.</p>
+
+<h3 id="ch7-delivery">Delivery semantics</h3>
+<p><strong>At-least-once is the default reality.</strong> A consumer processes a message, crashes before committing its offset, restarts, and processes it again. So consumers must be <strong>idempotent</strong>. The standard move is dedupe on message ID, keep a table or Redis set of processed IDs and skip repeats. Exactly-once is mostly a myth or expensive, Kafka offers it within its own ecosystem via transactions, but the moment you touch an external system (send an email, charge a card) you are back to at-least-once plus idempotency. Say that sentence in an interview and you are done with the topic.</p>
+
+<h3 id="ch7-usecases">Use cases</h3>
+<ul>
+<li><strong>Fan-out.</strong> One tweet write becomes millions of timeline inserts, all off the request path.</li>
+<li><strong>Write spike absorption.</strong> The queue buffers a flash-sale burst, consumers drain at the DB's sustainable rate.</li>
+<li><strong>Decoupling.</strong> Order service emits an event, email, analytics, and inventory each consume independently. New consumers need no producer changes.</li>
+<li><strong>Retry queues.</strong> Failed work goes to a retry topic with backoff instead of blocking the main flow.</li>
+<li><strong>Dead letter queues.</strong> After N failed retries a message parks in a DLQ for human inspection instead of poisoning the stream forever.</li>
+</ul>
+
+<h3 id="ch7-backpressure">Backpressure</h3>
+<p>When consumers fall behind, <strong>lag</strong> (newest offset minus committed offset) grows. The queue absorbs it for a while, that is its job, but unbounded lag means stale downstream data and eventually retention limits eating unprocessed messages. Monitor lag per consumer group, alert on growth trend not absolute number, and have an answer ready, scale consumers up to the partition count, then add partitions, then shed or sample load.</p>
+
+<h3 id="ch7-queue-stream">Queue vs stream</h3>
+<p>SQS-style queues delete a message once one consumer processes it, work distribution, one job one worker. Kafka-style streams keep an ordered log that many consumer groups read independently at their own pace, and messages persist for the retention window so you can replay history. Use a queue for "do this task once", a stream for "these events happened, several systems care."</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Anything not needed to answer the user leaves the request path. We ack the write and queue the fan-out."</p>
+<p>"I'll assume at-least-once delivery, so consumers are idempotent, deduping on message ID. Exactly-once across external systems is effectively a myth, idempotency is the real mechanism."</p>
+<p>"Partition count caps consumer parallelism, so I'd size partitions for peak throughput upfront and monitor consumer lag as the backpressure signal."</p>
+</div>
+
+<h2 id="ch8">Chapter 8: Failure handling</h2>
+
+<p>Everything fails. The L5 signal is volunteering failure modes unprompted, "and when this cache dies, here's what happens" before the interviewer asks.</p>
+
+<ul>
+<li><strong>Replication for durability.</strong> Every datastore runs with replicas. A dead primary means promotion, not data loss. Know your replication lag story, an async replica promoted after a crash may miss the last writes.</li>
+<li><strong>Health checks + load balancer failover.</strong> The LB probes each instance and stops routing to failures. Users see nothing, capacity dips until autoscaling replaces the node.</li>
+<li><strong>Retries with exponential backoff and jitter.</strong> Naive instant retries turn a blip into a self-inflicted DDoS. Back off exponentially so load drops, add jitter so a thousand clients don't retry in lockstep. Retry only idempotent operations, or make them idempotent first.</li>
+<li><strong>Circuit breakers.</strong> When a downstream keeps failing, stop calling it. Fail fast, serve a fallback, probe occasionally, close the circuit when it recovers. This stops one slow dependency from consuming every thread in the fleet.</li>
+<li><strong>Graceful degradation.</strong> The Netflix example. If personalized recommendations are down, show a generic popular list, not an error page. The user never knows. Rank features by criticality and have a cheap fallback for each non-critical one.</li>
+</ul>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Let me walk the failure modes before you ask. If the cache tier dies, the DB takes full read load, so I want request coalescing and a traffic ramp. If the recommendation service dies, we degrade to a popular-items list rather than erroring."</p>
+<p>"Retries get exponential backoff with jitter, and only on idempotent calls. A retry storm is a self-inflicted outage."</p>
+</div>
+
+<h2 id="ch9">Chapter 9: Interview process and API design</h2>
+
+<h3 id="ch9-process">The first 5-10 minutes</h3>
+<p>Do not draw a box until you have, in order, <strong>functional requirements</strong> (the 3-4 things it must do, cut everything else out loud), <strong>non-functional requirements</strong> (scale, latency targets, consistency needs, availability), <strong>QPS and storage estimates</strong> (Chapter 4 math, spoken aloud), an <strong>API sketch</strong> (the 3-5 endpoints), and <strong>core entities</strong> (the nouns and their relationships). This ordering is the difference between designing the right system and decorating the wrong one.</p>
+
+<h3 id="ch9-api">API design deep dive (full-stack focus)</h3>
+<p><strong>REST resource modeling.</strong> Nouns not verbs, <code>POST /tweets</code> not <code>POST /createTweet</code>. Nest one level max, <code>GET /users/123/tweets</code> is fine, deeper gets brittle.</p>
+<pre><code>POST /tweets
+{ "text": "hello", "media_ids": [...] }
+→ 201 Created
+{ "id": "abc123", "text": "hello", "created_at": "..." }
+
+GET /users/123/tweets?cursor=eyJpZCI6...&amp;limit=20
+→ 200 { "tweets": [...], "next_cursor": "eyJpZCI6..." }</code></pre>
+<p><strong>Status codes that matter.</strong> 200 ok, 201 created, 400 your request is malformed, 401 who are you, 403 you can't do that, 404 not found, 409 conflict (double booking), 429 rate limited, 500 our fault, 503 try later.</p>
+<p><strong>Pagination, cursors beat OFFSET.</strong> <code>OFFSET 100000</code> forces the DB to scan and discard 100K rows, cost grows linearly with page depth, and rows shifting under you cause skips and duplicates. A cursor encodes the last-seen sort key (<code>WHERE created_at &lt; :cursor ORDER BY created_at DESC LIMIT 20</code>), constant cost at any depth, stable under inserts. Say "OFFSET degrades linearly and breaks under concurrent writes" and move on.</p>
+<p><strong>Idempotency keys.</strong> For unsafe operations like payments, the client generates a key, sends it in a header, and the server stores key → result. A retried request returns the stored result instead of charging twice. This is the answer to "what if the response is lost and the client retries."</p>
+<p><strong>Versioning.</strong> <code>/v1/</code> in the path is ugly and works. Additive changes (new optional fields) don't need a version bump, breaking changes do. Never break existing clients silently.</p>
+<p><strong>Rate limiting headers.</strong> Return <code>429</code> with <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>Retry-After</code> so well-behaved clients can back off instead of guessing.</p>
+<p><strong>Auth in one paragraph.</strong> Sessions, server stores state, a cookie carries the session ID, revocation is instant (delete the row), but every request costs a lookup and horizontal scale needs shared session storage. JWTs, the token carries signed claims, stateless verification, scales trivially, but revocation before expiry is hard (you end up with a token blocklist, which is state again). Common compromise, short-lived JWT access token plus a long-lived refresh token that is checked against the server.</p>
+<p><strong>Real-time delivery options.</strong></p>
+<table>
+<tr><th>Option</th><th>Mechanism</th><th>Use when</th></tr>
+<tr><td>Short polling</td><td>Client asks every N seconds</td><td>Cheap to build, fine for slow-changing data, wasteful at scale.</td></tr>
+<tr><td>Long polling</td><td>Server holds the request until data or timeout</td><td>Near-real-time without WebSocket infra, good fallback.</td></tr>
+<tr><td>SSE</td><td>One-way server → client stream over HTTP</td><td>Notifications, live feeds, anything where the client only listens. Auto-reconnect built in.</td></tr>
+<tr><td>WebSockets</td><td>Full-duplex persistent connection</td><td>Chat, collaborative editing, games. Anything truly bidirectional. Costs connection state on servers.</td></tr>
+</table>
+
+<h3 id="ch9-frontend">Frontend-adjacent concerns for full stack</h3>
+<ul>
+<li><strong>Optimistic updates.</strong> Apply the like/send locally at once, fire the request, roll back with a toast on failure. Requires client-generated IDs so the server response can reconcile.</li>
+<li><strong>Client caching, stale-while-revalidate.</strong> Show cached data instantly, refetch in the background, swap when fresh. This is the SWR/React Query model, name it and say what it buys, perceived latency near zero.</li>
+<li><strong>Debouncing search-as-you-type.</strong> Wait ~200-300ms of typing silence before firing, cancel in-flight requests on new input, ignore out-of-order responses (or use AbortController).</li>
+<li><strong>Offline and retry on the client.</strong> Queue mutations locally when offline, replay with idempotency keys when connectivity returns, mark UI state as pending so the user isn't lied to.</li>
+</ul>
+
+<h3 id="ch9-tradeoffs">Tradeoffs stated as sentences</h3>
+<p>Every choice gets its cost attached, in one sentence. Three examples of the shape.</p>
+<ul>
+<li>"I'm choosing fan-out on write, which makes reads a single fetch, at the cost of expensive writes for celebrity accounts, which I'll handle with a hybrid read-time merge."</li>
+<li>"JWTs let us verify auth without a session store lookup, at the cost of hard revocation, so I'll keep access tokens under 15 minutes."</li>
+<li>"Denormalizing the username into each message makes conversation reads one query, at the cost of a background rewrite job when someone renames, which is rare."</li>
+</ul>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Before I draw anything, let me pin down functional requirements, do rough QPS and storage math, sketch the API, and list core entities. Five minutes here saves twenty later."</p>
+<p>"I'll paginate with cursors, not OFFSET. OFFSET scans and discards linearly with depth and breaks under concurrent inserts, a cursor is constant cost at any depth."</p>
+<p>"Every unsafe operation takes an idempotency key, so a retried payment returns the stored result instead of charging twice."</p>
+</div>
+
+<h2 id="ch10">Chapter 10: The five canonical designs</h2>
+
+<h3 id="ch10-twitter">1. Twitter / newsfeed</h3>
+<p><strong>Requirements.</strong> Post tweets, follow users, view a reverse-chronological home timeline. Non-functional, read-dominated (~1000:1), timeline load under 200ms, eventual consistency fine (a tweet appearing after 5s is acceptable).</p>
+<p><strong>Capacity.</strong> 200M DAU, 2 timeline loads/user/day = ~5K QPS timeline reads, peak ~20K. Writes, 100M tweets/day ≈ 1K QPS. Tweets at 1KB = 100GB/day raw.</p>
+<pre><code>POST /tweets                     { text }
+GET  /timeline?cursor=&amp;limit=    → { tweets[], next_cursor }
+POST /users/:id/follow</code></pre>
+<p><strong>Data model.</strong> <code>tweets(id, user_id, text, created_at)</code>, <code>follows(follower_id, followee_id)</code>, timelines materialized in Redis sorted sets, key <code>timeline:{user_id}</code>, member tweet_id, score timestamp, capped at ~800 entries.</p>
+<p><strong>Architecture.</strong> Tweet write → DB → queue → fan-out workers insert the tweet ID into every follower's Redis sorted set. Timeline read is one <code>ZRANGE</code> plus a hydration multi-get of tweet bodies.</p>
+<p><strong>Deep dives interviewers steer toward.</strong></p>
+<ul>
+<li><strong>Fan-out on write vs read.</strong> Write fan-out makes reads one fetch but a 50M-follower account triggers 50M inserts per tweet. Read fan-out (merge followees' recent tweets at request time) makes writes cheap and reads expensive.</li>
+<li><strong>Hybrid celebrity approach.</strong> Threshold on follower count. Normal users fan out on write. Celebrity tweets are not fanned out, readers merge them in at read time from a small per-celebrity list. Best of both, this is the expected answer.</li>
+<li><strong>Hot partitions.</strong> Redis timeline keys are per-user so they distribute, but the celebrity tweet list itself is hot, replicate it across cache nodes.</li>
+</ul>
+<p><strong>Classic follow-ups.</strong> "User follows someone new, timeline?" Backfill their recent tweets into the timeline async, or accept they appear from now on. "Deleted tweet?" Tombstone check at hydration, cheaper than scanning every timeline. "Redis node dies?" Timelines are rebuildable from the social graph and tweet store, rebuild lazily on first read, serve read-fan-out meanwhile.</p>
+
+<h3 id="ch10-shortener">2. URL shortener / pastebin</h3>
+<p><strong>Requirements.</strong> Create short link, redirect fast, optional expiry, click analytics. Read-dominated, ~100:1. Redirect latency is the product.</p>
+<p><strong>Capacity.</strong> 100M new URLs/month ≈ 40 writes/s. 10B redirects/month ≈ 4K QPS reads. Each mapping ~500B, 100M/month = 50GB/month, ~600GB/year, single-machine territory for years.</p>
+<pre><code>POST /urls        { long_url, custom_alias? } → { short_code }
+GET  /:code       → 301/302 redirect</code></pre>
+<p><strong>Data model.</strong> One table, <code>urls(code PK, long_url, owner, created_at, expires_at)</code>. Cache layer in front, code → long_url.</p>
+<p><strong>Deep dives.</strong></p>
+<ul>
+<li><strong>Key generation.</strong> Counter + base62 gives short sequential codes but needs a coordinated counter (single point, or ranges leased per server) and codes are guessable. Hash the URL and take a prefix, no coordination but collisions need probing, and same URL maps to same code (feature or bug). Pre-generated pool of random codes, a key service hands them out, no collision check at write time, this is the clean answer.</li>
+<li><strong>301 vs 302.</strong> 301 permanent means browsers cache the redirect and never hit you again, cheap but you lose analytics and can't change the target. 302 keeps every click flowing through you. Choose based on whether analytics matters, and say so.</li>
+<li><strong>Read path.</strong> Cache-aside on codes, hot links stay in Redis, the DB sees only the long tail. Negative-cache unknown codes to block penetration.</li>
+</ul>
+<p><strong>Classic follow-ups.</strong> "Analytics without slowing redirects?" Fire the click event to a queue, aggregate async, the redirect never waits. "Expired links?" Lazy check at read plus a background sweeper. "Custom aliases?" Same table, uniqueness conflict returns 409.</p>
+
+<h3 id="ch10-chat">3. Chat (WhatsApp)</h3>
+<p><strong>Requirements.</strong> 1:1 and group messages, delivery receipts, online presence, ordering within a conversation. Latency near-instant, no lost messages. Roughly balanced read/write.</p>
+<p><strong>Capacity.</strong> 500M DAU × 40 messages/day = 20B/day ≈ 200K messages/s average. At ~1KB each, ~20TB/day, sharded LSM storage from day one. Millions of concurrent WebSocket connections, at ~100K-1M connections per gateway box you need a fleet.</p>
+<pre><code>WebSocket  wss://chat  (send, receive, ack, presence frames)
+GET  /conversations/:id/messages?cursor=   (history, HTTP)
+POST /conversations                        (create group)</code></pre>
+<p><strong>Data model.</strong> <code>messages</code> partitioned by <code>conversation_id</code>, clustered by <code>(conversation_id, message_id)</code> where message_id is time-ordered (Snowflake-style). One partition per conversation makes "load this chat" a single-partition range scan.</p>
+<p><strong>Architecture.</strong> Client holds a WebSocket to a gateway. A session/registry service maps user → gateway. Send path, message hits gateway → persisted → routed to recipient's gateway if online, else queued for push notification and offline sync.</p>
+<p><strong>Deep dives.</strong></p>
+<ul>
+<li><strong>Ordering.</strong> Global ordering is impossible and unnecessary. Order per conversation via a sequence number or time-ordered ID assigned by one writer per conversation. Clients render by that order and handle late arrivals.</li>
+<li><strong>Delivery receipts.</strong> Sent (server persisted), delivered (recipient device acked), read (recipient viewed). Each is just a small message flowing back through the same pipe.</li>
+<li><strong>Presence.</strong> Heartbeats over the socket update a TTL'd Redis entry, expiry means offline. Don't broadcast every flap, subscribers poll or get batched updates.</li>
+<li><strong>Group fan-out.</strong> A message to a 200-member group is one persist plus 200 routing lookups, done through a queue. Cap group size, this is why WhatsApp caps groups.</li>
+</ul>
+<p><strong>Classic follow-ups.</strong> "Recipient offline?" Persist, push notification, deliver on reconnect from their inbox queue. "Multiple devices?" Per-device delivery cursors into the conversation log. "Gateway dies?" Clients reconnect to another via LB, registry updates, undelivered messages replay from storage.</p>
+
+<h3 id="ch10-ratelimit">4. Rate limiter + notification system</h3>
+<p><strong>Rate limiter requirements.</strong> N requests per user per window, enforced across a fleet, decision in under a millisecond, fail open or closed as a stated choice.</p>
+<p><strong>Deep dives.</strong></p>
+<ul>
+<li><strong>Token bucket vs sliding window.</strong> Token bucket, a counter refills at rate R up to burst B, allows short bursts, two numbers per key, the usual pick. Fixed windows allow 2x bursts at boundaries. Sliding window log is exact but stores a timestamp per request. Sliding window counter (weighted blend of two fixed windows) is the practical compromise.</li>
+<li><strong>Distributed enforcement.</strong> Counters live in Redis, atomicity via Lua script or <code>INCR</code>+<code>EXPIRE</code>, so every app server shares state. Latency-sensitive paths use a local allowance synced to Redis periodically, slightly loose, much faster.</li>
+<li><strong>Failure stance.</strong> Redis down, fail open (availability, risk abuse) or closed (protection, reject legit users). Say the choice out loud, that is the point of the question.</li>
+</ul>
+<p><strong>Notification system.</strong> Event producers → queue → notification service, which checks <strong>user preferences</strong> (channel opt-ins, quiet hours), <strong>dedupes</strong> (idempotency key per event so retries don't double-send, plus collapse rules like "3 likes → one notification"), rate-limits per user (nobody wants 200 pushes), then fans out to channel workers, push (APNs/FCM), email, SMS, in-app. Each channel worker retries with backoff into a DLQ.</p>
+<p><strong>Classic follow-ups.</strong> "Exactly one email despite retries?" Idempotency key on the send, checked before dispatch, at-least-once queue plus dedupe. "Priority?" Separate queues per priority so OTPs never wait behind marketing. "429 response?" Include Retry-After so clients back off properly.</p>
+
+<h3 id="ch10-video">5. Netflix / YouTube</h3>
+<p><strong>Requirements.</strong> Upload video, transcode, stream globally with adaptive quality, browse metadata, track watch history. Reads (views) massively dominate writes (uploads).</p>
+<p><strong>Capacity.</strong> YouTube-scale, ~500 hours uploaded per minute, but views per video follow a power law, a tiny fraction of content serves most traffic, which is exactly the CDN's job. A 1-hour 1080p video at ~5Mbps is ~2GB, times renditions ≈ 5-6GB stored per hour of content.</p>
+<pre><code>POST /videos              → presigned upload URL (multipart, resumable)
+GET  /videos/:id          → metadata + manifest URL
+GET  /manifest/:id.m3u8   → rendition playlist (served from CDN)</code></pre>
+<p><strong>Data model.</strong> Metadata (title, uploader, duration, status) in SQL, it is small, relational, and queried flexibly. View counts and watch history in NoSQL (Cassandra partitioned by user), a raw write firehose. Video bytes in object storage (S3), never in a database.</p>
+<p><strong>Architecture.</strong> Upload → object storage → queue → transcoding workers produce renditions (240p→4K) chunked into segments → segments pushed to CDN origin. Playback, client fetches manifest, then pulls segments from the nearest CDN edge.</p>
+<p><strong>Deep dives.</strong></p>
+<ul>
+<li><strong>Transcoding as async jobs.</strong> A DAG per video, split into segments, transcode segments in parallel across workers, stitch. Video is "processing" until done, status flows back via the metadata DB. Retry per-segment, not per-video.</li>
+<li><strong>CDN and edge.</strong> Popular content sits on edge servers near users (Netflix Open Connect boxes inside ISPs). Origin only serves cache misses. This is why power-law traffic is survivable.</li>
+<li><strong>Adaptive bitrate.</strong> Each rendition is segmented (2-10s chunks). The client measures its own bandwidth and picks the rendition per segment, switching seamlessly. The server is dumb, the client adapts, that inversion is the insight.</li>
+</ul>
+<p><strong>Classic follow-ups.</strong> "Resumable uploads?" Multipart with per-chunk offsets, client retries only failed chunks. "View count at scale?" Don't INCR a row 100K times/s, buffer counts in memory or a stream, flush aggregated deltas. "Instant start?" Preposition the first segments of popular titles on the edge and start on the lowest rendition while measuring bandwidth.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"For the feed I'll fan out on write below a follower threshold and merge celebrity tweets at read time. That keeps reads to one fetch without 50 million inserts per celebrity tweet."</p>
+<p>"Video bytes go to object storage and the CDN, metadata to SQL, and the watch-history firehose to Cassandra. Three workloads, three stores, each picked by access pattern."</p>
+</div>
+
+<h2 id="ch11">Chapter 11: Rapid-fire probe topics</h2>
+
+<p><strong>Consistent hashing.</strong> Nodes and keys hash onto a ring, a key belongs to the next node clockwise. Adding or removing a node remaps only the neighboring slice of keys, ~1/N of data, instead of rehashing everything the way <code>hash(key) % N</code> does. Virtual nodes (each physical node appears many times on the ring) smooth out load imbalance. This is how Cassandra, DynamoDB, and cache clusters place data.</p>
+
+<p><strong>Idempotency keys.</strong> Client generates a unique key per logical operation and sends it with the request. Server stores key → result and returns the stored result on any retry. Turns at-least-once delivery into effectively-once processing. The answer to every "what if the request is retried" question, especially payments.</p>
+
+<p><strong>CDN mechanics.</strong> Geographically distributed cache servers. DNS or anycast routes each user to the nearest edge, edge serves from cache or pulls from origin on miss and caches per <code>Cache-Control</code> headers. Cuts latency (short hop), origin load (most requests never arrive), and cost. Static assets always, API responses when cacheable, video segments especially.</p>
+
+<p><strong>Cursor pagination.</strong> The cursor is an opaque token encoding the last-seen sort key. Next page is <code>WHERE sort_key &lt; cursor LIMIT n</code>, an index seek, constant cost at any depth, stable when rows are inserted or deleted mid-scroll. OFFSET scans and discards everything before the offset and skips or duplicates rows under concurrent writes.</p>
+
+<p><strong>Bloom filters.</strong> A bit array plus k hash functions answering "possibly present" or "definitely absent", with no false negatives. A few bits per element. LSM stores keep one per SSTable so reads skip files that can't contain the key, and caches use them to block penetration by nonexistent-key lookups.</p>
+
+<p><strong>Leader election, hand-wavy on purpose.</strong> Distributed systems often need exactly one node doing a job (primary DB, lock holder). Nodes agree on a leader via a consensus service (ZooKeeper, etcd), and when the leader's heartbeat lapses a new one is elected. Know the shape, name the tools, and skip Paxos/Raft internals, they are deprioritized in product interviews unless the role is infra.</p>
+
+<div class="soundbite">
+<div class="sb-label">Interview soundbites</div>
+<p>"Consistent hashing means adding a node remaps only about 1/N of the keys instead of everything, which is why cache clusters and Cassandra use it for placement."</p>
+<p>"I'd put a bloom filter in front, no false negatives, so we skip the lookup entirely for keys that definitely don't exist."</p>
+</div>
+
+<h2 id="ch12">Chapter 12: Self-quiz</h2>
+<p>Phrased the way interviewers phrase them. Answer out loud before revealing.</p>
+
+<details class="quiz"><summary>1. Why would you choose Cassandra over Postgres for viewing history?</summary><div class="answer">Workload shape, write-heavy append stream. Access pattern, always fetched by user_id, a perfect partition key. Consistency tolerance, staleness of seconds is fine. LSM writes plus single-partition reads fit exactly, and no query needs a JOIN or a transaction.</div></details>
+
+<details class="quiz"><summary>2. What breaks when your partition key is celebrity_id?</summary><div class="answer">Hot partition. One node absorbs all traffic for that entity while the rest idle. Fix with a compound key, key salting to spread across N partitions, or a separate read-time path for entities above a threshold.</div></details>
+
+<details class="quiz"><summary>3. When is SQL actually too slow?</summary><div class="answer">Not at some row count. When data exceeds one machine, so JOINs become cross-shard network operations, and when transactions span shards, forcing two-phase commit. Indexed lookups stay fast, 3-4 reads for a billion rows.</div></details>
+
+<details class="quiz"><summary>4. You denormalized the avatar URL into every comment. The user changes their photo. Now what?</summary><div class="answer">Either a background job rewrites every document containing it, or you accept staleness until documents are touched. State the choice, for avatars staleness is usually acceptable, for display names maybe not. NoSQL pays at update time.</div></details>
+
+<details class="quiz"><summary>5. Why do cursors beat OFFSET for pagination?</summary><div class="answer">OFFSET scans and discards all preceding rows, cost grows linearly with depth, and concurrent inserts cause skipped or duplicated rows. A cursor is an index seek on the last-seen sort key, constant cost, stable under writes.</div></details>
+
+<details class="quiz"><summary>6. What breaks when a hot cache key expires?</summary><div class="answer">Thundering herd. Thousands of concurrent misses hit the database simultaneously. Fix with request coalescing so one request refills while others wait, jittered TTLs, or serve-stale-while-revalidate.</div></details>
+
+<details class="quiz"><summary>7. Why must queue consumers be idempotent?</summary><div class="answer">Delivery is at-least-once. A consumer can process a message, crash before committing its offset, and process it again on restart. Dedupe on message ID or use idempotency keys so reprocessing is harmless.</div></details>
+
+<details class="quiz"><summary>8. What caps consumer parallelism in Kafka?</summary><div class="answer">Partition count. Each partition is owned by exactly one consumer in a group, so 8 partitions means at most 8 active consumers. Extra consumers idle. Size partitions for target throughput upfront.</div></details>
+
+<details class="quiz"><summary>9. Why fan-out on write for timelines, and when does it fail?</summary><div class="answer">Reads outnumber writes ~1000:1, so precomputing feeds at write time makes the common op one cache fetch. It fails for celebrities, one tweet becomes 50M inserts. Hybrid, fan out normal users on write, merge celebrity tweets at read time past a follower threshold.</div></details>
+
+<details class="quiz"><summary>10. 301 or 302 for a URL shortener?</summary><div class="answer">302 if analytics matters, every click flows through you. 301 is cached by browsers, cheaper but you lose click data and can't retarget the link. The answer is the tradeoff, not the number.</div></details>
+
+<details class="quiz"><summary>11. What breaks when a chat gateway server dies?</summary><div class="answer">Its WebSocket connections drop. Clients auto-reconnect through the LB to another gateway, the session registry updates the user → gateway mapping, and messages that arrived meanwhile replay from persistent storage. Nothing is lost because persistence happens before routing.</div></details>
+
+<details class="quiz"><summary>12. How do you prevent double-booking in a reservation system?</summary><div class="answer">Strong consistency on the contended resource. A transaction with a unique constraint or row lock on (room, date), second writer gets a 409. This is why bookings stay on SQL. Optionally a short hold with TTL for the checkout flow.</div></details>
+
+<details class="quiz"><summary>13. Why is exactly-once delivery mostly a myth?</summary><div class="answer">The moment a consumer touches an external system, the send and the offset commit can't be atomic, a crash between them causes a redo. Kafka transactions give exactly-once within Kafka only. Real systems use at-least-once plus idempotent consumers.</div></details>
+
+<details class="quiz"><summary>14. What does a circuit breaker buy you that retries don't?</summary><div class="answer">Retries handle transient blips but amplify sustained failures, every caller retrying a dead service is a self-inflicted DDoS and threads pile up waiting. A breaker fails fast after a failure threshold, serves fallbacks, and probes for recovery, protecting both caller and callee.</div></details>
+
+<details class="quiz"><summary>15. Sessions or JWTs?</summary><div class="answer">Sessions, instant revocation and simple, but every request costs a store lookup and scaling needs shared session state. JWTs, stateless verification, scales trivially, but revocation before expiry requires a blocklist, which is state again. Common answer, short-lived JWT plus refresh token.</div></details>
+
+<details class="quiz"><summary>16. What happens when consumers fall behind the queue?</summary><div class="answer">Lag grows, downstream data goes stale, and eventually retention limits delete unprocessed messages. Monitor lag trend per consumer group. Remedies in order, scale consumers to partition count, add partitions, then shed or sample load.</div></details>
+
+<details class="quiz"><summary>17. Why does adaptive bitrate streaming put the logic on the client?</summary><div class="answer">Only the client knows its instantaneous bandwidth and buffer state. Video is pre-transcoded into renditions and segmented, the client picks a rendition per segment. The server stays dumb and cacheable, which is what makes CDNs work for video.</div></details>
+
+<details class="quiz"><summary>18. Your Redis timeline cluster loses a node. What breaks and how do you recover?</summary><div class="answer">Timelines on that node are gone but they're derived data. Rebuild lazily, on a cache miss fall back to read-time fan-out from the follow graph and tweet store, repopulate the sorted set. Degraded latency for affected users, no data loss.</div></details>
+
+<details class="quiz"><summary>19. Why negative-cache "not found" results?</summary><div class="answer">Cache penetration. Requests for nonexistent keys miss the cache every time and hammer the DB, whether malicious or a buggy client. Cache the miss with a short TTL, or keep a bloom filter of valid IDs in front.</div></details>
+
+<details class="quiz"><summary>20. Interviewer asks "could you just use Postgres for all of this?" What's the strong answer?</summary><div class="answer">Often yes, and say so. "Sharded Postgres carries us to roughly X scale, Instagram proved that. The piece that outgrows it first is the write firehose of Y, whose single-partition access pattern fits Cassandra. I'd keep payments and bookings on SQL regardless, money needs transactions." Nuance beats reflexive NoSQL.</div></details>
+
+</div>
+</main>
+
+<script>
+(function () {
+  var sidebar = document.getElementById('sidebar');
+  var toggle = document.getElementById('toc-toggle');
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+
+  toggle.addEventListener('click', function () {
+    sidebar.classList.toggle('open');
+  });
+  links.forEach(function (a) {
+    a.addEventListener('click', function () {
+      if (window.innerWidth <= 900) sidebar.classList.remove('open');
+    });
+  });
+
+  // Scroll-spy
+  var targets = links
+    .map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); })
+    .filter(Boolean);
+
+  function setActive(id) {
+    links.forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+    });
+    var active = document.querySelector('#toc a.active');
+    if (active) {
+      var r = active.getBoundingClientRect();
+      var s = sidebar.getBoundingClientRect();
+      if (r.top < s.top + 40 || r.bottom > s.bottom - 40) {
+        active.scrollIntoView({ block: 'center' });
+      }
+    }
+  }
+
+  function onScroll() {
+    var current = targets[0] ? targets[0].id : null;
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i].getBoundingClientRect().top <= 90) current = targets[i].id;
+      else break;
+    }
+    if (current) setActive(current);
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function () { onScroll(); ticking = false; });
+    }
+  }, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>
