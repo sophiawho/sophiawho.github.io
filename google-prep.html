@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>">
+  <title>Google Prep</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f7f9fc; color: #202124; min-height: 100vh; padding: 40px 20px;
+    }
+    header { text-align: center; margin-bottom: 12px; }
+    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; color: #1a1a1a; }
+    header h1 .g-blue { color: #4285f4; } header h1 .g-red { color: #ea4335; }
+    header h1 .g-yellow { color: #fbbc05; } header h1 .g-green { color: #34a853; }
+    header p { color: #5f6368; margin-top: 6px; font-size: 0.95rem; }
+    .meta { max-width: 860px; margin: 0 auto 32px auto; text-align: center;
+      font-size: 0.85rem; color: #5f6368; background:#fff; border:1px solid #e3e8ef;
+      border-radius: 10px; padding: 10px 16px; }
+    .wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+    .section-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: #4285f4; margin-bottom: 16px;
+      border-bottom: 2px solid #e3e8ef; padding-bottom: 8px; }
+    .card { background: #fff; border: 1px solid #e3e8ef; border-radius: 10px;
+      padding: 18px 22px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(60,64,67,0.08); }
+    .card h3 { font-size: 1rem; font-weight: 600; color: #202124; margin-bottom: 6px; }
+    .card h3 a { color: #1a73e8; text-decoration: none; }
+    .card h3 a:hover { text-decoration: underline; }
+    .card p { font-size: 0.9rem; color: #3c4043; line-height: 1.6; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .tag { font-size: 0.73rem; font-weight: 500; padding: 3px 10px; border-radius: 20px;
+      background: #e8f0fe; color: #1967d2; border: 1px solid #c6dafc; }
+    .tag.hard { background:#fce8e6; color:#c5221f; border-color:#f6c7c3; }
+    .tag.med  { background:#fef7e0; color:#b06000; border-color:#feefc3; }
+    .tag.gap  { background:#e6f4ea; color:#137333; border-color:#ceead6; }
+    .q-card { background:#fff; border:1px solid #e3e8ef; border-left:3px solid #fbbc05;
+      border-radius:0 10px 10px 0; padding:16px 20px; margin-bottom:12px; }
+    .q-card .q { font-size:0.95rem; font-weight:600; color:#202124; }
+    .q-card .probe { font-size:0.85rem; color:#5f6368; margin-top:8px; line-height:1.55; }
+    .story-map { background:#e8f0fe; border:1px solid #c6dafc; border-radius:10px;
+      padding:16px 20px; font-size:0.88rem; color:#1a1a1a; line-height:1.7; }
+    .story-map b { color:#1967d2; }
+    .frame { background:#fff; border:1px solid #e3e8ef; border-radius:10px; padding:16px 20px;
+      font-size:0.88rem; color:#3c4043; line-height:1.7; }
+    .frame ol { margin:8px 0 0 20px; } .frame li { margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span> Prep</h1>
+  <p>Behavioural bank + must-review LeetCode · onsite Fri July 17 · DS/A + Behavioural</p>
+</header>
+
+<div class="meta">
+  Source: 1point3acres reports. Format: DS/A coding + behavioural. Map every LC below to a pattern you already know cold, don't grind new theory. Behavioural runs on your 5 STAR stories.
+</div>
+
+<div class="wrap">
+
+  <!-- ───────── LC REVIEW ───────── -->
+  <div>
+    <div class="section-title">Must Review Before Google</div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/median-of-two-sorted-arrays/">#4 Median of Two Sorted Arrays</a></h3>
+      <p>Binary search on the smaller array to find the partition where left halves ≤ right halves. The trick is searching for a <em>cut point</em>, not a value. Classic Google hard — know the partition invariant and the odd/even length handling cold.</p>
+      <div class="tags"><span class="tag">Binary Search</span><span class="tag hard">Hard</span></div>
+    </div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/trapping-rain-water/">#42 Trapping Rain Water</a></h3>
+      <p>Water above each bar = min(maxLeft, maxRight) − height. Three ways: prefix-max arrays (O(n) space), two pointers moving inward from the shorter side (O(1) space), or a monotonic stack. Two-pointer is the one to have ready. A Google staple.</p>
+      <div class="tags"><span class="tag">Two Pointers</span><span class="tag">Monotonic Stack</span><span class="tag hard">Hard</span></div>
+    </div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/implement-trie-prefix-tree/">Prefix Tries — #208 Implement Trie</a> <span style="font-weight:400;color:#5f6368">(+ #211 search w/ wildcard, #212 Word Search II)</span></h3>
+      <p>Your flagged gap. Each node = dict of children + <code>is_end</code> flag. <code>insert</code>/<code>search</code>/<code>startsWith</code> walk char by char. Once #208 is solid, #212 (Trie + grid DFS) is the Google-flavored boss version. Build the node class from scratch twice.</p>
+      <div class="tags"><span class="tag">Trie</span><span class="tag gap">Gap — must do</span><span class="tag med">Medium</span></div>
+    </div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/course-schedule-ii/">#210 Course Schedule II — Topological Sort</a></h3>
+      <p>Kahn's: build indegree counts, seed a queue with indegree-0 nodes, pop and decrement neighbors, append to order. If the order is shorter than n, there's a cycle. Double-duty with the Scale Task Prioritizer prep — same algorithm, priority-queue variant there.</p>
+      <div class="tags"><span class="tag">Topological Sort</span><span class="tag">Graph (BFS)</span><span class="tag med">Medium</span></div>
+    </div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/palindrome-partitioning/">#131 Palindrome Partitioning</a></h3>
+      <p>Backtracking: for each start index, try every prefix that's a palindrome, recurse on the rest, undo. Choose / explore / unchoose — the same skeleton as #78/#46. Optionally precompute an <code>isPalindrome[i][j]</code> DP table to skip re-checking.</p>
+      <div class="tags"><span class="tag">Backtracking</span><span class="tag med">Medium</span></div>
+    </div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/binary-tree-longest-consecutive-sequence/">#298 Binary Tree Longest Consecutive Sequence</a></h3>
+      <p>DFS carrying two things down: the parent's value and the current run length. If <code>node.val == parent.val + 1</code>, extend the run, else reset to 1. Track a global max. One clean post/pre-order pass, O(n).</p>
+      <div class="tags"><span class="tag">Tree DFS</span><span class="tag med">Medium</span></div>
+    </div>
+
+    <div class="card">
+      <h3><a href="https://leetcode.com/problems/smallest-rectangle-enclosing-black-pixels/">#302 Smallest Rectangle Enclosing Black Pixels</a></h3>
+      <p>Given one black pixel, binary search each of the four borders: the columns/rows split cleanly into "has a black pixel" vs "doesn't", so you can binary search for the leftmost, rightmost, top, bottom black boundary. O(m log n + n log m) beats the O(mn) flood fill. The hardest of the set — review the "projection is monotonic" argument.</p>
+      <div class="tags"><span class="tag">Binary Search</span><span class="tag hard">Hard</span></div>
+    </div>
+  </div>
+
+  <!-- ───────── BEHAVIOURAL ───────── -->
+  <div>
+    <div class="section-title">Behavioural Bank</div>
+
+    <div class="story-map" style="margin-bottom:16px">
+      Everything below maps onto your <b>5 STAR stories</b>: impact, disagreement, failure, simplifying complexity, ownership beyond scope. Google probes hard, so every story needs two extra layers ready: <b>"can you tell me more about that?"</b> (specific details, numbers, your exact actions) and <b>"what would you have done differently?"</b> (a reflective alternative). 90 seconds spoken, "I" not "we", quantified result.
+    </div>
+
+    <div class="frame" style="margin-bottom:16px">
+      <b>Challenging-project question — prep this as a full walkthrough, it's the most likely opener:</b>
+      <ol>
+        <li>Project background — one sentence of context</li>
+        <li>Your specific role — "I", not "we"</li>
+        <li>What exactly made it challenging — the real constraint, not "it was hard"</li>
+        <li>Actions you took — concrete decisions and trade-offs</li>
+        <li>Final result — quantified</li>
+        <li>What you learned — the reflective close Google wants</li>
+      </ol>
+    </div>
+
+    <div class="q-card">
+      <div class="q">Describe a challenging project and what made it challenging.</div>
+      <div class="probe">→ Maps to your <b>simplifying-complexity</b> or <b>impact</b> story. Lead with the specific constraint. Follow the 6-point frame above.</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">Tell me about a time you disagreed with a team member and how you resolved it.</div>
+      <div class="probe">→ <b>Disagreement</b> story. Probes: tell me more about the specifics · what would you have done differently? Show you heard them out and reached a decision on merits, not seniority.</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">Describe a situation where you had to deliver under a very tight deadline.</div>
+      <div class="probe">→ <b>Impact</b> or <b>ownership</b> story. Probes: more specifics · what would you do differently? Name what you cut and why the trade-off was right.</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">Tell me about a project you're most proud of and why.</div>
+      <div class="probe">→ Your strongest <b>impact</b> story. Probes: more specifics · alternatives. Lead with the quantified result, then the "why it mattered".</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">How do you handle receiving critical feedback?</div>
+      <div class="probe">→ <b>Failure</b> / growth story. Probes: more specifics · what would you do differently? Show a concrete change you made after the feedback, not just "I took it well".</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">Give an example of when you took ownership of a problem outside your responsibility.</div>
+      <div class="probe">→ <b>Ownership-beyond-scope</b> story. Probes: more specifics · alternatives. This is the Googliness ownership signal — make the "not my job, but I did it anyway" explicit.</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">What would you do if a colleague's project progress was not keeping up?</div>
+      <div class="probe">→ Hypothetical — no story needed, but answer with a real instinct: understand why first, offer help, escalate only if blocked. Tie to a real time you did this if you have one.</div>
+    </div>
+
+    <div class="q-card">
+      <div class="q">If your manager gave you an extremely difficult task, how would you handle it? Have you faced this?</div>
+      <div class="probe">→ Hypothetical + story. Break it down, clarify scope, find the first tractable piece, communicate early. Anchor to your challenging-project story.</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
