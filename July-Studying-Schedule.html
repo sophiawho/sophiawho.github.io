@@ -171,9 +171,10 @@
   </div>
 
   <div class="day" data-date="2026-07-15">
-    <div class="dh"><h3>Wed July 15</h3><div class="hrs">2 h</div><span class="cat beh">Behavioural</span><span class="todo">TO DO · STAR day 1</span></div>
+    <div class="dh"><h3>Wed July 15</h3><div class="hrs">3 h</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span><span class="todo">TO DO · STAR day 1 (priority) + light Scale</span></div>
     <ul>
-      <li><b>[Behavioural · 2h]</b> Google behavioural, day 1 — <b>write all 5 STAR stories in full</b>: quantified results, "I" not "we", 90-second spoken length. Map each story to the Googliness rubric (collaboration, ambiguity, ownership). Prepare "why Google" and "tell me about yourself" in 3 sentences each.</li>
+      <li><b>[Behavioural · 2h · priority]</b> Google behavioural, day 1 — <b>write all 5 STAR stories in full</b>: quantified results, "I" not "we", 90-second spoken length. Map each story to the Googliness rubric (collaboration, ambiguity, ownership). Prepare "why Google" and "tell me about yourself" in 3 sentences each. This lands first, protect it — Google is Friday.</li>
+      <li><b>[DS/A · 1h · Scale dry run]</b> Scale <b>Task Prioritizer</b> — an <b>incremental design problem</b> (LRU Cache shape), not a one-shot algorithm. Build a <code>TaskScheduler</code> class once and <b>extend it in place</b> (the rubric is "adapt as new constraints are introduced"). <b>Phase 1:</b> priority queue, not a graph — <code>add_task</code> / <code>next_task</code> / <code>complete_task</code>, highest-priority via a max-heap (negate priority + counter tiebreak). <b>Phase 2:</b> dependencies = Kahn's grafted onto the heap — track indegree, a task is eligible only at indegree 0, still pick highest priority among eligible; swap Kahn's FIFO for a <b>priority queue of zero-indegree tasks</b>. Raise cycle detection unprompted (heap drains but tasks remain = cycle). Drill <b>#1834 Single-Threaded CPU</b> only (closest single problem); #210 / #207 are reserve if a block ends early. Python.</li>
     </ul>
   </div>
 

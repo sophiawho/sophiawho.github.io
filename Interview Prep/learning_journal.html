@@ -287,56 +287,33 @@
         <div class="problem-info">
           <h3>LRU Cache</h3>
           <p>Hash map plus a doubly linked list, both operations O(1). The dict maps <code>key → node</code>. The list orders nodes by recency: front (behind a dummy head) is least recently used, back (before a dummy tail) is most recently used. Any use — <code>get</code> or <code>put</code> — unlinks the node and re-adds it at the back. Eviction removes the node right after the dummy head. Solved it myself from Socratic hints.</p>
-          <p style="margin-top:10px"><strong>Why each design choice, derived the hard way:</strong> a plain FIFO queue or array can't remove a used item from the middle in O(1) — a list <code>del</code> shifts every later element and invalidates stored indices (O(n)). The swap-to-end trick works for an <em>unordered</em> set but destroys recency order, so it's out. A doubly linked list is what lets you unlink any node in O(1), and <code>prev</code> is required so you can reach the node behind it to splice it out.</p>
-          <div class="code-block"><pre><span class="kw">class</span> <span class="fn">Node</span>:
-    <span class="kw">def</span> <span class="fn">__init__</span>(self, next=None, prev=None, key=None, value=None):
-        self.next, self.prev = next, prev
-        self.key, self.value = key, value
+          <div class="code-block"><pre><span class="cm"># Node: key, value, prev, next</span>
+<span class="cm"># dict key_to_node; dummy_head &lt;-&gt; dummy_tail sentinels</span>
 
-<span class="kw">class</span> <span class="fn">LRUCache</span>:
-    <span class="kw">def</span> <span class="fn">__init__</span>(self, capacity):
-        self.key_to_node = {}
-        self.capacity = capacity
-        self.dummy_head = <span class="fn">Node</span>()
-        self.dummy_tail = <span class="fn">Node</span>()
-        self.dummy_head.next = self.dummy_tail
-        self.dummy_tail.prev = self.dummy_head
+_remove(node):        <span class="cm"># splice out</span>
+    node.prev.next = node.next
+    node.next.prev = node.prev
 
-    <span class="kw">def</span> <span class="fn">_remove</span>(self, node):
-        node.prev.next = node.next
-        node.next.prev = node.prev
+_add_to_tail(node):   <span class="cm"># relink existing node, no alloc</span>
+    link (dummy_tail.prev) &lt;-&gt; node &lt;-&gt; dummy_tail
 
-    <span class="kw">def</span> <span class="fn">_add_to_tail</span>(self, node):    <span class="cm"># relink existing node, no alloc</span>
-        prev_tail = self.dummy_tail.prev
-        prev_tail.next = node
-        node.prev, node.next = prev_tail, self.dummy_tail
-        self.dummy_tail.prev = node
+get(key):
+    <span class="kw">if</span> key missing: <span class="kw">return</span> -1
+    node = key_to_node[key]
+    _remove(node); _add_to_tail(node)   <span class="cm"># reuse node, dict untouched</span>
+    <span class="kw">return</span> node.value
 
-    <span class="kw">def</span> <span class="fn">get</span>(self, key):
-        <span class="kw">if</span> key <span class="kw">not in</span> self.key_to_node:
-            <span class="kw">return</span> -1
-        node = self.key_to_node[key]
-        self._remove(node)
-        self._add_to_tail(node)      <span class="cm"># reuse same node, dict untouched</span>
-        <span class="kw">return</span> node.value
-
-    <span class="kw">def</span> <span class="fn">put</span>(self, key, value):
-        <span class="kw">if</span> key <span class="kw">in</span> self.key_to_node:
-            node = self.key_to_node[key]
-            self._remove(node)
-            node.value = value
-            self._add_to_tail(node)
-            <span class="kw">return</span>
-        <span class="kw">if</span> <span class="fn">len</span>(self.key_to_node) == self.capacity:
-            lru = self.dummy_head.next
-            self._remove(lru)
-            <span class="kw">del</span> self.key_to_node[lru.key]   <span class="cm"># delete before losing ref</span>
-        node = <span class="fn">Node</span>(key=key, value=value)
-        self._add_to_tail(node)
-        self.key_to_node[key] = node</pre></div>
-          <div class="note"><strong>Feedback on my first version:</strong> I allocated a fresh <code>Node</code> on every <code>get</code> and on every <code>put</code> of an existing key — removed the old node, threw it away, built a new one with the same data, and rewrote the dict entry. Wasted allocation. Since I already hold the node, just unlink it and relink the same object at the tail (and set <code>.value</code> in the <code>put</code> case). On a <code>get</code> the dict entry never has to change. Above is the cleaned-up version with a <code>_add_to_tail(node)</code> helper instead of a create-and-append one.</div>
-          <div class="note"><strong>Two things I got right:</strong> storing <code>key</code> inside the node (needed to <code>del</code> the dict entry on eviction — without it you'd scan the dict), and deleting from the dict <em>before</em> dropping the reference to the evicted node.</div>
-          <div class="note"><strong>Dummy head + tail nodes to kill edge cases:</strong> the two permanent sentinels mean the list is never truly empty, so every insert and remove has real nodes on both sides. No <code>if head is None</code>, no special-casing the first or last node, no separate empty-list branch. <code>_remove</code> and <code>_add_to_tail</code> stay branchless because a node always has a <code>prev</code> and a <code>next</code> to reconnect.</div>
+put(key, value):
+    <span class="kw">if</span> key present:
+        node = key_to_node[key]; _remove(node)
+        node.value = value; _add_to_tail(node); <span class="kw">return</span>
+    <span class="kw">if</span> full:
+        lru = dummy_head.next
+        _remove(lru); <span class="kw">del</span> key_to_node[lru.key]   <span class="cm"># del before losing ref</span>
+    node = Node(key, value); _add_to_tail(node); key_to_node[key] = node</pre></div>
+          <div class="note"><strong>First version wasted allocations:</strong> I built a fresh <code>Node</code> on every <code>get</code> / <code>put</code>-existing instead of reusing the one I already held. Fix: unlink and relink the same object (set <code>.value</code> in the <code>put</code> case). On a <code>get</code> the dict entry never changes.</div>
+          <div class="note"><strong>Got right:</strong> store <code>key</code> in the node (needed to <code>del</code> the dict entry on eviction), and delete from the dict <em>before</em> dropping the evicted node's reference.</div>
+          <div class="note"><strong>Dummy head + tail sentinels:</strong> the list is never empty, so every node has a real <code>prev</code> and <code>next</code>. No empty-list or first/last-node special cases — <code>_remove</code> and <code>_add_to_tail</code> stay branchless.</div>
           <div class="tags" style="margin-top:8px">
             <span class="tag">Linked List</span>
             <span class="tag">Hash Map</span>
