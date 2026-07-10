@@ -219,7 +219,7 @@
     <div class="dh"><h3>Sun July 19</h3><div class="hrs">4 h</div><span class="cat sd">Sys Design</span><span class="cat ui">React</span></div>
     <ul>
       <li><b>[Sys Design · 3.5h]</b> Continue Week-1: caching strategies, DB indexing/sharding, consistency vs availability. Second timed design out loud.</li>
-      <li><b>[React · 45 min · Waymo must-do build 1 of 5]</b> <b>Countdown timer</b> with a digital input field and start / stop / reset. Drills your <b>setState-placement</b> miss directly — <code>setInterval</code> in a <code>useEffect</code> with a proper cleanup, functional <code>setState</code> updater so you don't close over stale state, and parsing/validating the input. Time it, ~30–40 min.</li>
+      <li><b>[React · 45 min · Waymo must-do build 1 of 4]</b> <b>Countdown timer</b> with a digital input field and start / stop / reset. Drills your <b>setState-placement</b> miss directly — <code>setInterval</code> in a <code>useEffect</code> with a proper cleanup, functional <code>setState</code> updater so you don't close over stale state, and parsing/validating the input. Time it, ~30–40 min.</li>
     </ul>
   </div>
 
@@ -245,17 +245,16 @@
   </div>
 
   <div class="day" data-date="2026-07-23">
-    <div class="dh"><h3>Thu July 23</h3><div class="hrs">2.5 h</div><span class="cat ui">React</span><span class="todo">Waymo pivot</span></div>
+    <div class="dh"><h3>Thu July 23</h3><div class="hrs">2 h</div><span class="cat ui">React</span><span class="todo">Waymo pivot</span></div>
     <ul>
-      <li><b>[Waymo React · day 1]</b> Stop sys design — onsite is 5 days out. Re-drill the onsite shapes: <b>tree/recursion rendering</b> and <b>setState placement</b> (your two misses from the 7/6 technical — see <code>js-learning-journal.html</code>) and the memoization talk track.</li>
-      <li><b>[React · 45+ min · Waymo must-do build 2 of 5]</b> <b>Tree outline component</b> — a nested folder/outline structure, click a node to expand/collapse. This <b>is</b> your tree/recursion miss: a self-referencing component that renders its own children, with expand state held per node. Build it cold, timed. This is the highest-priority Waymo build — recursion rendering is a known shape and it bit you last time.</li>
+      <li><b>[Waymo React · day 1]</b> Stop sys design — onsite is 5 days out. Re-drill the onsite shapes: <b>setState placement</b> (your miss from the 7/6 technical — see <code>js-learning-journal.html</code>), the memoization talk track, and one longer timed build (45+ min, GreatFrontEnd). Onsites run longer than screens — practice sustaining focus.</li>
     </ul>
   </div>
 
   <div class="day" data-date="2026-07-24">
     <div class="dh"><h3>Fri July 24</h3><div class="hrs">2 h</div><span class="cat ui">React</span><span class="cat beh">Behavioural</span><span class="todo">Waymo pivot</span></div>
     <ul>
-      <li><b>[Waymo React · 1h · Waymo must-do build 3 of 5]</b> <b>Download / progress bar</b> — reported Waymo question (1point3acres): a bar that reflects a given point in time and updates as later time points arrive. Practice both GreatFrontEnd versions: <a href="https://www.greatfrontend.com/questions/user-interface/progress-bars?practice=practice&tab=coding" target="_blank">Progress Bars</a> then <a href="https://www.greatfrontend.com/questions/user-interface/progress-bars-ii?practice=practice&tab=coding" target="_blank">Progress Bars II</a> (queue/concurrency-limited). Focus on driving width from a time value and handling a stream of updates without stale state. Diff against the playbook time budgets.</li>
+      <li><b>[Waymo React · 1h · Waymo must-do build 2 of 4]</b> <b>Download / progress bar</b> — reported Waymo question (1point3acres): a bar that reflects a given point in time and updates as later time points arrive. Practice both GreatFrontEnd versions: <a href="https://www.greatfrontend.com/questions/user-interface/progress-bars?practice=practice&tab=coding" target="_blank">Progress Bars</a> then <a href="https://www.greatfrontend.com/questions/user-interface/progress-bars-ii?practice=practice&tab=coding" target="_blank">Progress Bars II</a> (queue/concurrency-limited). Focus on driving width from a time value and handling a stream of updates without stale state. Diff against the playbook time budgets.</li>
       <li><b>[Waymo behavioural · 1h]</b> Re-tailor your 5 Google STAR stories to Waymo's frame — safety culture, the AV mission, collaboration under ambiguity. Draft a real <b>"why Waymo"</b> in 3 sentences. Reuse the stories, re-aim them.</li>
     </ul>
   </div>
@@ -266,7 +265,7 @@
     <div class="dh"><h3>Sat July 25</h3><div class="hrs">3.5 h</div><span class="cat ui">React</span><span class="cat beh">Behavioural</span></div>
     <ul>
       <li><b>[Waymo dress rehearsal]</b> Mock the loop out loud: the 45-min React build below + a full behavioural pass (5 stories Waymo-framed + "why Waymo"). Debrief against <code>ui_interview_playbook.html</code> scoring. Record one build and watch it back.</li>
-      <li><b>[React · 45 min · Waymo must-do build 4 of 5]</b> <b>Music player</b> — play/pause/skip, a seekable progress bar, track list. The biggest build of the set: combines the timer's interval logic, the progress bar's time-driven width, and list rendering. Good rehearsal-length stress test. Time it strictly.</li>
+      <li><b>[React · 45 min · Waymo must-do build 3 of 4]</b> <b>Music player</b> — play/pause/skip, a seekable progress bar, track list. The biggest build of the set: combines the timer's interval logic, the progress bar's time-driven width, and list rendering. Good rehearsal-length stress test. Time it strictly.</li>
     </ul>
   </div>
 
@@ -274,7 +273,7 @@
     <div class="dh"><h3>Sun July 26</h3><div class="hrs">3 h</div><span class="cat ui">React</span><span class="cat beh">Behavioural</span></div>
     <ul>
       <li><b>[Waymo dress rehearsal · day 2]</b> Second mock, hit the two weakest spots only. Skim <code>ui_cheatsheet.html</code> + CoderPad quirks (<code>@ts-nocheck</code>, no formatter). Keep it light — you're ready, don't cram new material.</li>
-      <li><b>[React · 30 min · Waymo must-do build 5 of 5]</b> <b>Battleship revisit</b> — rebuild the grid from memory (you first did it 7/4), cold and quick. Grid rendering + click state is a known Waymo shape; this is a confidence refresher, not new material. Diff against your 7/4 version.</li>
+      <li><b>[React · 30 min · Waymo must-do build 4 of 4]</b> <b>Battleship revisit</b> — rebuild the grid from memory (you first did it 7/4), cold and quick. Grid rendering + click state is a known Waymo shape; this is a confidence refresher, not new material. Diff against your 7/4 version.</li>
     </ul>
   </div>
 
