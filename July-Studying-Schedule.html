@@ -147,11 +147,12 @@
   </div>
 
   <div class="day weekend" data-date="2026-07-12">
-    <div class="dh"><h3>Sun July 12</h3><div class="hrs">4 h</div><span class="cat dsa">DS/A</span><span class="todo">TO DO · Retool + Google gap-fill</span></div>
+    <div class="dh"><h3>Sun July 12</h3><div class="hrs">4.75 h</div><span class="cat dsa">DS/A</span><span class="todo">TO DO · Retool + Google gap-fill (backtracking · tries · DP)</span></div>
     <ul>
-      <li><b>[DS/A · 2h — Retool · Backtracking]</b> <b>#79 Word Search</b> (grid DFS + undo) and <b>#46 Permutations</b> (choose/explore/unchoose), both timed — this is the backtracking pair. If both land fast, add <b>#78 Subsets</b> (same template, include/exclude each element) to lock the shape. 30 min: skim Retool's product (app builder) — their DS/A leans practical; expect object/tree manipulation (a component tree is a tree).</li>
+      <li><b>[DS/A · 2h — Retool · Backtracking gap]</b> <b>#79 Word Search</b> (grid DFS + undo) and <b>#46 Permutations</b> (choose/explore/unchoose), both timed — the backtracking pair. If they land fast, add <b>#78 Subsets</b> and <b>#131 Palindrome Partitioning</b> (same choose/explore/unchoose template, closes the backtracking gap for Google). 30 min: skim Retool's product (app builder) — their DS/A leans practical; expect object/tree manipulation (a component tree is a tree).</li>
       <li><b>[DS/A · 45 min · Google gap — Tries]</b> <b>#208 Implement Trie</b> from scratch, twice (node = children dict + <code>is_end</code>; insert/search/startsWith walk char by char). This is your flagged Google gap. If it lands fast, glance at <b>#212 Word Search II</b> (Trie + grid DFS) as the boss version. Full notes in <code>google-prep.html</code>. Journal #208.</li>
       <li><b>[DS/A · 45 min · Google — Trapping Rain Water]</b> <b>#42 Trapping Rain Water</b> — a Google staple. Get the <b>two-pointer</b> version solid (move inward from the shorter side, water = min(maxLeft, maxRight) − height). Say why the shorter side is safe to advance. Journal it.</li>
+      <li><b>[DS/A · 45 min · Google gap — DP]</b> Two canonical 1D shapes, not the whole topic: <b>#198 House Robber</b> (<code>dp[i] = max(dp[i-1], dp[i-2] + nums[i])</code>, the pick-or-skip recurrence) and <b>#322 Coin Change</b> (unbounded, <code>dp[amount] = min over coins of dp[amount-coin] + 1</code>). For each, say the state, the recurrence, and the base case out loud before coding. This is the highest-ROI slice of DP — deeper DP work is deferred to the Jul 30–Aug window. Journal both.</li>
       <li><b>[DS/A · 30 min · Monotonic stack]</b> Beyond the warm-up: <b>#503 Next Greater Element II</b> (circular — iterate the array twice mod n) and, if time, glance at <b>#84 Largest Rectangle in Histogram</b> as the hard boss of the pattern (don't grind it, just see why the stack stays increasing). Journal #503.</li>
     </ul>
   </div>
