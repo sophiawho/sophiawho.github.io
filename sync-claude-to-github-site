@@ -24,8 +24,7 @@ cp "$PROJECTS/Leetcode/systems-design/system-design-l5-guide.html" "$REPO/Interv
 cp "$PROJECTS/Trip-Planning/korea-october.html"         "$REPO/Trip-Planning/"
 cp "$PROJECTS/Trip-Planning/montreal-worlds-2026.html"  "$REPO/Trip-Planning/"
 cp "$PROJECTS/Cycling Training/DiabloTrainingPlanV3.html" "$REPO/Cycling Training/"
-cp "$PROJECTS/Roommate-Search/site/single-room.html"      "$REPO/Roommate-Search/"
-rsync -a --delete "$PROJECTS/Roommate-Search/site/assets/" "$REPO/Roommate-Search/assets/"
+
 
 echo "→ Committing..."
 cd "$REPO"
