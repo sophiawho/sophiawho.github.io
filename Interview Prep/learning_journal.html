@@ -270,6 +270,40 @@
 <div class="journal">
 
 
+  <!-- ══════════════════════ July 14, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">July 14, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- CONCEPTS LEARNED -->
+    <div class="section">
+      <div class="section-title">Concepts Learned</div>
+
+      <div class="concept-card">
+        <h3>Bigram Markov chain generator (Retool #2)</h3>
+        <p>Given a "-"-separated string of tokens, build a frequency map of how often token Y follows token X. Then, given the map, a seed token, and an output length, walk the chain: convert each token's next-token frequencies into probability intervals, draw <code>random.random()</code>, and find which interval it lands in.</p>
+        <div class="code-block"><pre><span class="kw">def</span> <span class="fn">get_next_token_given_intervals</span>(seed, token_probabilities):
+    probability = random.random()
+    <span class="kw">for</span> token, (start, end) <span class="kw">in</span> token_probabilities[seed]:
+        <span class="kw">if</span> start &lt;= probability &lt; end:
+            <span class="kw">return</span> token
+    <span class="cm"># falls through here more often than it should — see note</span></pre></div>
+        <div class="note"><strong>Bug hit live:</strong> intervals are built by repeatedly adding floats (<code>cur_prob += cur_token_probability</code>), so the last interval's end can land at <code>0.999999999998</code> instead of exactly <code>1.0</code>. <code>random.random()</code> draws from <code>[0, 1)</code>, so a value in that tiny gap matches no interval and falls through to the fallback branch. Fix: don't bound-check the last token at all, treat it as the catch-all (return it if nothing else matched), or explicitly force the final interval's end to <code>1.0</code> instead of trusting the accumulated sum.</div>
+        <div class="note">General lesson: any time probabilities are built by cumulative float addition, the last boundary is the one to distrust, not the first.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Floating Point</span>
+          <span class="tag purple">Probability Sampling</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ══════════════════════ end July 14 ══════════════════════ -->
+
+
   <!-- ══════════════════════ July 13, 2026 ══════════════════════ -->
   <div class="day">
 
