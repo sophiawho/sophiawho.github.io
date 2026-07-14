@@ -157,28 +157,30 @@
     <ul>
       <li><b>[1h, before]</b> Deliver the deep dive out loud once (5-min version). Skim coupons solution + intervals template. Nothing new.</li>
       <li><b>[DS/A · 1h, after]</b> Journal the Plaid questions immediately. Then Retool prep: one timed medium re-solve from your solid list (#3 or #739) to stay loose.</li>
-      <li><b>[DS/A · 30 min · Prefix sum · moved from Sat]</b> <b>#560 Subarray Sum Equals K</b> re-solve (prefix-sum + hashmap of counts), then <b>#724 Find Pivot Index</b> cold. Say the invariant out loud: <code>prefix[j] − prefix[i]</code> = sum of the window.</li>
-      <li><b>[DS/A · 45 min · Google — Trapping Rain Water · moved from Sun]</b> <b>#42 Trapping Rain Water</b> — a Google staple. Get the <b>two-pointer</b> version solid (move inward from the shorter side, water = min(maxLeft, maxRight) − height). Say why the shorter side is safe to advance. Journal it.</li>
+      <li><b>[DS/A · 30 min]</b> <b>#560 Subarray Sum Equals K</b> (prefix-sum + hashmap of counts), then <b>#724 Find Pivot Index</b> cold. Invariant: <code>prefix[j] − prefix[i]</code> = sum of the window.</li>
+      <li><b>[DS/A · 45 min]</b> <b>#42 Trapping Rain Water</b> (Google) — two-pointer version: move inward from the shorter side, water = min(maxLeft, maxRight) − height. Say why the shorter side is safe to advance.</li>
     </ul>
   </div>
 
   <div class="day interview" data-date="2026-07-14">
-    <div class="dh"><h3>Tue July 14</h3><span class="ivtag">RETOOL — DS/A</span><div class="hrs">6 h study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span></div>
+    <div class="dh"><h3>Tue July 14</h3><span class="ivtag">RETOOL — DS/A</span><div class="hrs">4 h 15 min study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span></div>
     <ul>
       <li><b>[DS/A · 45 min, before]</b> Template skim + one easy warm-up. Review yesterday's Plaid journal notes — patterns repeat across companies in the same week.</li>
       <li><b>[Behavioural · 75 min, after]</b> Journal the Retool questions. Head start on Google behavioural: list your 5 STAR stories (impact, disagreement, failure, simplifying complexity, ownership beyond scope) and bullet the Situation/Task for each.</li>
-      <li><b>[DS/A · 2h — Retool · Backtracking gap · moved from Sun]</b> <b>#79 Word Search</b> (grid DFS + undo) and <b>#46 Permutations</b> (choose/explore/unchoose), both timed — the backtracking pair. If they land fast, add <b>#78 Subsets</b> and <b>#131 Palindrome Partitioning</b> (same choose/explore/unchoose template, closes the backtracking gap for Google). 30 min: skim Retool's product (app builder) — their DS/A leans practical; expect object/tree manipulation (a component tree is a tree).</li>
-      <li><b>[DS/A · 45 min · Google gap — Tries · moved from Sun]</b> <b>#208 Implement Trie</b> from scratch, twice (node = children dict + <code>is_end</code>; insert/search/startsWith walk char by char). This is your flagged Google gap. If it lands fast, glance at <b>#212 Word Search II</b> (Trie + grid DFS) as the boss version. Full notes in <code>google-prep.html</code>. Journal #208.</li>
-      <li><b>[DS/A · 45 min · Google gap — DP · moved from Sun]</b> Two canonical 1D shapes, not the whole topic: <b>#198 House Robber</b> (<code>dp[i] = max(dp[i-1], dp[i-2] + nums[i])</code>, the pick-or-skip recurrence) and <b>#322 Coin Change</b> (unbounded, <code>dp[amount] = min over coins of dp[amount-coin] + 1</code>). For each, say the state, the recurrence, and the base case out loud before coding. This is the highest-ROI slice of DP — deeper DP work is deferred to the Jul 30–Aug window. Journal both.</li>
-      <li><b>[DS/A · 30 min · Monotonic stack · moved from Sun]</b> Beyond the warm-up: <b>#503 Next Greater Element II</b> (circular — iterate the array twice mod n) and, if time, glance at <b>#84 Largest Rectangle in Histogram</b> as the hard boss of the pattern (don't grind it, just see why the stack stays increasing). Journal #503.</li>
+      <li><b>[DS/A · 45 min]</b> <b>#46 Permutations</b> (Retool) — choose/explore/unchoose, timed. 10 min: skim Retool's product (app builder); expect object/tree manipulation.</li>
+      <li><b>[DS/A · 45 min]</b> <b>#131 Palindrome Partitioning</b> (Google) — right after #46 while the pattern's warm. Try every palindromic prefix from each start index, recurse on the rest, undo. Optionally precompute <code>isPalindrome[i][j]</code> to skip re-checking.</li>
+      <li><b>[DS/A · 45 min]</b> <b>#208 Implement Trie</b> (Google) from scratch, twice — node = children dict + <code>is_end</code>; insert/search/startsWith walk char by char. If it lands fast, glance at <b>#212 Word Search II</b> as the boss version.</li>
+      <li><b>Cut today:</b> DP (House Robber, Coin Change) and monotonic stack (#503, #84) — not on Google's list, back to the gap-pattern reserve.</li>
     </ul>
   </div>
 
   <div class="day" data-date="2026-07-15">
-    <div class="dh"><h3>Wed July 15</h3><div class="hrs">3 h</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span><span class="todo">TO DO · STAR day 1 (priority) + light Scale</span></div>
+    <div class="dh"><h3>Wed July 15</h3><div class="hrs">3 h 55 min</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span><span class="todo">TO DO · STAR day 1 (priority) + Scale (trimmed) + Google gap-fill</span></div>
     <ul>
       <li><b>[Behavioural · 2h · priority]</b> Google behavioural, day 1 — <b>write all 5 STAR stories in full</b>: quantified results, "I" not "we", 90-second spoken length. Map each story to the Googliness rubric (collaboration, ambiguity, ownership). Prepare "why Google" and "tell me about yourself" in 3 sentences each. This lands first, protect it — Google is Friday.</li>
-      <li><b>[DS/A · 1h · Scale dry run]</b> Scale <b>Task Prioritizer</b> — an <b>incremental design problem</b> (LRU Cache shape), not a one-shot algorithm. Build a <code>TaskScheduler</code> class once and <b>extend it in place</b> (the rubric is "adapt as new constraints are introduced"). <b>Phase 1:</b> priority queue, not a graph — <code>add_task</code> / <code>next_task</code> / <code>complete_task</code>, highest-priority via a max-heap (negate priority + counter tiebreak). <b>Phase 2:</b> dependencies = Kahn's grafted onto the heap — track indegree, a task is eligible only at indegree 0, still pick highest priority among eligible; swap Kahn's FIFO for a <b>priority queue of zero-indegree tasks</b>. Raise cycle detection unprompted (heap drains but tasks remain = cycle). Drill <b>#1834 Single-Threaded CPU</b> only (closest single problem); #210 / #207 are reserve if a block ends early. Python.</li>
+      <li><b>[DS/A · 40 min]</b> Scale <b>Task Prioritizer</b>, talked through not built: <b>Phase 1</b> priority queue (<code>add_task</code>/<code>next_task</code>/<code>complete_task</code> via max-heap, negate priority + counter tiebreak), <b>Phase 2</b> dependencies via Kahn's-on-a-heap (indegree tracking, priority queue of zero-indegree tasks). Raise cycle detection unprompted. Skips the #1834 drill — doubles as a light touch on #210 (no full drill before Friday).</li>
+      <li><b>[DS/A · 45 min]</b> <b>#4 Median of Two Sorted Arrays</b> (Google) — binary search the smaller array for the partition where left halves ≤ right halves. Searching for a <em>cut point</em>, not a value; handle odd/even length as two cases.</li>
+      <li><b>[DS/A · 30 min]</b> <b>#298 Binary Tree Longest Consecutive Sequence</b> (Google) — one DFS pass carrying parent value + run length; if <code>node.val == parent.val + 1</code> extend, else reset to 1, track a global max.</li>
     </ul>
   </div>
 
