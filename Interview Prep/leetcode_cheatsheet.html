@@ -286,6 +286,26 @@ seen = {<span class="n">0</span>: <span class="n">1</span>}                    <
     </div>
 
     <div class="panel">
+      <h2>Running total vs stored history — the O(1) space check</h2>
+      <div class="use"><b>When to use:</b> before reaching for a second array (prefix, suffix, or both), ask whether you need a fixed aggregate (sum, count, product) or whether you need to recall a specific past value. A fixed aggregate only needs one running number, computed once and carried forward. A specific past value needs actual storage.</div>
+      <div class="tell"><b>Tells:</b> "left/right sums are equal" · "everything except this index" · "running balance" · "min/max so far" — anywhere the answer at index i depends only on one number summarizing "everything not at i", not on which specific earlier value it was.</div>
+      <div class="note">Contrast with prefix sum + hashmap above: #560 genuinely needs the hashmap, because you're asking "did this exact prefix value occur before", not just "what's the total" — one number can't answer that. #724 below only needs the total, because both sides are just sums.</div>
+      <pre><span class="c"># 724. Find Pivot Index — O(1) space, not O(n) prefix+suffix arrays</span>
+total = <span class="f">sum</span>(nums)
+left = <span class="n">0</span>
+<span class="k">for</span> i, x <span class="k">in</span> <span class="f">enumerate</span>(nums):
+    right = total - left - x
+    <span class="k">if</span> left == right: <span class="k">return</span> i
+    left += x
+<span class="k">return</span> -<span class="n">1</span></pre>
+      <ul>
+        <li>Same trick, multiplicative: <b>#238 Product of Array Except Self</b> — running product left→right into the output array, then fold in a running product right→left. No separate left/right arrays.</li>
+        <li>Same trick, running extremum instead of running sum: <b>#121 Best Time to Buy/Sell Stock</b> (min-so-far) and <b>#53 Maximum Subarray</b> / Kadane's (max-ending-here).</li>
+        <li>The test: do you need <i>one number</i> (a total, min, or max), or do you need to remember <i>which</i> past values occurred? One number → O(1) running variable. Which-value → hashmap or array.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
       <h2>BFS vs DFS — templates + when to use</h2>
       <div class="use"><b>When to use BFS:</b> shortest path / fewest steps in an <i>unweighted</i> graph, or level-by-level processing. BFS reaches each node by the fewest edges, so first arrival = shortest. <b>When to use DFS:</b> explore whole paths — does a path exist, count components/islands, cycle detection, all-paths enumeration, tree traversals, flood fill, topological sort.</div>
       <div class="tell"><b>Tells → BFS:</b> "minimum moves/steps", "shortest path" (unweighted), "nearest", level order, something spreading (rotting oranges). <b>Tells → DFS:</b> "all paths", "does a route exist", "count islands/regions", "cycle", any pre/in/post-order tree walk.</div>

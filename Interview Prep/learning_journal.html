@@ -270,6 +270,99 @@
 <div class="journal">
 
 
+  <!-- ══════════════════════ July 13, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">July 13, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- CONCEPTS LEARNED -->
+    <div class="section">
+      <div class="section-title">Concepts Learned</div>
+
+      <div class="concept-card">
+        <h3>Testability seam for non-deterministic code (Plaid interview question)</h3>
+        <p>Given a flaky <code>run_job</code> (fails ~70% of the time) wrapped in a 3-retry <code>process_with_retries</code>, the ask was really "how do you unit test this deterministically." Answer: don't hardcode the call, inject the runner as a parameter defaulting to the real one, so tests can pass a fake with controlled failure counts.</p>
+        <div class="code-block"><pre><span class="kw">def</span> <span class="fn">process_with_retries</span>(job_id, runner=run_job):
+    last_error = None
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="kw">range</span>(3):
+        <span class="kw">try</span>:
+            <span class="kw">return</span> runner(job_id)
+        <span class="kw">except</span> NetworkError <span class="kw">as</span> error:
+            last_error = error
+    <span class="kw">raise</span> Exception(<span class="str">f"Failed after 3 tries: {last_error}"</span>)</pre></div>
+        <div class="note">Two bugs in the interviewer's pseudocode scaffold, worth catching on sight next time: <code>catch</code> isn't Python (<code>except</code>), and <code>if i == 3</code> never fires against <code>range(3)</code> (0,1,2 only) — an off-by-one that silently swallows the final failure.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag purple">Testing / DI</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Running total vs stored history — the O(1) space check</h3>
+        <p>Before reaching for a prefix/suffix array, ask whether you need a fixed aggregate (sum, min, max) or whether you need to recall a specific past value. A fixed aggregate only needs one running number carried forward — that's Pivot Index and Trapping Rain Water below. Subarray Sum Equals K is the counter-example: it asks "did this exact prefix value occur before," which a single running total can't answer, so it genuinely needs the hashmap. Logged as a new panel in <code>leetcode_cheatsheet.html</code>.</p>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag purple">Pattern Recognition</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROBLEMS SOLVED -->
+    <div class="section">
+      <div class="section-title">Problems Solved</div>
+
+      <div class="problem-card">
+        <div class="problem-number">#724</div>
+        <div class="problem-info">
+          <h3>Find Pivot Index</h3>
+          <p>First pass used two full prefix/suffix arrays, O(n) space, correct but more than needed. Optimized to O(1) space: one pass for <code>total</code>, then a running <code>left_sum</code> where <code>right_sum = total - left_sum - num</code> is derived, not stored.</p>
+          <div class="code-block"><pre>total = <span class="fn">sum</span>(nums)
+left_sum = 0
+<span class="kw">for</span> i, num <span class="kw">in</span> <span class="kw">enumerate</span>(nums):
+    right_sum = total - left_sum - num
+    <span class="kw">if</span> left_sum == right_sum:
+        <span class="kw">return</span> i
+    left_sum += num
+<span class="kw">return</span> -1</pre></div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Prefix Sum</span>
+            <span class="tag green">Easy</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#42</div>
+        <div class="problem-info">
+          <h3>Trapping Rain Water</h3>
+          <p>Same space upgrade as Pivot Index: went from O(n) <code>maxLeft</code>/<code>maxRight</code> arrays to O(1) two-pointer. Wrote two valid orderings — update-max-then-add-water (the "new record" case self-corrects to zero water, no guard needed) vs. add-water-then-update-max (needs an explicit <code>max(0, ...)</code> guard, but matches the mental model more directly). Landed on the second as clearer.</p>
+          <div class="code-block"><pre>left, right = 0, len(height) - 1
+maxLeft = maxRight = water = 0
+<span class="kw">while</span> left &lt; right:
+    <span class="kw">if</span> height[left] &lt;= height[right]:
+        water += <span class="kw">max</span>(0, maxLeft - height[left])
+        maxLeft = <span class="kw">max</span>(maxLeft, height[left])
+        left += 1
+    <span class="kw">else</span>:
+        water += <span class="kw">max</span>(0, maxRight - height[right])
+        maxRight = <span class="kw">max</span>(maxRight, height[right])
+        right -= 1
+<span class="kw">return</span> water</pre></div>
+          <div class="note"><strong>Why only one wall matters:</strong> when <code>height[left] &lt;= height[right]</code>, some wall to the right (at minimum <code>height[right]</code> itself) is already <span class="math">≥</span> <code>height[left]</code>, so the right side can never be the bottleneck for position <code>left</code> — <code>maxLeft</code> alone decides it, no need to know the true <code>maxRight</code>.</div>
+          <div class="note"><strong>Water level, precisely:</strong> the water surface at a cell is <code>min(maxLeft, maxRight)</code>, independent of the cell's own height. The cell's height only decides whether it pokes above that surface (zero water) or sits below it — which is why most cells (local peaks, monotonic slopes) produce nothing.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Two Pointers</span>
+            <span class="tag hard" style="background:#fdecea;color:#c0392b;border:1px solid #f0b8b2;font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:20px;">Hard</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ══════════════════════ end July 13 ══════════════════════ -->
+
+
   <!-- ══════════════════════ July 9, 2026 ══════════════════════ -->
   <div class="day">
 
