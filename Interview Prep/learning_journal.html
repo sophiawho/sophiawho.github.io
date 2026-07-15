@@ -415,6 +415,38 @@ groups[<span class="str">'a'</span>][<span class="str">'b'</span>].append(1)</pr
           </div>
         </div>
       </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#212</div>
+        <div class="problem-info">
+          <h3>Word Search II</h3>
+          <p>Trie + grid backtracking, the boss version of #79 and #208 combined. Hinges on three things:</p>
+          <ul style="margin-top:0; padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem; color:#3d6b55; line-height:1.6;">
+            <li>Build a prefix trie of all target words first, so the DFS shares prefix exploration across every word instead of re-scanning the board once per word.</li>
+            <li>Prune the trie during backtracking: once a node's <code>word is None</code> and it has no children left, nothing further can ever be found through it — delete it from the parent's array. No parent pointer needed, the caller already holds the parent node and index from making the call.</li>
+            <li>The recursive <code>backtrack</code> only needs <code>(i, j, node)</code> — position on the board plus position in the trie, nothing else to thread through.</li>
+          </ul>
+          <div class="code-block"><pre><span class="cm"># Pruning — after recursing into a child, check if it's now dead</span>
+child = node.children[char_index]
+<span class="kw">if</span> child:
+    ...
+    backtrack(n_i, n_j, child)
+    <span class="kw">if</span> child.word <span class="kw">is</span> <span class="kw">None</span> <span class="kw">and</span> <span class="kw">all</span>(c <span class="kw">is</span> <span class="kw">None</span> <span class="kw">for</span> c <span class="kw">in</span> child.children):
+        node.children[char_index] = <span class="kw">None</span>   <span class="cm"># dead branch, prune</span>
+
+<span class="cm"># Must skip '#' before translating to an index — '#' isn't a-z,</span>
+<span class="cm"># so ord('#') - ord('a') is negative and indexes out of range</span>
+<span class="kw">if</span> board[n_i][n_j] == <span class="str">'#'</span>:
+    <span class="kw">continue</span></pre></div>
+          <div class="note">The pruning applies at every level that recurses, including the outer board-scan loop over <code>trie.root.children</code>, not just inside <code>backtrack</code> — otherwise the root level never gets cleaned up and later starting cells keep re-entering exhausted branches.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Trie</span>
+            <span class="tag">Backtracking</span>
+            <span class="tag purple">Grid</span>
+            <span class="tag hard" style="background:#fdecea;color:#c0392b;border:1px solid #f0b8b2;font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:20px;">Hard</span>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>

@@ -242,6 +242,26 @@ heapq.<span class="f">heapify</span>(arr)                  <span class="c"># O(n
     </div>
 
     <div class="panel">
+      <h2>Trie — array children + pruning</h2>
+      <div class="use"><b>When to use:</b> repeated prefix lookups against a fixed dictionary of words — autocomplete, word search on a grid against a word list (#212), any "does this prefix/word exist" check done many times. Merges shared prefixes into one path instead of re-scanning per word.</div>
+      <div class="tell"><b>Tells:</b> "implement a dictionary/autocomplete" · multiple words searched against the same grid/text · "prefix" explicitly in the prompt.</div>
+      <div class="note">For lowercase-only problems, a fixed 26-slot array beats a <code>dict</code> for <code>children</code> — array indexing, no hashing. Store the actual <code>word</code> (or <code>None</code>) at the terminal node instead of a plain <code>is_end</code> bool, so a match hands you the string directly.</div>
+      <pre><span class="c"># Prune a dead branch during backtracking — no parent pointer needed,</span>
+<span class="c"># the caller already has (parent) node + index in scope from the call site</span>
+child = node.children[char_index]
+<span class="k">if</span> child:
+    ...
+    <span class="f">backtrack</span>(n_i, n_j, child)
+    <span class="k">if</span> child.word <span class="k">is</span> <span class="k">None</span> <span class="k">and</span> <span class="f">all</span>(c <span class="k">is</span> <span class="k">None</span> <span class="k">for</span> c <span class="k">in</span> child.children):
+        node.children[char_index] = <span class="k">None</span>   <span class="c"># nothing left through here, prune it</span></pre>
+      <ul>
+        <li><code>all(c is None for c in child.children)</code> is the array-trie version of "does this node have no children left" — a <code>dict</code>'s emptiness check (<code>not child.children</code>) isn't available on a fixed array, so scan the 26 slots instead. Cheap, constant work either way.</li>
+        <li>Prune at <i>every</i> level that recurses, including the outermost call (e.g. the root's direct children in the initial board scan) — pruning only inside the recursive helper leaves the top level uncleaned, so later starting cells keep re-entering already-exhausted branches.</li>
+        <li>#212 Word Search II specifically: unpruned trie+DFS is often correct but too slow on adversarial boards (dense repeated letters, many overlapping words) — this isn't an optional polish step for that problem.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
       <h2>Monotonic stack — next greater / smaller</h2>
       <div class="use"><b>When to use:</b> for each element you need the <i>nearest</i> larger or smaller element to its left or right. A stack kept sorted (increasing or decreasing) answers all of these in one O(n) pass instead of O(n²) nested loops.</div>
       <div class="tell"><b>Tells:</b> "next greater/smaller element" · "how many days until a warmer temperature" · "largest rectangle" / "trapping rain water" · "stock span" · any "for each i, find the first j to the right that is bigger/smaller". Answer array same length as input.</div>
