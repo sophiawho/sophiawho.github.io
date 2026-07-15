@@ -341,29 +341,10 @@ groups[<span class="str">'a'</span>][<span class="str">'b'</span>].append(1)</pr
       <div class="concept-card">
         <h3><code>ord()</code> — character → code point</h3>
         <p><code>ord(c)</code> returns a character's integer Unicode code point. <code>ord('a') == 97</code>, <code>ord('z') == 122</code>, <code>ord('A') == 65</code>.</p>
-        <div class="code-block"><pre>ord(<span class="str">'a'</span>)               <span class="cm"># 97</span>
-ord(c) - ord(<span class="str">'a'</span>)      <span class="cm"># maps 'a'-&gt;0, 'b'-&gt;1, ..., 'z'-&gt;25</span></pre></div>
-        <div class="note">Didn't know this before. Comes up specifically for array-indexed tries/buckets — any time you need a lowercase letter turned into a small, dense integer index.</div>
+        <div class="code-block"><pre>ord(c) - ord(<span class="str">'a'</span>)      <span class="cm"># maps 'a'-&gt;0, 'b'-&gt;1, ..., 'z'-&gt;25</span></pre></div>
+        <div class="note">Didn't know this before.</div>
         <div class="tags" style="margin-top:8px">
           <span class="tag">Python Basics</span>
-        </div>
-      </div>
-
-      <div class="concept-card">
-        <h3>Grid neighbor helper — bounds-checked</h3>
-        <p>Reusable helper for grid BFS/DFS problems: given a cell <code>(i, j)</code>, return only the neighbor indices that stay inside the grid.</p>
-        <div class="code-block"><pre>dirs_4 = [(-<span class="n">1</span>, <span class="n">0</span>), (<span class="n">1</span>, <span class="n">0</span>), (<span class="n">0</span>, -<span class="n">1</span>), (<span class="n">0</span>, <span class="n">1</span>)]
-
-<span class="kw">def</span> <span class="fn">get_neighbors</span>(i, j, rows, cols):
-    neighbors = []
-    <span class="kw">for</span> dr, dc <span class="kw">in</span> dirs_4:
-        ni, nj = i + dr, j + dc
-        <span class="kw">if</span> <span class="n">0</span> &lt;= ni &lt; rows <span class="kw">and</span> <span class="n">0</span> &lt;= nj &lt; cols:
-            neighbors.append((ni, nj))
-    <span class="kw">return</span> neighbors</pre></div>
-        <div class="note">Also added to <code>interview_training_plan.html</code>'s 2D Grids section, right after the existing <code>in_bounds</code> lambda.</div>
-        <div class="tags" style="margin-top:8px">
-          <span class="tag">Grid / BFS-DFS</span>
         </div>
       </div>
     </div>
@@ -424,31 +405,7 @@ ord(c) - ord(<span class="str">'a'</span>)      <span class="cm"># maps 'a'-&gt;
         <div class="problem-number">#79</div>
         <div class="problem-info">
           <h3>Word Search</h3>
-          <p>Backtracking DFS from every cell matching <code>word[0]</code>, using the <code>get_neighbors</code> helper from the cheatsheet plus a temporary <code>"#"</code> marker on <code>board[i][j]</code> to block revisiting during the current path, restored on the way back out regardless of outcome. (Logged as "#208" by mistake, that's Implement Trie — this one's #79.)</p>
-          <div class="code-block"><pre><span class="kw">class</span> <span class="fn">Solution</span>:
-    <span class="kw">def</span> <span class="fn">exist</span>(self, board: List[List[str]], word: str) -&gt; bool:
-        rows, cols = <span class="fn">len</span>(board), <span class="fn">len</span>(board[<span class="n">0</span>])
-        target_length = <span class="fn">len</span>(word)
-
-        <span class="kw">def</span> <span class="fn">backtrack</span>(i, j, starting_index):
-            <span class="kw">if</span> starting_index == target_length:
-                <span class="kw">return</span> <span class="kw">True</span>
-            next_char = word[starting_index]
-            <span class="kw">for</span> n_i, n_j <span class="kw">in</span> <span class="fn">get_neighbors</span>(i, j, rows, cols):
-                <span class="kw">if</span> board[n_i][n_j] == next_char:
-                    prev_char = board[i][j]
-                    board[i][j] = <span class="str">"#"</span>
-                    <span class="kw">if</span> <span class="fn">backtrack</span>(n_i, n_j, starting_index + <span class="n">1</span>):
-                        board[i][j] = prev_char
-                        <span class="kw">return</span> <span class="kw">True</span>
-                    board[i][j] = prev_char
-            <span class="kw">return</span> <span class="kw">False</span>
-
-        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(rows):
-            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(cols):
-                <span class="kw">if</span> board[i][j] == word[<span class="n">0</span>] <span class="kw">and</span> <span class="fn">backtrack</span>(i, j, <span class="n">1</span>):
-                    <span class="kw">return</span> <span class="kw">True</span>
-        <span class="kw">return</span> <span class="kw">False</span></pre></div>
+          <p>Backtracking DFS from every cell matching <code>word[0]</code>, using the <code>get_neighbors</code> helper from the cheatsheet plus a temporary <code>"#"</code> marker on <code>board[i][j]</code> to block revisiting during the current path, restored on the way back out regardless of outcome.</p>
           <div class="note"><strong>Key fix, properly propagating the DFS result:</strong> first version called <code>backtrack(n_i, n_j, starting_index + 1)</code> without capturing its return value, so a successful deep match never made it back up the call stack, every frame fell through to its own <code>return False</code>. Fix: <code>if backtrack(...): return True</code> at every call site, so success short-circuits immediately through every enclosing frame.</div>
           <div class="tags" style="margin-top:8px">
             <span class="tag">Backtracking</span>
