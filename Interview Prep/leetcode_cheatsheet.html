@@ -306,6 +306,33 @@ left = <span class="n">0</span>
     </div>
 
     <div class="panel">
+      <h2>2D Grids — setup, iteration, neighbors</h2>
+      <div class="use"><b>When to use:</b> any matrix/board problem — flood fill, islands, word search, shortest path on a grid. Get instantiation and the neighbor-bounds check right once, reuse everywhere below (BFS/DFS/backtracking all sit on top of this).</div>
+      <div class="tell"><b>Tells:</b> "grid" / "board" / "matrix" input · "number of islands" · "flood fill" · rows/cols, 2D array of cells.</div>
+      <div class="note">The #1 grid bug is aliasing: <code>[[0]*cols]*rows</code> makes every row the <i>same</i> list object, so mutating one row mutates all of them. Always build rows independently with a list comprehension.</div>
+      <pre><span class="c"># Instantiate — rows independent, no aliasing</span>
+rows, cols = <span class="n">3</span>, <span class="n">4</span>
+grid = [[<span class="n">0</span>] * cols <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(rows)]
+<span class="c"># bad_grid = [[0]*cols]*rows      # WRONG — all rows are one shared object</span>
+
+<span class="c"># Bounds-checked neighbor helper — reuse for BFS/DFS/backtracking</span>
+dirs_4 = [(-<span class="n">1</span>,<span class="n">0</span>), (<span class="n">1</span>,<span class="n">0</span>), (<span class="n">0</span>,-<span class="n">1</span>), (<span class="n">0</span>,<span class="n">1</span>)]
+
+<span class="k">def</span> <span class="f">get_neighbors</span>(i, j, rows, cols):
+    neighbors = []
+    <span class="k">for</span> dr, dc <span class="k">in</span> dirs_4:
+        ni, nj = i + dr, j + dc
+        <span class="k">if</span> <span class="n">0</span> &lt;= ni &lt; rows <span class="k">and</span> <span class="n">0</span> &lt;= nj &lt; cols:
+            neighbors.append((ni, nj))
+    <span class="k">return</span> neighbors</pre>
+      <ul>
+        <li>8-direction (with diagonals): add <code>(-1,-1),(-1,1),(1,-1),(1,1)</code> to <code>dirs_4</code>.</li>
+        <li>Word Search-style problems: check the neighbor's <b>value</b> (e.g. <code>board[ni][nj] == next_char</code>) in the loop over <code>get_neighbors</code>'s output — keep bounds-checking and value-checking as separate concerns, don't fold both into the helper.</li>
+        <li><code>rows, cols = len(grid), len(grid[0])</code> — compute once, don't call <code>len()</code> inside a hot loop.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
       <h2>BFS vs DFS — templates + when to use</h2>
       <div class="use"><b>When to use BFS:</b> shortest path / fewest steps in an <i>unweighted</i> graph, or level-by-level processing. BFS reaches each node by the fewest edges, so first arrival = shortest. <b>When to use DFS:</b> explore whole paths — does a path exist, count components/islands, cycle detection, all-paths enumeration, tree traversals, flood fill, topological sort.</div>
       <div class="tell"><b>Tells → BFS:</b> "minimum moves/steps", "shortest path" (unweighted), "nearest", level order, something spreading (rotting oranges). <b>Tells → DFS:</b> "all paths", "does a route exist", "count islands/regions", "cycle", any pre/in/post-order tree walk.</div>

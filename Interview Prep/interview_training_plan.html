@@ -449,7 +449,16 @@ in_bounds = lambda r, c: 0 &lt;= r &lt; rows and 0 &lt;= c &lt; cols
 for dr, dc in dirs_4:
     nr, nc = r + dr, c + dc
     if in_bounds(nr, nc):
-        ...   <span class="code-comment"># safe to access grid[nr][nc]</span></pre>
+        ...   <span class="code-comment"># safe to access grid[nr][nc]</span>
+
+<span class="code-comment"># Helper — all valid neighbor indices for (i, j), bounds-checked</span>
+def get_neighbors(i, j, rows, cols):
+    neighbors = []
+    for dr, dc in dirs_4:
+        ni, nj = i + dr, j + dc
+        if 0 &lt;= ni &lt; rows and 0 &lt;= nj &lt; cols:
+            neighbors.append((ni, nj))
+    return neighbors</pre>
 <!-- Algorithm Templates -->
 <p style="font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 6px">Algorithm Templates</p>
 <pre><span class="code-comment"># Two pointers</span>
@@ -563,13 +572,27 @@ graph['a'].append('b')        <span class="code-comment"># no need to check if '
 
 freq = defaultdict(int)
 for c in "banana":
-    freq[c] += 1              <span class="code-comment"># starts at 0 automatically</span></pre>
+    freq[c] += 1              <span class="code-comment"># starts at 0 automatically</span>
+
+<span class="code-comment"># Value is your own class — pass the class itself, no lambda needed,</span>
+<span class="code-comment"># as long as __init__ takes no required args (same idea as list/int above)</span>
+class Node:
+    def __init__(self):
+        self.children = defaultdict(Node)   <span class="code-comment"># char -&gt; Node, self-referential</span>
+        self.is_end = False
+
+<span class="code-comment"># Nested defaultdict — DOES need a lambda. defaultdict(list) evaluates</span>
+<span class="code-comment"># immediately to one instance; that instance isn't callable, so the outer</span>
+<span class="code-comment"># defaultdict needs a zero-arg factory that builds a fresh one each time.</span>
+groups = defaultdict(lambda: defaultdict(list))
+groups['a']['b'].append(1)    <span class="code-comment"># defaultdict(defaultdict(list)) would TypeError here</span></pre>
 <table class="lc-table" style="margin:8px 0 20px">
 <thead><tr><th>#</th><th>Problem</th><th>Diff</th></tr></thead>
 <tbody>
 <tr><td class="lc-num">49</td><td class="lc-name"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank">Group Anagrams</a></td><td><span class="diff medium">Medium</span></td></tr>
 <tr><td class="lc-num">207</td><td class="lc-name"><a href="https://leetcode.com/problems/course-schedule/" target="_blank">Course Schedule</a></td><td><span class="diff medium">Medium</span></td></tr>
 <tr><td class="lc-num">133</td><td class="lc-name"><a href="https://leetcode.com/problems/clone-graph/" target="_blank">Clone Graph</a></td><td><span class="diff medium">Medium</span></td></tr>
+<tr><td class="lc-num">208</td><td class="lc-name"><a href="https://leetcode.com/problems/implement-trie-prefix-tree/" target="_blank">Implement Trie</a></td><td><span class="diff medium">Medium</span></td></tr>
 </tbody>
 </table>
 <!-- Counter -->

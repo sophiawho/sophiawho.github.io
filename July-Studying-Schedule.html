@@ -163,10 +163,10 @@
   </div>
 
   <div class="day interview" data-date="2026-07-14">
-    <div class="dh"><h3>Tue July 14</h3><span class="ivtag">RETOOL — DS/A</span><div class="hrs">4 h 15 min study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span></div>
+    <div class="dh"><h3>Tue July 14</h3><span class="ivtag">RETOOL — DS/A</span><div class="hrs">3 h 20 min study</div><span class="cat dsa">DS/A</span><span class="cat beh">Behavioural</span></div>
     <ul>
       <li><b>[DS/A · 45 min, before]</b> Template skim + one easy warm-up. Review yesterday's Plaid journal notes — patterns repeat across companies in the same week.</li>
-      <li><b>[Behavioural · 75 min, after]</b> Journal the Retool questions. Head start on Google behavioural: list your 5 STAR stories (impact, disagreement, failure, simplifying complexity, ownership beyond scope) and bullet the Situation/Task for each.</li>
+      <li><b>[Behavioural · 20 min, after]</b> Journal the Retool questions.</li>
       <li><b>[DS/A · 45 min]</b> <b>#46 Permutations</b> (Retool) — choose/explore/unchoose, timed. 10 min: skim Retool's product (app builder); expect object/tree manipulation.</li>
       <li><b>[DS/A · 45 min]</b> <b>#131 Palindrome Partitioning</b> (Google) — right after #46 while the pattern's warm. Try every palindromic prefix from each start index, recurse on the rest, undo. Optionally precompute <code>isPalindrome[i][j]</code> to skip re-checking.</li>
       <li><b>[DS/A · 45 min]</b> <b>#208 Implement Trie</b> (Google) from scratch, twice — node = children dict + <code>is_end</code>; insert/search/startsWith walk char by char. If it lands fast, glance at <b>#212 Word Search II</b> as the boss version.</li>
@@ -177,7 +177,7 @@
   <div class="day" data-date="2026-07-15">
     <div class="dh"><h3>Wed July 15</h3><div class="hrs">3 h 55 min</div><span class="cat beh">Behavioural</span><span class="cat dsa">DS/A</span><span class="todo">TO DO · STAR day 1 (priority) + Scale (trimmed) + Google gap-fill</span></div>
     <ul>
-      <li><b>[Behavioural · 2h · priority]</b> Google behavioural, day 1 — <b>write all 5 STAR stories in full</b>: quantified results, "I" not "we", 90-second spoken length. Map each story to the Googliness rubric (collaboration, ambiguity, ownership). Prepare "why Google" and "tell me about yourself" in 3 sentences each. This lands first, protect it — Google is Friday.</li>
+      <li><b>[Behavioural · 2h · priority]</b> Google behavioural, day 1 — start by listing your 5 STAR stories (impact, disagreement, failure, simplifying complexity, ownership beyond scope) and bulleting the Situation/Task for each (moved from Tue), then <b>write all 5 out in full</b>: quantified results, "I" not "we", 90-second spoken length. Map each story to the Googliness rubric (collaboration, ambiguity, ownership). Prepare "why Google" and "tell me about yourself" in 3 sentences each. This lands first, protect it — Google is Friday.</li>
       <li><b>[DS/A · 40 min]</b> Scale <b>Task Prioritizer</b>, talked through not built: <b>Phase 1</b> priority queue (<code>add_task</code>/<code>next_task</code>/<code>complete_task</code> via max-heap, negate priority + counter tiebreak), <b>Phase 2</b> dependencies via Kahn's-on-a-heap (indegree tracking, priority queue of zero-indegree tasks). Raise cycle detection unprompted. Skips the #1834 drill — doubles as a light touch on #210 (no full drill before Friday).</li>
       <li><b>[DS/A · 45 min]</b> <b>#4 Median of Two Sorted Arrays</b> (Google) — binary search the smaller array for the partition where left halves ≤ right halves. Searching for a <em>cut point</em>, not a value; handle odd/even length as two cases.</li>
       <li><b>[DS/A · 30 min]</b> <b>#298 Binary Tree Longest Consecutive Sequence</b> (Google) — one DFS pass carrying parent value + run length; if <code>node.val == parent.val + 1</code> extend, else reset to 1, track a global max.</li>

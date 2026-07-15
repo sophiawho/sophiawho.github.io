@@ -291,11 +291,171 @@
         <span class="kw">if</span> start &lt;= probability &lt; end:
             <span class="kw">return</span> token
     <span class="cm"># falls through here more often than it should — see note</span></pre></div>
-        <div class="note"><strong>Bug hit live:</strong> intervals are built by repeatedly adding floats (<code>cur_prob += cur_token_probability</code>), so the last interval's end can land at <code>0.999999999998</code> instead of exactly <code>1.0</code>. <code>random.random()</code> draws from <code>[0, 1)</code>, so a value in that tiny gap matches no interval and falls through to the fallback branch. Fix: don't bound-check the last token at all, treat it as the catch-all (return it if nothing else matched), or explicitly force the final interval's end to <code>1.0</code> instead of trusting the accumulated sum.</div>
-        <div class="note">General lesson: any time probabilities are built by cumulative float addition, the last boundary is the one to distrust, not the first.</div>
+        <div class="note"><strong>Actual bug hit live:</strong> not floating point, a dead-end token (<code>EXIT_PAGE</code>) that never appears as a key in the frequency map, only as someone else's next-token. <code>token_probabilities[seed]</code> for it is an empty list, so the <code>for</code> loop never runs and falls straight to the fallback branch, every time, not rarely. Told the interviewer: on a dead end, end the output early rather than pad or error.</div>
+        <div class="code-block"><pre><span class="kw">def</span> <span class="fn">build_retool_app</span>(frequency_map, seed, length):
+    token_probabilities = transform_frequency_dict_to_probabilities(frequency_map)
+    output_tokens = [seed]
+    current_token = seed
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="kw">range</span>(length):
+        <span class="kw">if</span> <span class="kw">not</span> token_probabilities.get(current_token):
+            <span class="kw">break</span>                      <span class="cm"># dead end (e.g. EXIT_PAGE) — stop early</span>
+        current_token = <span class="fn">get_next_token_given_intervals</span>(current_token, token_probabilities)
+        output_tokens.append(current_token)
+    <span class="kw">return</span> <span class="str">'-'</span>.join(output_tokens)</pre></div>
+        <div class="note">Related but separate real issue: floating-point drift can theoretically leave a gap just under the last interval's <code>1.0</code> (cumulative <code>+=</code> rounding), but the odds of <code>random.random()</code> landing in it are ~1 in 2⁵³ (~1.1e-16) — essentially never in practice. If the fallback branch fires reliably, look for a dead end like this one first, not float precision.</div>
         <div class="tags" style="margin-top:8px">
           <span class="tag">Floating Point</span>
           <span class="tag purple">Probability Sampling</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>defaultdict factories — class vs. lambda</h3>
+        <p>A defaultdict factory just needs to be a zero-arg callable. A class with a no-arg <code>__init__</code> qualifies directly, same as <code>list</code>/<code>int</code>. A lambda is only needed when the value itself needs to be built by calling something at access time, e.g. another defaultdict.</p>
+        <div class="code-block"><pre><span class="cm"># Custom class as the value type — no lambda needed</span>
+<span class="kw">class</span> <span class="fn">Node</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.children = defaultdict(Node)   <span class="cm"># char -&gt; Node</span>
+        self.is_end = False
+
+<span class="cm"># Nested defaultdict — DOES need a lambda</span>
+groups = defaultdict(<span class="kw">lambda</span>: defaultdict(list))
+groups[<span class="str">'a'</span>][<span class="str">'b'</span>].append(1)</pre></div>
+        <div class="note"><code>defaultdict(defaultdict(list))</code> fails immediately, <code>defaultdict(list)</code> evaluates right away to one built instance, and a dict instance isn't callable, so the outer defaultdict has no valid factory. The lambda defers construction so a fresh <code>defaultdict(list)</code> gets built per new outer key.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">defaultdict</span>
+          <span class="tag purple">Python</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Trie <code>is_end</code> — a node can be a word AND a prefix</h3>
+        <p>Inserting "apple" then "apple tree" shares the path a→p→p→l→e, then continues from that same <code>e</code> node with " tree". That <code>e</code> node ends up with <code>is_end = True</code> (since "apple" is a complete word) <em>and</em> a child continuing toward "apple tree" at the same time.</p>
+        <div class="note">Can't infer "is this a word" from "does this node have no children" — "apple" would look like just a prefix since it has children. <code>is_end</code> has to be its own independent flag per node, not derived from leaf-ness.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Trie</span>
+          <span class="tag green">Medium</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3><code>ord()</code> — character → code point</h3>
+        <p><code>ord(c)</code> returns a character's integer Unicode code point. <code>ord('a') == 97</code>, <code>ord('z') == 122</code>, <code>ord('A') == 65</code>.</p>
+        <div class="code-block"><pre>ord(<span class="str">'a'</span>)               <span class="cm"># 97</span>
+ord(c) - ord(<span class="str">'a'</span>)      <span class="cm"># maps 'a'-&gt;0, 'b'-&gt;1, ..., 'z'-&gt;25</span></pre></div>
+        <div class="note">Didn't know this before. Comes up specifically for array-indexed tries/buckets — any time you need a lowercase letter turned into a small, dense integer index.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Python Basics</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Grid neighbor helper — bounds-checked</h3>
+        <p>Reusable helper for grid BFS/DFS problems: given a cell <code>(i, j)</code>, return only the neighbor indices that stay inside the grid.</p>
+        <div class="code-block"><pre>dirs_4 = [(-<span class="n">1</span>, <span class="n">0</span>), (<span class="n">1</span>, <span class="n">0</span>), (<span class="n">0</span>, -<span class="n">1</span>), (<span class="n">0</span>, <span class="n">1</span>)]
+
+<span class="kw">def</span> <span class="fn">get_neighbors</span>(i, j, rows, cols):
+    neighbors = []
+    <span class="kw">for</span> dr, dc <span class="kw">in</span> dirs_4:
+        ni, nj = i + dr, j + dc
+        <span class="kw">if</span> <span class="n">0</span> &lt;= ni &lt; rows <span class="kw">and</span> <span class="n">0</span> &lt;= nj &lt; cols:
+            neighbors.append((ni, nj))
+    <span class="kw">return</span> neighbors</pre></div>
+        <div class="note">Also added to <code>interview_training_plan.html</code>'s 2D Grids section, right after the existing <code>in_bounds</code> lambda.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Grid / BFS-DFS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROBLEMS SOLVED -->
+    <div class="section">
+      <div class="section-title">Problems Solved</div>
+
+      <div class="problem-card">
+        <div class="problem-number">#208</div>
+        <div class="problem-info">
+          <h3>Implement Trie (Prefix Tree)</h3>
+          <p><code>insert</code>/<code>search</code>/<code>startsWith</code>, each node holding a <code>dict</code> of <code>char → Node</code> plus an <code>is_end</code> flag.</p>
+          <div class="code-block"><pre><span class="kw">class</span> <span class="fn">Node</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, val):
+        self.is_end = <span class="kw">False</span>
+        self.val = val
+        self.children = {}
+
+<span class="kw">class</span> <span class="fn">Trie</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.root = Node(<span class="str">""</span>)
+
+    <span class="kw">def</span> <span class="fn">insert</span>(self, word: str) -&gt; None:
+        node = self.root
+        <span class="kw">for</span> c <span class="kw">in</span> word:
+            <span class="kw">if</span> c <span class="kw">not in</span> node.children:
+                node.children[c] = Node(c)
+            node = node.children[c]
+        node.is_end = <span class="kw">True</span>
+
+    <span class="kw">def</span> <span class="fn">search</span>(self, word: str) -&gt; bool:
+        node = self.root
+        <span class="kw">for</span> c <span class="kw">in</span> word:
+            <span class="kw">if</span> c <span class="kw">not in</span> node.children:
+                <span class="kw">return</span> <span class="kw">False</span>
+            node = node.children[c]
+        <span class="kw">return</span> node.is_end
+
+    <span class="kw">def</span> <span class="fn">startsWith</span>(self, prefix: str) -&gt; bool:
+        node = self.root
+        <span class="kw">for</span> c <span class="kw">in</span> prefix:
+            <span class="kw">if</span> c <span class="kw">not in</span> node.children:
+                <span class="kw">return</span> <span class="kw">False</span>
+            node = node.children[c]
+        <span class="kw">return</span> <span class="kw">True</span></pre></div>
+          <div class="note"><strong>dict vs. fixed array for <code>children</code>:</strong> a <code>dict</code> is correct and general (any character set, only stores children that exist). For this problem specifically (lowercase a-z only), the classic optimized alternative is <code>children = [None] * 26</code> indexed by <code>ord(c) - ord('a')</code> — faster (array index, no hashing) and more cache-friendly, at the cost of being locked to a fixed alphabet and wasting slots when branching is sparse.</div>
+          <div class="note"><strong>Why <code>dict</code>, not <code>defaultdict(Node)</code>, for children:</strong> <code>search</code>/<code>startsWith</code> need to distinguish "child missing → return False" from "auto-create." A <code>defaultdict</code> would silently create an empty <code>Node</code> on a failed lookup inside <code>search</code>, corrupting the trie instead of signaling absence. Plain <code>dict</code> + explicit <code>if c not in node.children</code> avoids that trap.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Trie</span>
+            <span class="tag purple">Design</span>
+            <span class="tag green">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">#79</div>
+        <div class="problem-info">
+          <h3>Word Search</h3>
+          <p>Backtracking DFS from every cell matching <code>word[0]</code>, using the <code>get_neighbors</code> helper from the cheatsheet plus a temporary <code>"#"</code> marker on <code>board[i][j]</code> to block revisiting during the current path, restored on the way back out regardless of outcome. (Logged as "#208" by mistake, that's Implement Trie — this one's #79.)</p>
+          <div class="code-block"><pre><span class="kw">class</span> <span class="fn">Solution</span>:
+    <span class="kw">def</span> <span class="fn">exist</span>(self, board: List[List[str]], word: str) -&gt; bool:
+        rows, cols = <span class="fn">len</span>(board), <span class="fn">len</span>(board[<span class="n">0</span>])
+        target_length = <span class="fn">len</span>(word)
+
+        <span class="kw">def</span> <span class="fn">backtrack</span>(i, j, starting_index):
+            <span class="kw">if</span> starting_index == target_length:
+                <span class="kw">return</span> <span class="kw">True</span>
+            next_char = word[starting_index]
+            <span class="kw">for</span> n_i, n_j <span class="kw">in</span> <span class="fn">get_neighbors</span>(i, j, rows, cols):
+                <span class="kw">if</span> board[n_i][n_j] == next_char:
+                    prev_char = board[i][j]
+                    board[i][j] = <span class="str">"#"</span>
+                    <span class="kw">if</span> <span class="fn">backtrack</span>(n_i, n_j, starting_index + <span class="n">1</span>):
+                        board[i][j] = prev_char
+                        <span class="kw">return</span> <span class="kw">True</span>
+                    board[i][j] = prev_char
+            <span class="kw">return</span> <span class="kw">False</span>
+
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(rows):
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(cols):
+                <span class="kw">if</span> board[i][j] == word[<span class="n">0</span>] <span class="kw">and</span> <span class="fn">backtrack</span>(i, j, <span class="n">1</span>):
+                    <span class="kw">return</span> <span class="kw">True</span>
+        <span class="kw">return</span> <span class="kw">False</span></pre></div>
+          <div class="note"><strong>Key fix, properly propagating the DFS result:</strong> first version called <code>backtrack(n_i, n_j, starting_index + 1)</code> without capturing its return value, so a successful deep match never made it back up the call stack, every frame fell through to its own <code>return False</code>. Fix: <code>if backtrack(...): return True</code> at every call site, so success short-circuits immediately through every enclosing frame.</div>
+          <div class="tags" style="margin-top:8px">
+            <span class="tag">Backtracking</span>
+            <span class="tag">DFS</span>
+            <span class="tag purple">Grid</span>
+            <span class="tag green">Medium</span>
+          </div>
         </div>
       </div>
     </div>
