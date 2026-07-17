@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full-Stack System Design — Frontend-Leaning Field Guide</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+<style>
+:root {
+  --bg: #faf8f5;
+  --text: #2b2b2b;
+  --muted: #6b6255;
+  --accent: #1b6ac2;
+  --accent-dark: #15529a;
+  --accent-bg: #e7f0fd;
+  --border: #d9dee5;
+  --code-bg: #edf1f5;
+  --callout-bg: #e9f2fe;
+  --callout-border: #58a0e0;
+  --sidebar-w: 270px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Sidebar */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  overflow-y: auto;
+  background: #eef1f5;
+  border-right: 1px solid var(--border);
+  padding: 18px 14px 40px;
+  font-size: 13.5px;
+}
+#sidebar .toc-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--accent-dark);
+  margin-bottom: 10px;
+}
+#sidebar ul { list-style: none; margin: 0; padding: 0; }
+#sidebar li { margin: 1px 0; }
+#sidebar a {
+  display: block;
+  padding: 3px 8px;
+  border-radius: 5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+#sidebar a:hover { background: #e2e8ef; text-decoration: none; }
+#sidebar li.chapter > a { color: var(--text); font-weight: 600; margin-top: 7px; }
+#sidebar li.sub > a { padding-left: 22px; font-size: 12.5px; }
+#sidebar a.active {
+  background: var(--accent-bg);
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+#toc-toggle {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 20;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Main */
+main {
+  margin-left: var(--sidebar-w);
+  padding: 36px 28px 100px;
+}
+.content { max-width: 750px; margin: 0 auto; }
+
+h1 {
+  font-size: 30px;
+  color: var(--accent-dark);
+  margin: 0 0 4px;
+  line-height: 1.25;
+}
+.subtitle { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+h2 {
+  font-size: 23px;
+  color: var(--accent-dark);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 6px;
+  margin: 52px 0 16px;
+}
+h3 { font-size: 17.5px; color: var(--accent-dark); margin: 30px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { margin: 8px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+strong { color: #1e1e1e; }
+
+code {
+  font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+pre code { background: none; padding: 0; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 14px 0;
+  font-size: 14px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: var(--accent-bg); color: var(--accent-dark); }
+tr:nth-child(even) td { background: #f2f5f8; }
+
+.soundbite {
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-border);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 22px 0 6px;
+}
+.soundbite .sb-label {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-dark);
+  margin-bottom: 5px;
+}
+.soundbite p { margin: 6px 0; font-size: 14.5px; }
+
+.keycard {
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 24px 0;
+}
+.keycard h2 { border: none; margin: 0 0 8px; padding: 0; font-size: 19px; }
+.keycard table { font-size: 13.5px; }
+
+details.quiz {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+details.quiz summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+details.quiz summary:hover { color: var(--accent-dark); }
+details.quiz .answer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: 14.5px;
+}
+
+@media (max-width: 900px) {
+  #toc-toggle { display: block; }
+  #sidebar { transform: translateX(-100%); transition: transform 0.2s ease; z-index: 15; }
+  #sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+  main { margin-left: 0; padding-top: 60px; }
+}
+</style>
+</head>
+<body>
+
+<button id="toc-toggle">☰ Contents</button>
+
+<nav id="sidebar">
+  <div class="toc-title">Full-Stack SD (FE-leaning)</div>
+  <ul id="toc">
+    <li class="chapter"><a href="#key-numbers">Key numbers card</a></li>
+    <li class="chapter"><a href="#guide">Part 1: The 2-page guide</a></li>
+    <li class="sub"><a href="#guide-round">The round you're passing</a></li>
+    <li class="sub"><a href="#guide-study">What to study</a></li>
+    <li class="sub"><a href="#guide-approach">How to approach a question</a></li>
+    <li class="sub"><a href="#guide-driving">Driving &amp; taking feedback</a></li>
+    <li class="chapter"><a href="#skeleton">1. The frontend skeleton</a></li>
+    <li class="sub"><a href="#skeleton-diagram">The diagram</a></li>
+    <li class="sub"><a href="#skeleton-layers">What each layer owns</a></li>
+    <li class="chapter"><a href="#components">2. Component design</a></li>
+    <li class="sub"><a href="#components-tree">Decomposing a mock</a></li>
+    <li class="sub"><a href="#components-api">Component APIs (props)</a></li>
+    <li class="sub"><a href="#components-controlled">Controlled vs uncontrolled</a></li>
+    <li class="sub"><a href="#components-a11y">Accessibility</a></li>
+    <li class="chapter"><a href="#state">3. State management</a></li>
+    <li class="sub"><a href="#state-kinds">The four kinds of state</a></li>
+    <li class="sub"><a href="#state-where">Where state lives</a></li>
+    <li class="sub"><a href="#state-tools">Context vs Redux vs query cache</a></li>
+    <li class="chapter"><a href="#fetching">4. Data fetching &amp; caching</a></li>
+    <li class="sub"><a href="#fetching-cache">The query cache model</a></li>
+    <li class="sub"><a href="#fetching-pagination">Paginate vs fetch-all</a></li>
+    <li class="sub"><a href="#fetching-mutations">Mutations &amp; optimistic updates</a></li>
+    <li class="chapter"><a href="#lists">5. Lists at scale</a></li>
+    <li class="sub"><a href="#lists-virtual">Virtualization</a></li>
+    <li class="sub"><a href="#lists-infinite">Infinite scroll vs pages</a></li>
+    <li class="chapter"><a href="#rendering">6. Rendering &amp; performance</a></li>
+    <li class="sub"><a href="#rendering-ssr">CSR vs SSR vs hybrid</a></li>
+    <li class="sub"><a href="#rendering-cwv">Core Web Vitals</a></li>
+    <li class="sub"><a href="#rendering-bundle">Bundles &amp; code splitting</a></li>
+    <li class="chapter"><a href="#inputs">7. Search &amp; input patterns</a></li>
+    <li class="chapter"><a href="#realtime">8. Real-time updates</a></li>
+    <li class="chapter"><a href="#api">9. API design &amp; data modeling</a></li>
+    <li class="sub"><a href="#api-reading">Reading a provided backend</a></li>
+    <li class="sub"><a href="#api-design">Designing the API</a></li>
+    <li class="sub"><a href="#api-modeling">Data modeling</a></li>
+    <li class="sub"><a href="#api-bff">REST vs GraphQL vs BFF</a></li>
+    <li class="chapter"><a href="#forms">10. Forms &amp; multi-step flows</a></li>
+    <li class="chapter"><a href="#security">11. Security (fintech-grade)</a></li>
+    <li class="chapter"><a href="#media">12. CDNs, media, resumable uploads</a></li>
+    <li class="sub"><a href="#media-cdn">CDN mechanics for the FE</a></li>
+    <li class="sub"><a href="#media-video">Video delivery (Netflix)</a></li>
+    <li class="sub"><a href="#media-upload">Resumable uploads</a></li>
+    <li class="chapter"><a href="#ex-dashboard">13. Worked: transactions dashboard</a></li>
+    <li class="chapter"><a href="#ex-widget">14. Worked: embeddable widget</a></li>
+    <li class="chapter"><a href="#ex-netflix">15. Worked: Netflix browse + upload</a></li>
+    <li class="chapter"><a href="#quiz">16. Self-quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+<div class="content">
+
+<h1>Full-Stack System Design, Frontend-Leaning</h1>
+<p class="subtitle">Field guide for whiteboard rounds that are ~2/3 frontend component design, ~1/3 backend. Companion to the L5 backend guide.</p>
+
+<section id="key-numbers" class="keycard">
+<h2>Key numbers card</h2>
+<table>
+<tr><th>Thing</th><th>Number</th></tr>
+<tr><td>Feels instant / feels sluggish / feels broken</td><td>&lt;100ms / &gt;300ms / &gt;1s (show progress past 1s)</td></tr>
+<tr><td>Frame budget at 60fps</td><td>16ms per frame (all JS + layout + paint)</td></tr>
+<tr><td>Core Web Vitals "good"</td><td>LCP &lt;2.5s · INP &lt;200ms · CLS &lt;0.1</td></tr>
+<tr><td>Search debounce</td><td>200-300ms</td></tr>
+<tr><td>Autosave debounce</td><td>1-2s after last keystroke</td></tr>
+<tr><td>DOM nodes before a list needs virtualization</td><td>~500-1,000 rows</td></tr>
+<tr><td>Fetch-all is fine up to roughly</td><td>~1-5K rows / low MBs of JSON</td></tr>
+<tr><td>JS bundle budget (initial, gzipped)</td><td>~200KB is respectable; every 100KB ≈ 100-300ms parse on mid phones</td></tr>
+<tr><td>localStorage limit</td><td>~5MB, synchronous (never large data)</td></tr>
+<tr><td>Upload chunk size</td><td>5-10MB per part (S3 multipart minimum 5MB)</td></tr>
+<tr><td>Polling interval that won't hurt anyone</td><td>10-30s with jitter; below ~5s consider SSE/WebSocket</td></tr>
+<tr><td>staleTime for reporting-style data</td><td>minutes, not seconds (my prod default: 30min)</td></tr>
+<tr><td>Access token / refresh token lifetime</td><td>~15min / days, refresh in httpOnly cookie</td></tr>
+<tr><td>Image formats by weight</td><td>AVIF &lt; WebP &lt; JPEG; hero image ~100-200KB</td></tr>
+</table>
+</section>
+
+<h2 id="guide">Part 1: The 2-page guide</h2>
+
+<h3 id="guide-round">The round you're passing</h3>
+<p>Format: whiteboard, no coding. Roughly one third backend, two thirds frontend component design. The backend is often given to you as boilerplate ("here are the endpoints"), and your job is to design the frontend around it. You produce a general architecture, boxes and arrows, with emphasis on frontend components, then go deep on specific technology choices (why this framework, how to structure the API) and call out performance, scalability, and security issues yourself, before being asked.</p>
+<p>What's actually graded, per the recruiter: <strong>trade-offs, thinking out loud, planning ahead, and driving the interview.</strong> It is explicitly not a checklist. A candidate who covers eight topics shallowly loses to one who makes four decisions with visible reasoning and adjusts when the interviewer pushes. Every section of this guide ends in a decision sentence for that reason, the unit of value in this round is "I chose X over Y because Z."</p>
+
+<h3 id="guide-study">What to study (priority order)</h3>
+<table>
+<tr><th>Priority</th><th>Topic</th><th>Why</th></tr>
+<tr><td>1</td><td>Component decomposition + state placement (Ch 2-3)</td><td>The 2/3 of the round. Every question starts here.</td></tr>
+<tr><td>1</td><td>Data fetching: query cache, pagination vs fetch-all, optimistic updates (Ch 4)</td><td>Your strongest real experience; every dashboard/table question lives here.</td></tr>
+<tr><td>1</td><td>API design around a given backend, error/loading contracts (Ch 9)</td><td>The Plaid format literally hands you a backend.</td></tr>
+<tr><td>2</td><td>Performance: CWV, virtualization, code splitting (Ch 5-6)</td><td>You're expected to raise these unprompted.</td></tr>
+<tr><td>2</td><td>Security: XSS, CSRF, token storage, PII (Ch 11)</td><td>Fintech interviewer; weak answers here are disqualifying.</td></tr>
+<tr><td>3</td><td>Real-time, forms/flows, uploads/CDN (Ch 7-8, 10, 12)</td><td>Differentiators; also covers the "design Netflix" curveball.</td></tr>
+</table>
+<p>Study method: read a worked example (Ch 13-15), then re-derive it on paper from just the prompt. If you can reproduce the boxes and the decision sentences without looking, you're ready. Don't memorize the prose.</p>
+
+<h3 id="guide-approach">How to approach any question (45 min)</h3>
+<ol>
+<li><strong>Requirements, 5 min.</strong> Who is the user, what are the 2-3 core flows, what scale (rows per user, users, read vs write), what devices, what freshness. For FE questions add: does it need to work embedded / offline / on mobile web? Write the list on the board, it's your contract for the rest of the hour.</li>
+<li><strong>Read or sketch the API, 5 min.</strong> If the backend is given, read it aloud and extract: entities, pagination style, error shape, auth. Say what's missing ("I don't see a batch endpoint, I'll flag where I need one"). If it's not given, sketch 3-5 endpoints and move on.</li>
+<li><strong>Boxes and arrows, 10 min.</strong> Draw the frontend skeleton (Ch 1): component tree on the left, state/data layer in the middle, API on the right. Name the 4-6 major components. This diagram is your table of contents, you'll spend the rest of the interview zooming into its boxes.</li>
+<li><strong>Data flow deep dive, 10 min.</strong> Pick the hardest flow (usually the big list or the mutation) and walk it end to end: cache key, loading states, pagination, invalidation. This is where your production stories become answers.</li>
+<li><strong>The three passes, 10 min.</strong> Performance pass (what's slow, what would I measure), scalability pass (10x rows, 10x users, what breaks first), security pass (XSS/CSRF/tokens/PII). Announce each pass by name, this is the "planning ahead" signal.</li>
+<li><strong>Wrap, 5 min.</strong> Restate the 2-3 decisions you'd revisit with more time and what you'd measure post-launch.</li>
+</ol>
+
+<div class="soundbite"><div class="sb-label">Opening move, verbatim</div>
+<p>"Before I draw anything, let me pin down the core flows and the data scale, the right frontend architecture is completely different for 200 rows vs 200 thousand. Then I'll read through the API you've given me, sketch the component and state architecture, deep-dive the riskiest flow, and finish with explicit performance, scaling, and security passes. Sound good?"</p></div>
+<p>That one paragraph does four things: shows a plan (planning ahead), sets you up to drive, gives the interviewer a place to redirect early (taking feedback), and buys you thinking time.</p>
+
+<h3 id="guide-driving">Driving the interview &amp; taking feedback</h3>
+<ul>
+<li><strong>Narrate decisions, not facts.</strong> "There are two ways to paginate this" is trivia. "I'll fetch-all here because per-user data is ~2K rows and the expensive part is the backend aggregation, if it were unbounded I'd cursor-paginate" is a graded answer.</li>
+<li><strong>Close each section and hand off.</strong> "That's the state layer. I'd like to deep-dive the table's data flow next, unless you'd rather I go into the API design?" You keep the wheel while offering the map.</li>
+<li><strong>When pushed, bend visibly.</strong> If the interviewer says "what if the dataset is 500K rows," don't defend the old design. Say "that changes my answer" and re-derive: server-side pagination + virtualization + search moves server-side. Interviewers push to test whether you update; updating fast is a senior signal, not a loss.</li>
+<li><strong>Flag debts instead of hiding them.</strong> "I'm hand-waving auth refresh for now, I'll come back to it in the security pass" beats hoping nobody notices.</li>
+<li><strong>Use your scars.</strong> "In production I've seen exactly this bite us: hydration writes echoing server state back as PATCHes" is worth ten textbook sentences. You have real stories for caching, migrations, dual-write, experiment-gated rollouts; deploy them.</li>
+</ul>
+
+<h2 id="skeleton">Chapter 1: The frontend skeleton</h2>
+
+<h3 id="skeleton-diagram">The diagram you start from</h3>
+<p>Backend rounds have a default skeleton; so do frontend rounds. Learn it cold so the first boxes cost zero thought.</p>
+<pre><code>┌────────────────────────── Browser ──────────────────────────┐
+│                                                             │
+│  Component tree                State layer                  │
+│  ┌─ App shell (routing, auth) ─┐                            │
+│  │  ├─ Page: Dashboard         │   UI state (local/context) │
+│  │  │   ├─ FilterBar           │   ├ selection, modals,     │
+│  │  │   ├─ SummaryCards        │   │ form drafts            │
+│  │  │   └─ TransactionsTable   │                            │
+│  │  │       ├─ Row (virtualized)   Server cache (query lib) │
+│  │  │       └─ Pagination      │   ├ keyed by request       │
+│  │  └─ Page: Detail            │   ├ staleTime / gc         │
+│  └─────────────────────────────┘   └ invalidation           │
+│                                                             │
+│  Data layer: query/mutation hooks · API client (fetch,      │
+│  auth header, retries, error normalization)                 │
+└───────────────┬─────────────────────────────────────────────┘
+                │ HTTPS (JSON)                 static assets ← CDN
+                ▼
+        API / BFF layer  →  services / DB (often given as boilerplate)</code></pre>
+
+<h3 id="skeleton-layers">What each layer owns, in one sentence each</h3>
+<ul>
+<li><strong>App shell:</strong> routing, auth gate, error boundary, layout. Nothing domain-specific.</li>
+<li><strong>Pages:</strong> compose components and connect them to data hooks; own which queries fire.</li>
+<li><strong>Components:</strong> render props, emit events. Ideally no fetching inside leaf components, they stay testable and reusable.</li>
+<li><strong>UI state:</strong> things only the client knows: selection, open modals, unsaved form input.</li>
+<li><strong>Server cache:</strong> the client's copy of backend truth, keyed by request identity, with staleness rules. This is TanStack Query / SWR territory.</li>
+<li><strong>API client:</strong> one place for base URL, auth header injection, retry policy, and normalizing errors into a shape components can render.</li>
+</ul>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"I split state into UI state and server cache because they have opposite lifecycles: server data is shared, refetchable, and staleness-managed; UI state is private and dies with the view. Most frontend spaghetti comes from putting both in one store."</p></div>
+
+<h2 id="components">Chapter 2: Component design</h2>
+
+<h3 id="components-tree">Decomposing a mock into a tree</h3>
+<p>Given a mock (or asked to imagine one), decompose by <strong>responsibility, not by visual region</strong>. A visual region ("the top area") is not a component; "the thing that owns filter state and emits filter-change events" is. Practical procedure:</p>
+<ol>
+<li>Circle every piece of the UI that renders <em>one entity</em> (a transaction row, an account card). Those are your leaf components.</li>
+<li>Circle every piece that renders <em>a collection</em> plus its chrome (table + pagination + empty state). Those are your container components.</li>
+<li>Whatever coordinates two containers (filters affecting both a chart and a table) belongs to their common parent, that's where shared state lives (see Ch 3).</li>
+</ol>
+<p>Name components on the whiteboard with their data dependency next to them: <code>TransactionsTable(accountId, filters)</code>. This makes the later data-flow discussion free, the arrows already exist.</p>
+
+<h3 id="components-api">Component APIs: designing props like you design REST</h3>
+<p>Interviewers at product companies grade component API design like backend interviewers grade endpoint design. The same virtues apply: minimal surface, hard to misuse, evolvable.</p>
+<ul>
+<li><strong>Data down, events up.</strong> Props in, callbacks out (<code>onSelect(id)</code>, not a passed-in setter the child mutates). The component never reaches out and grabs global state, that's what makes it reusable and testable.</li>
+<li><strong>Configuration vs composition.</strong> Twenty boolean props (<code>showHeader</code>, <code>showFooter</code>, <code>compactMode</code>...) is the config trap; each new use case adds a prop and the matrix explodes. Prefer composition: <code>&lt;Table&gt;&lt;Table.Toolbar/&gt;&lt;Table.Row/&gt;&lt;/Table&gt;</code> or a <code>renderRow</code> slot. Decision rule: 2-3 variants → props; open-ended variants → slots/children.</li>
+<li><strong>Make invalid states unrepresentable.</strong> Not <code>isLoading</code> + <code>isError</code> + <code>data</code> as three independent props (8 combinations, 5 nonsensical), but one <code>state: 'loading' | 'error' | 'ready'</code> discriminated union. In TS this eliminates a whole bug class at compile time.</li>
+<li><strong>Stable identity for lists.</strong> Rows need real keys (entity ids, not array index), otherwise reorder/optimistic-insert breaks reconciliation and input state jumps rows.</li>
+</ul>
+
+<h3 id="components-controlled">Controlled vs uncontrolled</h3>
+<p><strong>Controlled:</strong> parent owns the value, child renders it and emits changes. Needed whenever anything else must react to the value while typing (live filter, cross-field validation, character counter). Cost: re-render per keystroke, parent complexity.</p>
+<p><strong>Uncontrolled:</strong> child owns its value internally (or the DOM does); parent reads it on submit. Cheaper and simpler; right default for plain forms.</p>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"I make inputs uncontrolled by default and promote them to controlled only when another component needs the value live. Controlled-everything is the common over-engineering; it buys re-renders per keystroke for reactivity nobody asked for."</p></div>
+
+<h3 id="components-a11y">Accessibility, the five things to say unprompted</h3>
+<ul>
+<li>Semantic elements first: <code>button</code>, <code>table</code>, <code>nav</code>; ARIA only where semantics don't exist (a custom combobox gets <code>role="combobox"</code>, <code>aria-expanded</code>, <code>aria-activedescendant</code>).</li>
+<li>Full keyboard path: tab order, Enter/Escape in modals, arrow keys in menus and grids. A modal traps focus and returns it on close.</li>
+<li>Async changes get announced: a live region (<code>aria-live="polite"</code>) for "12 results found" and for toast errors, or screen-reader users never learn the search finished.</li>
+<li>Loading states: skeletons need <code>aria-busy</code>; disabled-while-submitting buttons keep their label ("Saving…"), don't blank out.</li>
+<li>Color is never the only signal (error borders + icon + text, not red alone), and contrast ≥ 4.5:1.</li>
+</ul>
+
+<h2 id="state">Chapter 3: State management</h2>
+
+<h3 id="state-kinds">The four kinds of state</h3>
+<table>
+<tr><th>Kind</th><th>Examples</th><th>Lives in</th><th>Lifecycle</th></tr>
+<tr><td>Server cache</td><td>transactions, accounts, user profile</td><td>Query library cache</td><td>Refetchable, shared, staleness-managed</td></tr>
+<tr><td>UI state</td><td>open modal, selected rows, active tab</td><td>Component state / small context</td><td>Dies with the view</td></tr>
+<tr><td>Form state</td><td>draft input, dirty flags, field errors</td><td>Form lib or local state</td><td>Dies on submit/cancel</td></tr>
+<tr><td>URL state</td><td>current page, filters, sort, selected id</td><td>The URL</td><td>Survives refresh, shareable, back-button works</td></tr>
+</table>
+<p>The classification is the answer to half of all state questions. "Should filters go in Redux?" No: filters that describe <em>what you're looking at</em> belong in the URL (shareable, refresh-safe, back-button); the data they select belongs in the server cache; neither needs a global store.</p>
+
+<h3 id="state-where">Where state lives: the lifting algorithm</h3>
+<ol>
+<li>Start with state in the component that uses it.</li>
+<li>Two siblings need it → lift to the common parent, pass down.</li>
+<li>The parent chain gets silly (prop drilling through 4+ layers) → context, scoped as small as possible (a <code>TableSelectionContext</code>, not an <code>AppContext</code>).</li>
+<li>Genuinely app-global and frequently changing from many places → then, and only then, a store (Redux/Zustand).</li>
+</ol>
+<p>Say the failure mode out loud, it's a strong experience signal: a single giant context re-renders every consumer on every change, and it accretes, everyone adds "just one more field" until it's a god object. The fixes: split contexts by concern, memoize values, or move server data out into the query cache, which usually shrinks the "global state" problem to almost nothing. (I've lived this: our app's main context provider grew until unrelated components re-rendered on any change; the durable fix was moving server data into the query cache and splitting what remained.)</p>
+
+<h3 id="state-tools">Context vs Redux vs query cache</h3>
+<table>
+<tr><th>Tool</th><th>Right job</th><th>Wrong job (common misuse)</th></tr>
+<tr><td>Local state</td><td>90% of UI state</td><td>—</td></tr>
+<tr><td>Context</td><td>Low-frequency shared values: theme, auth session, feature flags</td><td>High-frequency data (re-render storms); server data</td></tr>
+<tr><td>Redux/Zustand</td><td>Complex multi-view UI state with devtools/undo needs</td><td>Being a hand-rolled server cache (loading flags, refetch logic in reducers)</td></tr>
+<tr><td>Query cache (TanStack/SWR)</td><td>All server data: caching, dedup, staleness, invalidation</td><td>UI state (it's keyed to requests, not views)</td></tr>
+</table>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Most apps that think they need Redux need a query cache. Once server data moves into a cache keyed by request, what's left of 'global state' is usually a theme, a session, and a couple of modals, context handles that fine."</p></div>
+
+<h2 id="fetching">Chapter 4: Data fetching &amp; caching</h2>
+
+<h3 id="fetching-cache">The query cache model (what TanStack Query actually is)</h3>
+<p>Name the library once, then explain the model, the model is what's graded. A query cache is a client-side map from <strong>request identity → {data, status, timestamp}</strong>:</p>
+<ul>
+<li><strong>Query key = request identity.</strong> <code>['transactions', accountId, {filters}]</code>. Everything follows from the key: two components using the same key share one cache entry and one in-flight request (automatic <strong>deduplication</strong>, this alone kills the "widget loads twice" class of bugs).</li>
+<li><strong>Stale-while-revalidate.</strong> Cached data renders instantly; if older than <code>staleTime</code>, a background refetch follows and the UI updates. The user sees data at memory speed and freshness converges. <code>gcTime</code> separately controls when unused entries are evicted.</li>
+<li><strong>Declarative status.</strong> Every query exposes <code>isPending / isError / data</code>, killing hand-rolled loading booleans and try/catch scattered across components.</li>
+<li><strong>Targeted invalidation.</strong> After a mutation, invalidate by key prefix: <code>invalidateQueries(['transactions', accountId])</code> refetches exactly the affected slices, not the page.</li>
+<li><strong>Dependent and parallel queries</strong> compose: a query can wait on another's result (<code>enabled</code>), or fan out in parallel batches (<code>useQueries</code>).</li>
+</ul>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"I'd put a query-cache layer, TanStack Query in a React app, between components and the API client. It buys dedup, stale-while-revalidate, and targeted invalidation for free, all things teams otherwise hand-roll badly in context. I've led this migration in production; the mechanism I trust is the query key."</p></div>
+
+<h3 id="fetching-pagination">Paginate vs fetch-all: the decision that owns table questions</h3>
+<p>The textbook default is server-side pagination. Ask two questions before accepting it:</p>
+<ol>
+<li><strong>How big is one user's dataset?</strong> Up to a few thousand rows / low MBs, the client can hold all of it.</li>
+<li><strong>What does one page cost the backend?</strong> If serving page 2 requires computing the whole dataset anyway (any "sort by aggregated metric X" over a reporting service does, computing X for all N rows then discarding all but 50), pagination saves bytes, not compute, and compute is usually the expensive resource.</li>
+</ol>
+<table>
+<tr><th></th><th>Server-side pagination</th><th>Fetch-once + derive in memory</th></tr>
+<tr><td>Interaction latency (sort/search/page)</td><td>Network-bound: RTT + backend work per click, hundreds of ms to seconds</td><td>Memory-bound: ~ms, zero network per interaction</td></tr>
+<tr><td>Backend load</td><td>One query per interaction; expensive if each recomputes the dataset</td><td>One query per session (per staleTime window)</td></tr>
+<tr><td>Client memory / initial payload</td><td>Small</td><td>Whole dataset, must be bounded</td></tr>
+<tr><td>Freshness</td><td>Per interaction</td><td>Snapshot; bounded by staleTime</td></tr>
+<tr><td>Right when</td><td>Unbounded data, cheap page computation, fast-changing data</td><td>Bounded per-user data, expensive backend aggregation, read-heavy exploration UI</td></tr>
+</table>
+<p>With fetch-all, run interactions as a pure <strong>derivation chain</strong> over the cached dataset: search → filter → sort → paginate, each step memoized. Sorting and paging become array operations; the UI updates within a frame.</p>
+<p>When the dataset doesn't fit (hierarchies, huge accounts): don't force either extreme. <strong>Batch + progressive render</strong>: fetch in chunks (e.g. 10 parents at a time via parallel queries), render skeleton rows, fill as batches land. The user sees structure immediately and data streams in.</p>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Server-side pagination optimizes bytes over the wire; if the bottleneck is backend compute per interaction, it's the wrong optimization. For a bounded per-user dataset I fetch once and derive search/sort/page in memory, interactions drop from seconds to milliseconds and backend load drops to one query per session. I apply it per-surface: where data was too big in my last migration, I batched with progressive rendering instead."</p></div>
+
+<h3 id="fetching-mutations">Mutations, optimistic updates, and races</h3>
+<ul>
+<li><strong>Baseline mutation flow:</strong> disable the control while in flight, on success invalidate affected query keys, on error surface a retryable toast. This is correct and boring; say it's your default.</li>
+<li><strong>Optimistic updates</strong> (apply the change to the cache immediately, roll back on error) are for high-frequency, high-success-rate, low-stakes actions: toggles, likes, renames. The cost is rollback complexity and a lying UI during failures. For money movement or anything with server-side validation you can't replicate client-side, stay pessimistic, show the spinner.</li>
+<li><strong>Write races:</strong> two rapid edits to the same entity can complete out of order. Defenses: disable-while-pending (simplest), request versioning (send <code>updatedAt</code>, server rejects stale writes), or sparse PATCHes so concurrent writes touching different fields merge safely (last-write-wins damage confined to a single key, this is how my settings store handled multiple writers).</li>
+<li><strong>Idempotency:</strong> retries on flaky networks mean the same mutation may arrive twice. POSTs that create things carry a client-generated idempotency key; the server dedupes. Payments-grade table stakes (Ch 9).</li>
+</ul>
+
+<h2 id="lists">Chapter 5: Lists at scale</h2>
+
+<h3 id="lists-virtual">Virtualization: fetching ≠ rendering</h3>
+<p>Fetch-all solves the network problem; the DOM problem remains. Ten thousand table rows is ~10K × (cells × nodes) DOM elements, layout and memory die long before the network does. Rule of thumb: past ~500-1,000 rows, <strong>virtualize</strong>: render only the ~30 rows in (and near) the viewport, absolutely positioned inside a container whose height equals <code>rowCount × rowHeight</code>, and recycle row components as the user scrolls (react-window / TanStack Virtual).</p>
+<ul>
+<li>Fixed row heights make it trivial; variable heights need measurement or estimates (harder, say so).</li>
+<li>Costs to name: Ctrl+F stops working across unrendered rows (provide your own search, you already have the data in memory), screen readers need row count hints (<code>aria-rowcount</code>), and scrollbar jumpiness with bad height estimates.</li>
+<li>Note the independence: virtualization pairs with either fetching strategy. Fetch-all + virtualize is the sweet spot for bounded datasets: all interactions in memory, constant DOM size.</li>
+</ul>
+
+<h3 id="lists-infinite">Infinite scroll vs numbered pages</h3>
+<ul>
+<li><strong>Infinite scroll</strong>: feeds and browse surfaces, where the goal is continuous consumption and nobody needs "page 7." Implement with an IntersectionObserver sentinel + cursor pagination. Costs: no footer reachability, back-button/scroll restoration needs work, harder to link to a position.</li>
+<li><strong>Numbered pages</strong>: work tools and audit surfaces, where users need to return to, cite, or share a location ("page 3 of the March transactions"). Plays well with URL state.</li>
+<li><strong>Cursor vs offset</strong> (matters for both): offset (<code>?page=3</code>) breaks under insertion, rows shift and users see duplicates/gaps, and <code>OFFSET n</code> is O(n) for the DB. Cursors (<code>?after=txn_889</code>, an opaque key from the last row) are stable under writes and O(log n). Default to cursors for anything that grows; offset is acceptable for small, static datasets.</li>
+</ul>
+
+<h2 id="rendering">Chapter 6: Rendering &amp; performance</h2>
+
+<h3 id="rendering-ssr">CSR vs SSR vs hybrid</h3>
+<table>
+<tr><th></th><th>CSR (SPA)</th><th>SSR / streaming</th><th>Hybrid (SSR shell + CSR data)</th></tr>
+<tr><td>First paint</td><td>Slow: HTML → JS download/parse → fetch → render</td><td>Fast: HTML arrives populated</td><td>Fast shell, data hydrates in</td></tr>
+<tr><td>SEO / link previews</td><td>Poor without prerendering</td><td>Native</td><td>Good</td></tr>
+<tr><td>Interactivity model</td><td>Everything after load is instant-feeling</td><td>Server render per navigation, or hydrate into SPA</td><td>SPA after first load</td></tr>
+<tr><td>Infra cost</td><td>Static hosting + CDN</td><td>Render servers (or edge)</td><td>Render servers</td></tr>
+<tr><td>Right for</td><td>Authenticated tools, dashboards, anything behind login</td><td>Public content: marketing, docs, e-commerce listings</td><td>Public app-like products (feeds, search)</td></tr>
+</table>
+<p>Decision drivers, in order: does SEO/first-visit speed on public pages matter (SSR side), or is it an authenticated tool where users pay the load once and interact for an hour (CSR side)? Most real answers are hybrid by route: marketing pages SSR'd/static, the app itself CSR. Two honest caveats worth volunteering: SSR doesn't fix a slow API, if the bottleneck is a downstream aggregation service, server-rendering just moves the wait; and hydration cost is real, you ship HTML <em>plus</em> the JS to make it alive.</p>
+
+<h3 id="rendering-cwv">Core Web Vitals: the vocabulary of the performance pass</h3>
+<ul>
+<li><strong>LCP</strong> (Largest Contentful Paint, &lt;2.5s): when the main content shows. Levers: CDN/edge caching, preload the hero request, SSR/streaming, image formats and sizes.</li>
+<li><strong>INP</strong> (Interaction to Next Paint, &lt;200ms): worst-case click-to-visual-response. Levers: less main-thread JS, memoized derivations, virtualization, moving heavy transforms off the interaction path (or to a worker).</li>
+<li><strong>CLS</strong> (Cumulative Layout Shift, &lt;0.1): content jumping. Levers: reserve space for images/skeletons/ads, never inject above existing content.</li>
+<li>Measure with <strong>percentiles from real users</strong> (RUM), not lab runs: p50 tells you the typical experience, p90/p99 tell you the worst experiences, and regressions hit the tail first. Separate <strong>initial load</strong> from <strong>SPA navigation</strong> metrics, they have different budgets and different fixes (my prod dashboards track exactly this split).</li>
+</ul>
+
+<h3 id="rendering-bundle">Bundles &amp; code splitting</h3>
+<ul>
+<li><strong>Route-level splitting</strong> is the 80% win: each page loads its own chunk (<code>React.lazy</code> / dynamic import); the initial bundle carries the shell only.</li>
+<li>Split below routes only for genuinely heavy leaf features (chart library, rich-text editor, PDF viewer): load on first use with a skeleton.</li>
+<li>Other levers, one line each: tree-shaking (import functions, not libraries), compression (brotli), fingerprinted immutable assets on a CDN (Ch 12), font subsetting + <code>font-display: swap</code>, and a bundle-size budget in CI so regressions fail loudly instead of accreting.</li>
+</ul>
+<div class="soundbite"><div class="sb-label">The performance pass, verbatim</div>
+<p>"Performance pass: first load is bounded by bundle and LCP, so route-splitting, CDN, and preloading the primary query. Interactions are bounded by INP, so in-memory derivations and virtualization for the table. Navigations should hit the warm query cache. And I'd instrument all three with RUM percentiles, p90 regressions hit the slowest users first, before I claim any of it works."</p></div>
+
+<h2 id="inputs">Chapter 7: Search &amp; input patterns</h2>
+<p>Every design with a search box gets probed on the same three failure modes; volunteering them is cheap credibility.</p>
+<ul>
+<li><strong>Debounce</strong> (200-300ms after last keystroke) so you're not issuing a request per character. Distinguish from <strong>throttle</strong> (at most every N ms, for scroll/resize handlers). If results are already client-side (fetch-all designs), skip debouncing entirely, filter synchronously per keystroke, it's just an array filter.</li>
+<li><strong>The stale-response race:</strong> user types "ca" then "cat"; the "ca" response arrives <em>after</em> "cat"'s and overwrites better results with worse. Fixes, in preference order: <code>AbortController</code> to cancel the in-flight request when a new one fires; or tag requests with a sequence number and drop any response older than the latest. A query cache keyed by the search term gives you this for free, each term is its own cache entry, and stale entries never overwrite the active key.</li>
+<li><strong>Empty/error/typing states:</strong> "no results" ≠ "still typing" ≠ "search failed." Three distinct UI states; naming them shows product care. Keep the previous results rendered (dimmed) while the next query loads, full-flash to skeleton on every keystroke is the amateur tell.</li>
+<li>For typeahead at scale (backend third of the question): prefix index or n-gram search behind a small dedicated endpoint, cached aggressively, results capped (top 8), and highlight matching substrings client-side.</li>
+</ul>
+
+<h2 id="realtime">Chapter 8: Real-time updates</h2>
+<table>
+<tr><th></th><th>Polling</th><th>SSE</th><th>WebSocket</th></tr>
+<tr><td>Direction</td><td>Client pulls</td><td>Server → client stream</td><td>Bidirectional</td></tr>
+<tr><td>Infra cost</td><td>None (plain HTTP, cache-friendly)</td><td>Long-lived connection, one per client</td><td>Long-lived + connection state, gateway boxes</td></tr>
+<tr><td>Latency</td><td>Up to one interval</td><td>~Instant</td><td>~Instant</td></tr>
+<tr><td>Right for</td><td>Dashboards, statuses, anything where 10-30s staleness is fine</td><td>Notifications, progress bars, price tickers (server-push only)</td><td>Chat, collab editing, anything the client streams up</td></tr>
+</table>
+<p>Say the escalation rule: <strong>start with polling</strong> (with jitter, and a query cache makes it one line: <code>refetchInterval</code>), escalate to SSE when the interval you'd need drops below ~5s, and to WebSocket only when the client also needs to push. Most "real-time" dashboard requirements dissolve under the question "what's the actual freshness requirement?", reporting data computed daily does not need a socket. Also mention <code>refetchOnWindowFocus</code>: free freshness exactly when the user is looking, no infra at all.</p>
+
+<h2 id="api">Chapter 9: API design &amp; data modeling</h2>
+
+<h3 id="api-reading">Reading a provided backend (the Plaid format)</h3>
+<p>When handed boilerplate endpoints, extract five things out loud, this five-minute read shapes your whole frontend design and is itself a graded skill:</p>
+<ol>
+<li><strong>Entities and their relationships.</strong> "So we have accounts, each with many transactions, and transactions carry a category. That's my data model on the client too."</li>
+<li><strong>Pagination style.</strong> Cursor or offset? Page size caps? This decides your list architecture (Ch 5) immediately.</li>
+<li><strong>Error contract.</strong> Status codes only, or structured bodies (<code>{code, message, retryable}</code>)? If unstructured, say you'll normalize in the API client so components render one error shape.</li>
+<li><strong>Auth.</strong> Where does the token come from, where does it go, what happens on 401? (Sets up your security pass.)</li>
+<li><strong>What's missing for your UI.</strong> The deliberate gaps are often the test: no batch endpoint (N+1 from the client), no aggregate/summary endpoint (client would compute sums over paginated data, wrong), no search param. Flag each: "I'd request a <code>/summary</code> endpoint here; computing this client-side over paginated data would be both wrong and slow."</li>
+</ol>
+
+<h3 id="api-design">Designing the API (when they ask you to shape it)</h3>
+<ul>
+<li><strong>Resources, not verbs:</strong> <code>GET /accounts/:id/transactions</code>, not <code>/getTransactions</code>. Filters, sort, cursor as query params, which also makes GETs cacheable.</li>
+<li><strong>Design endpoints around screens, honestly.</strong> The dashboard needs summary cards + first page of transactions; that's either two clean resource GETs the client fires in parallel, or one aggregated <code>/dashboard</code> BFF endpoint. Tradeoff sentence: aggregate endpoints cut round trips and move fan-out server-side (good over mobile latency), but couple the API to today's screen layout, fine in a BFF you own, bad in a shared public API.</li>
+<li><strong>Partial updates are PATCHes with sparse payloads:</strong> send only changed keys; server merges per-key. Concurrent writers touching different fields then compose safely, and "absent" stays distinguishable from "reset to default" (hard-won production lesson from my settings migration).</li>
+<li><strong>Idempotency for writes that create:</strong> client-generated <code>Idempotency-Key</code> header; server stores key → result and replays the stored result on retry. The double-submitted payment becomes one transfer. For a fintech interview, raise this before they do.</li>
+<li><strong>Versioning:</strong> additive changes (new optional fields) are free; breaking changes get <code>/v2</code> or header versioning. Clients must ignore unknown fields, that's what keeps additive free.</li>
+<li><strong>Error contract worth writing on the board:</strong> <code>{code: "insufficient_funds", message, retryable: false, requestId}</code>. <code>code</code> is for program logic and i18n, <code>message</code> is a developer aid (never rendered verbatim), <code>retryable</code> drives the client's retry policy, <code>requestId</code> makes support tickets debuggable.</li>
+</ul>
+
+<h3 id="api-modeling">Data modeling in five sentences</h3>
+<p>Model the nouns as tables/collections with clear ownership: <code>users</code>, <code>accounts (user_id)</code>, <code>transactions (account_id, posted_at, amount_cents, category, status)</code>. Money is integer cents (never floats) plus a currency code. Status fields are enums with an explicit state machine (<code>pending → posted | failed</code>), the frontend renders per-state, so ambiguity here becomes UI bugs. Index what you filter and sort by (<code>account_id, posted_at</code> composite for "recent transactions per account"). For flexible per-user blobs (view settings, preferences), a JSON column trades schema enforcement for velocity, enforce the shape at the API layer with a schema (OpenAPI/zod) instead, and promote a key to a real column when you need to index it.</p>
+
+<h3 id="api-bff">REST vs GraphQL vs BFF</h3>
+<table>
+<tr><th></th><th>REST</th><th>GraphQL</th><th>BFF (backend-for-frontend)</th></tr>
+<tr><td>Fetch shape</td><td>Fixed per endpoint; over/under-fetch at the edges</td><td>Client picks fields; one round trip for nested data</td><td>One endpoint per screen need, shaped server-side</td></tr>
+<tr><td>Caching</td><td>HTTP-native (URLs are cache keys)</td><td>Harder (POST body queries); needs client cache smarts</td><td>HTTP-native</td></tr>
+<tr><td>Cost</td><td>Endpoint sprawl for many screens</td><td>Schema/resolver infra, query cost control, N+1 resolvers</td><td>You own another service per client type</td></tr>
+<tr><td>Right when</td><td>Default; few clients, stable screens</td><td>Many diverse clients (iOS/Android/web/partners) with different data needs</td><td>One frontend team wants screen-shaped APIs over microservices</td></tr>
+</table>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"REST by default, it's cacheable and boring. GraphQL earns its infra cost when many client types need different slices of the same graph. If the real problem is 'this screen needs five services,' I'd rather add a thin BFF than adopt GraphQL, same aggregation win, much less machinery. And a query cache on the client keeps the transport swappable later."</p></div>
+
+<h2 id="forms">Chapter 10: Forms &amp; multi-step flows</h2>
+<p>Multi-step flows (onboarding, a bank-linking wizard, checkout) are secretly state-machine questions. Design them as one:</p>
+<ul>
+<li><strong>Model steps as an explicit state machine</strong>, <code>select-institution → credentials → mfa → select-accounts → success</code>, with defined transitions, not a <code>stepIndex</code> integer. Conditional steps (MFA sometimes) become explicit branches instead of index arithmetic. Each step declares what data it needs and what it emits.</li>
+<li><strong>Draft state is form state</strong> (Ch 3): lives locally per step, committed to a flow-level context on step completion. Nothing hits the server until a step semantically completes, except…</li>
+<li><strong>Resumability:</strong> for flows users abandon (long applications), persist progress server-side keyed by a flow id, so a returning user resumes at step 3. For low-stakes flows, sessionStorage is enough. Say which one and why: server persistence is a product decision (do we want cross-device resume?) with a privacy cost (we're now storing partial data, see Ch 11).</li>
+<li><strong>Validation in layers:</strong> field-level on blur (fast feedback), step-level on next (cross-field), server-side at commit (authoritative, the client's version is UX, never security). Render server rejections into field errors via the error contract's <code>code</code>.</li>
+<li><strong>Double-submit:</strong> the final "Confirm" button is where idempotency keys earn their keep, disable-while-pending <em>and</em> idempotent server-side, belt and suspenders, because networks retry without asking.</li>
+<li><strong>Interruption handling:</strong> browser refresh mid-flow (rehydrate from persisted progress), back button (map steps to history entries so back means "previous step," not "lose everything"), and session expiry mid-flow (preserve draft, re-auth, resume).</li>
+</ul>
+
+<h2 id="security">Chapter 11: Security, fintech-grade</h2>
+<p>Run this as a named pass. Order: how code gets injected, how requests get forged, where tokens live, what data leaks.</p>
+<ul>
+<li><strong>XSS</strong> (injected script runs in your page, steals tokens/data): the framework escapes rendered strings by default, so the bugs live at the escape hatches: <code>dangerouslySetInnerHTML</code>, <code>href={userUrl}</code> (mind <code>javascript:</code> URLs), and third-party scripts. Defenses: never render unsanitized HTML (DOMPurify if you must), a Content-Security-Policy that whitelists script sources, and treating any user-originated string as hostile, including ones from your own API (a transaction memo is attacker-controlled text).</li>
+<li><strong>CSRF</strong> (another site makes the user's browser fire a state-changing request with their cookies): relevant iff auth rides on cookies. Defenses: <code>SameSite=Lax/Strict</code> cookies (the modern 90%), plus CSRF tokens for anything cross-site, plus "state-changing = never GET."</li>
+<li><strong>Where tokens live:</strong> the exam question. localStorage is readable by any XSS payload, so no long-lived secrets there. Pattern to give: short-lived access token (~15 min) held in memory, refresh token in an <code>httpOnly, Secure, SameSite</code> cookie the JS can't read; on 401, the API client refreshes once and replays the request; refresh rotation limits stolen-token lifetime. Tradeoff honesty: httpOnly cookies reintroduce CSRF surface, hence SameSite above, the two answers go together.</li>
+<li><strong>PII discipline:</strong> mask account numbers in the UI (<code>····4821</code>) and let users explicitly reveal; never put PII in URLs (they land in logs, history, referrers) or analytics events; redact from error reports and session replays; <code>autocomplete="off"</code> on sensitive fields is a hint, not a control. Client-side "encryption" of localStorage is theater, the key is in the same JS, don't offer it.</li>
+<li><strong>Embedded/iframe surfaces</strong> (widget products): sandbox attribute, <code>postMessage</code> with strict origin checks both directions, and never trust the embedding page (Ch 14 runs this in full).</li>
+<li><strong>Transport &amp; headers, one breath:</strong> HTTPS everywhere + HSTS, CSP, <code>X-Content-Type-Options: nosniff</code>, frame-ancestors to control who may embed you.</li>
+</ul>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"My token model: access token in memory, refresh token in an httpOnly SameSite cookie, silent refresh on 401. XSS can't read what JS can't see, and SameSite closes the CSRF door that cookies open. localStorage tokens fail the first half of that sentence."</p></div>
+
+<h2 id="media">Chapter 12: CDNs, media, resumable uploads</h2>
+
+<h3 id="media-cdn">CDN mechanics, the frontend half</h3>
+<ul>
+<li>A CDN is a geographically distributed HTTP cache; the client's TLS terminates at a nearby edge, cache hits never touch your origin. First win is static assets; second win is edge-cacheable API GETs (public, non-personalized).</li>
+<li><strong>The header contract:</strong> immutable fingerprinted assets (<code>app.3f9c2.js</code>) get <code>Cache-Control: public, max-age=31536000, immutable</code>, cached forever because a content change changes the URL. The HTML that references them gets <code>no-cache</code> (revalidate each time), so deploys propagate instantly: new HTML → new asset URLs. This pair of sentences is the whole deploy/caching story; interviewers love it because most candidates get it half right.</li>
+<li><code>ETag</code>/304s cut bytes, not round trips; <code>stale-while-revalidate</code> serves the cached copy while refreshing behind the scenes (same philosophy as your query cache, one layer down).</li>
+<li>Images: serve responsive sizes (<code>srcset</code>), modern formats (AVIF/WebP with fallback), lazy-load below the fold (<code>loading="lazy"</code>), and reserve dimensions to protect CLS. Resize/transcode at upload or at the edge, never ship originals.</li>
+</ul>
+
+<h3 id="media-video">Video delivery (the Netflix question, frontend view)</h3>
+<ul>
+<li>Video is never one file over one request. It's transcoded into a <strong>bitrate ladder</strong> (multiple resolutions), each rendition chopped into <strong>2-10s segments</strong>, described by a <strong>manifest</strong> (HLS/DASH). The player fetches the manifest, then segments, all plain HTTP, all CDN-cacheable, which is the point.</li>
+<li><strong>Adaptive bitrate (ABR) runs in the client:</strong> the player measures segment download throughput and buffer fill, and picks the next segment's quality. Buffer running low → step down; sustained headroom → step up. Startup fast: begin low, upgrade after a few segments.</li>
+<li>Frontend concerns to volunteer: preload the manifest + first segments of the likely next play (hover on a tile); buffer-ahead target (~30s) balancing memory vs stall risk; resume position synced periodically; DRM (encrypted segments, license server) name-checked, not deep-dived.</li>
+</ul>
+
+<h3 id="media-upload">Resumable uploads</h3>
+<p>Any "user uploads something big" (video platform, document verification, statement upload) gets this design:</p>
+<ol>
+<li><strong>Initiate:</strong> client asks the API to start an upload (<code>POST /uploads</code> with filename, size, content type); API returns an upload id and <strong>presigned URLs</strong> for object storage, so bytes go browser → S3 directly, never through your app servers (they'd be a bandwidth bottleneck and add nothing).</li>
+<li><strong>Chunk:</strong> client slices the file (<code>File.slice</code>), 5-10MB parts, uploads N parts in parallel (3-4 concurrent), tracks per-part completion. Progress UI is completed-bytes/total, cheap and honest.</li>
+<li><strong>Resume:</strong> on failure/refresh, ask the server which parts it has (<code>GET /uploads/:id</code>), upload only the missing ones. This is the "resumable" part: state lives server-side, keyed by upload id, so even a browser crash loses nothing but the in-flight chunks. (tus is the open protocol name to drop.)</li>
+<li><strong>Complete:</strong> client calls complete; server verifies parts (checksums), assembles, then kicks async processing (virus scan, transcode) via a queue, status polled or pushed to the client (<code>processing → ready</code>), render per-state.</li>
+</ol>
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Big uploads go browser → object storage with presigned URLs, chunked at 5-10MB with a few parts in parallel. Resume is just 'ask the server which parts it has.' App servers stay out of the byte path, they coordinate, storage carries."</p></div>
+
+<h2 id="ex-dashboard">Chapter 13: Worked example, transactions dashboard from a given API</h2>
+<p><strong>Prompt shape:</strong> "Here's our backend. Design a web dashboard where a user views their accounts and transactions, with search, filters, and category summaries."</p>
+<pre><code>Given boilerplate:
+GET /accounts                          → [{id, name, mask, balance_cents, currency}]
+GET /accounts/:id/transactions         → {items: [{id, posted_at, amount_cents,
+    ?after=cursor&amp;limit=100               merchant, category, status}], next_cursor}
+PATCH /transactions/:id                → update category
+Auth: Bearer token. Errors: {code, message, request_id}</code></pre>
+
+<h3>Step 1: Requirements (say the numbers)</h3>
+<p>Clarify: rows per user? Say the interviewer answers "a few thousand transactions, a handful of accounts." Freshness? Transactions post hourly-ish, not real-time. Devices: desktop web primarily. Core flows: scan recent activity, find a specific transaction, recategorize, see spend by category. That scale answer just decided the architecture, note it out loud.</p>
+
+<h3>Step 2: Read the API aloud, flag gaps</h3>
+<ul>
+<li>Cursor pagination, good, stable under new transactions posting.</li>
+<li>No search or filter params on the transactions endpoint → either request them, or fetch-all and derive client-side. At ~2-5K rows, client-side wins (Ch 4).</li>
+<li><strong>No summary endpoint</strong> → category totals computed over <em>paginated</em> data would be wrong (sums need all rows). Since fetch-all pulls all rows anyway, derive summaries in memory. If the interviewer later 10x's the scale, this flips to a requested <code>/summary</code> endpoint, plant that flag now.</li>
+<li>Errors are structured with request ids, so the API client normalizes and support tickets are debuggable.</li>
+</ul>
+
+<h3>Step 3: Boxes and arrows</h3>
+<pre><code>App shell (auth, routing, error boundary)
+└─ DashboardPage                      ── owns: URL state (account, filters, page)
+   ├─ AccountSwitcher                 ← useAccounts()          [cache: ['accounts']]
+   ├─ SummaryCards (by category)      ← derived, no fetch
+   ├─ FilterBar (search, date, cat.)  → writes URL params
+   └─ TransactionsTable
+      ├─ Row × ~50 (virtualized if needed)
+      └─ Pagination (client-side)
+Data layer: useTransactions(accountId) [cache: ['txns', accountId]]
+            → drains cursor pages until next_cursor = null (parallel-ish, sequential cursors)
+            useUpdateCategory()        → PATCH + targeted cache update
+API client: auth header, 401 refresh-and-replay, error normalization</code></pre>
+
+<h3>Step 4: Data flow deep dive (the 2/3 you're graded on)</h3>
+<ul>
+<li><strong>Fetch strategy:</strong> <code>useTransactions</code> drains the cursor until exhausted (~2-5K rows, a few hundred KB gzipped), cached under <code>['txns', accountId]</code> with staleTime ~5 min. Search/filter/sort/page run as a memoized derivation chain over the cached array: every interaction is zero-network and sub-frame. SummaryCards reduce over the same filtered array, summaries always agree with the visible table, for free, because there's exactly one source dataset.</li>
+<li><strong>URL state:</strong> account id, filters, and page live in the URL → shareable views, back button works, refresh-safe (Ch 3). </li>
+<li><strong>Recategorize (the mutation):</strong> optimistic, category edits are low-stakes and high-success: update the cache row immediately, PATCH in background, roll back with a toast on failure. Idempotent by nature (PATCH sets a value).</li>
+<li><strong>Loading/error states:</strong> skeleton table on cold load; dimmed stale data + background refetch on revisit (stale-while-revalidate); per-row spinner never blocks the table; error state offers retry and shows <code>request_id</code>.</li>
+</ul>
+
+<h3>Step 5: The three passes</h3>
+<ul>
+<li><strong>Performance:</strong> initial load = one accounts call + first transactions page rendered immediately while the rest of the cursor drains (progressive: table fills top-down). Route-split the dashboard from settings/etc. Virtualize the table past ~1K visible rows. Measure LCP + INP with RUM percentiles, split initial-load from navigation.</li>
+<li><strong>Scale flip:</strong> "What if a business account has 500K transactions?" Fetch-all dies; answer changes to: server-side search/filter/sort (request those params), cursor-paginated windows, virtualized infinite scroll, and the <code>/summary</code> endpoint becomes mandatory. Say it as a per-surface decision, consumer accounts keep the fast path, business accounts get the server path, gated by a count check.</li>
+<li><strong>Security:</strong> Bearer token in memory + refresh cookie (Ch 11); transaction memos are attacker-controlled strings, rendered escaped, never as HTML; no PII in URLs (account <em>ids</em> are fine, numbers/names are not); mask account numbers in the switcher.</li>
+</ul>
+
+<h2 id="ex-widget">Chapter 14: Worked example, embeddable widget (Link-shaped)</h2>
+<p><strong>Prompt shape:</strong> "Design an embeddable widget that third-party sites drop into their page so users can complete a sensitive multi-step flow (e.g. connect a bank account)." This is the home-turf question for a fintech interview, it composes Ch 10 (flows) + Ch 11 (security) + component API design (Ch 2) at the product's core.</p>
+
+<h3>The architecture decision: how does third-party embedding work?</h3>
+<table>
+<tr><th>Option</th><th>Mechanics</th><th>Verdict</th></tr>
+<tr><td>NPM component in their app</td><td>Runs in the host page's JS context</td><td>Rejected for the sensitive core: host page (and its XSS) can read every keystroke, including credentials</td></tr>
+<tr><td>Full redirect to our domain</td><td>Leave host site, come back with a code</td><td>Secure but kills conversion; acceptable fallback (and needed for some bank OAuth flows anyway)</td></tr>
+<tr><td><strong>Iframe on our origin + thin SDK (chosen)</strong></td><td>Host includes small script; script injects an iframe served from our domain; postMessage bridge</td><td>Credentials typed inside our origin, the browser's same-origin policy walls the host page out. The host page never sees the data, by construction</td></tr>
+</table>
+
+<h3>Boxes and arrows</h3>
+<pre><code>Host page (untrusted)
+├─ SDK script (~10KB): create({token, onSuccess, onExit}) → open()
+│     injects → &lt;iframe src="https://widget.ours.com?session=..."&gt;
+│     bridge  ← postMessage (origin-checked both ways)
+└─ receives only: success(public_token) / exit(error) / events
+
+Inside iframe (our origin) — the real app:
+  FlowStateMachine: select-institution → credentials → mfa? → select-accounts → success
+  per-step components, flow context, our API client
+  → our API: session-scoped short-lived token, never exposed to host</code></pre>
+
+<h3>The SDK's component API (Ch 2 applied)</h3>
+<p>Keep the host-facing surface tiny and evolvable: a constructor taking a server-minted short-lived <strong>session token</strong> (the host's backend creates it, so our API never trusts the browser), two callbacks (<code>onSuccess(public_token)</code>, <code>onExit(error?)</code>), and an optional <code>onEvent</code> for analytics. The success payload is a one-time <strong>public token the host exchanges server-side</strong> for real credentials/access, so nothing durable ever transits the browser bridge. Version the SDK independently of the iframe app: the iframe deploys continuously (it's just our web app), the SDK is a stable, boring shim, this split is what makes "fix a bug for all customers without them redeploying" possible.</p>
+
+<h3>Deep-dive points interviewers pull on</h3>
+<ul>
+<li><strong>postMessage discipline:</strong> validate <code>event.origin</code> on every message in both directions, allowlist message types, never <code>targetOrigin: '*'</code>. The bridge is the attack surface.</li>
+<li><strong>The flow is a state machine</strong> (Ch 10): MFA is a conditional branch; bank OAuth is a step that opens a popup/redirect to the bank and resumes on return; every step handles refresh/abandon (server-persisted flow state keyed by session).</li>
+<li><strong>Failure UX is the product:</strong> bank endpoints are flaky, so per-institution health awareness, retry with backoff, and a "try another way" path. Distinguish user errors (wrong password → re-prompt) from system errors (institution down → suggest retry later), the error contract's <code>code</code> drives this.</li>
+<li><strong>Performance:</strong> the SDK must be tiny (it loads on <em>every</em> host page view, not just when opened), so lazy-load the iframe app on <code>open()</code>, preconnect on hover/intent. Widget LCP budget is tight because a slow-opening modal reads as broken.</li>
+<li><strong>Scale/multi-tenant:</strong> per-host configuration (allowed products, branding) fetched by session token; rate-limit per host; CSP <code>frame-ancestors</code> controls who may embed the iframe at all.</li>
+</ul>
+
+<h2 id="ex-netflix">Chapter 15: Worked example, Netflix-style browse + resumable upload</h2>
+<p><strong>Prompt shape:</strong> "Design the Netflix home/browse experience," sometimes with "and how do creators upload videos?" bolted on. Frontend-leaning version spends most time on the browse surface and the player handoff; Ch 12 carries the media mechanics.</p>
+
+<h3>Browse surface, boxes and arrows</h3>
+<pre><code>BrowsePage
+├─ HeroBillboard (preloaded, LCP element)
+└─ Row × ~20 (category shelves)        ← virtualized vertically
+   └─ TitleCard × ~50 per row          ← virtualized horizontally, lazy images
+Data: GET /browse → shelf metadata + first N cards per shelf (one aggregated call)
+      GET /shelf/:id/titles?after=…    → horizontal infinite scroll per shelf
+Cache: ['browse'] staleTime ~10min; personalization makes it per-user (no CDN for JSON)
+Player route: code-split; manifest + first segments prefetched on card hover/focus</code></pre>
+<ul>
+<li><strong>The aggregated <code>/browse</code> endpoint is a deliberate API-design choice</strong> (Ch 9): the shelf screen needs 20 lists at once; 20 REST calls from the client over mobile RTTs is the wrong shape. One BFF endpoint returns shelf skeletons + first cards; each shelf then paginates independently with cursors.</li>
+<li><strong>Two-axis virtualization:</strong> vertical shelf windowing + horizontal card windowing per shelf; images lazy with reserved dimensions (CLS) and <code>srcset</code> sizes; DOM stays constant while the catalog is effectively infinite.</li>
+<li><strong>Perceived performance is the product:</strong> hero preloaded (it is the LCP), skeleton shelves, hover-intent prefetch of the player chunk + video manifest + first segments so pressing play starts in &lt;1s. SSR question: the logged-in browse page is personalized, hybrid answer, SSR the shell/hero for fast first paint, hydrate shelves client-side (or full CSR if it's behind login and TV-app-like).</li>
+<li><strong>Player:</strong> ABR loop from Ch 12 (measure throughput + buffer → pick next segment quality), resume position PATCHed periodically (sparse, idempotent), offline/downloads name-checked.</li>
+<li><strong>Upload path (creator side):</strong> exactly Ch 12's resumable pipeline: initiate → presigned multipart chunks → resume by asking which parts landed → complete → async transcode via queue with status polling (<code>uploading → processing → ready</code>, render per-state). Tie-off sentence: "the upload UI is a state machine over the upload record's status field."</li>
+</ul>
+
+<h2 id="quiz">Chapter 16: Self-quiz</h2>
+<details class="quiz"><summary>Interviewer hands you three endpoints and a dashboard mock. What are the first five things you extract from the API?</summary><div class="answer">Entities/relationships, pagination style (cursor vs offset), error contract shape, auth mechanics, and what's missing for the UI (batch/summary/search endpoints). Flag gaps aloud and say whether you'd request an endpoint or work around it client-side.</div></details>
+<details class="quiz"><summary>When is fetch-all + in-memory derivation better than server-side pagination, and what kills it?</summary><div class="answer">Bounded per-user dataset (≤ a few thousand rows) and expensive backend computation per page (serving page 2 costs the same as the whole dataset). Then one fetch per session, interactions at memory speed. Killed by: unbounded data, tight freshness needs, or low-memory clients → cursor pagination + server-side search/sort + virtualization, per-surface.</div></details>
+<details class="quiz"><summary>Where do auth tokens live and why?</summary><div class="answer">Access token (~15min) in memory; refresh token in httpOnly Secure SameSite cookie; API client refreshes on 401 and replays. localStorage fails because any XSS reads it; httpOnly cookies reopen CSRF, which SameSite (+ CSRF tokens for cross-site needs) closes. The two halves are one answer.</div></details>
+<details class="quiz"><summary>User types "ca" then "cat"; the "ca" response lands last. What happened and what are the fixes?</summary><div class="answer">Stale-response race. Fixes: AbortController cancels the superseded request; or sequence-tag and drop stale responses; or key a query cache by term so each term is its own entry and stale never overwrites active. Plus debounce 200-300ms so fewer requests race at all.</div></details>
+<details class="quiz"><summary>Why is a 10K-row table slow even after you've fixed all the fetching?</summary><div class="answer">DOM, not network: 10K rows × dozens of nodes blows layout and memory; 16ms frame budget dies. Virtualize: render the ~30 viewport rows in a fixed-height scroll container, recycle on scroll. Costs to name: native Ctrl+F breaks, aria-rowcount for screen readers, height estimation for variable rows.</div></details>
+<details class="quiz"><summary>Optimistic update: when yes, when no?</summary><div class="answer">Yes: high-frequency, high-success, low-stakes, easily reversible (toggles, category edits, likes) — apply to cache, roll back + toast on failure. No: money movement, anything with server-side validation you can't mirror, anything hard to un-show. Default remains pessimistic with disabled-while-pending.</div></details>
+<details class="quiz"><summary>Deploy just went out. Why do users get the new version instantly without cache-busting hacks?</summary><div class="answer">Assets are content-fingerprinted and cached immutable/forever; the HTML referencing them is no-cache. New deploy → new HTML → new asset URLs. CDN caches never need invalidation because content changes change the key.</div></details>
+<details class="quiz"><summary>Sketch the resumable upload flow in four steps.</summary><div class="answer">Initiate (POST /uploads → upload id + presigned part URLs); chunk (5-10MB parts, 3-4 parallel, browser → object storage directly); resume (GET upload state → send only missing parts); complete (server verifies + assembles → async processing via queue → client renders status per-state).</div></details>
+<details class="quiz"><summary>Why an iframe (not an NPM component) for a sensitive embedded widget?</summary><div class="answer">Same-origin policy: inside an iframe on our origin, the host page — and any XSS it carries — cannot read the DOM where credentials are typed. NPM components run in the host's context and inherit its compromises. Bridge via origin-checked postMessage; host receives only a one-time public token exchanged server-side.</div></details>
+<details class="quiz"><summary>The interviewer 10x's your data scale mid-answer. What's the senior move?</summary><div class="answer">Say "that changes my answer," and re-derive visibly: fetch-all → cursor pagination, client search → server search param, add virtualization, summaries → dedicated endpoint. Offer it per-surface (small accounts keep the fast path). Updating quickly under new constraints is the graded behavior, not defending the old design.</div></details>
+
+
+
+
+
+</div>
+</main>
+
+<script>
+const toggle = document.getElementById('toc-toggle');
+const sidebar = document.getElementById('sidebar');
+toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+document.querySelectorAll('#sidebar a').forEach(a => a.addEventListener('click', () => sidebar.classList.remove('open')));
+
+const links = [...document.querySelectorAll('#sidebar a')];
+const targets = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const link = links.find(l => l.getAttribute('href') === '#' + e.target.id);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '0px 0px -80% 0px' });
+targets.forEach(t => obs.observe(t));
+</script>
+
+</body>
+</html>
