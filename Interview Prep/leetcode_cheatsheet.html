@@ -59,43 +59,6 @@
 
   <div class="cols">
 
-    <div class="panel g">
-      <h2>✓ Already solid — journal-verified, maintain only</h2>
-      <ul>
-        <li><b>Sliding window</b> (#3, #424, #76 incl. have/need optimization) — Google's favorite string pattern. One timed re-solve of #76.</li>
-        <li><b>Two pointers</b> (#125, #167, #15, #11) and <b>arrays/hashmaps</b> (#49, #238, #560 prefix-sum, #347 bucket sort).</li>
-        <li><b>Stacks</b> (#394, #739 monotonic) and <b>linked lists</b> (#206, #21, #141, #19, #138). Deepen monotonic stack (#496/#503/#84) and prefix sum (#560/#724/#437) — see their new panels below; you have the base, these lock the tells.</li>
-        <li><b>Tree BFS/DFS</b> (#102, #199 level-snapshot, #236 LCA, #98 bounds-down) and <b>graphs</b> (#200, #207 Kahn's, Dijkstra #743/#1514).</li>
-        <li>You're ahead of the curve on graphs — Dijkstra + topo sort is more than most L4/L5 loops need. Don't invest further there.</li>
-      </ul>
-    </div>
-
-    <div class="panel gap">
-      <h2>⚑ Gaps — in your plan, never logged in the journal</h2>
-      <ul>
-        <li><b>Binary search</b> (#33, #153, #981) — zero journal entries. Google asks a rotated-array or boundary variant constantly. <b>Highest-priority gap.</b></li>
-        <li><b>Intervals</b> (#56, #57) — not even in the plan's weekly lists (only a mock slot). Plaid's most-reported problem shape is literally "merge overlapping transaction time windows."</li>
-        <li><b>Heap as a pattern</b> (#215, #621, #295) — you know heapq mechanics cold from Dijkstra, but haven't done top-k/scheduling shapes.</li>
-        <li><b>Design problems</b> (#146 LRU, #981 time-based KV) — Google top-frequency, and Plaid's "KV store with TTL" is #981 wearing a fintech costume.</li>
-        <li><b>Backtracking</b> (#46, #78, #79) — Google-only risk, medium priority. #79 Word Search doubles as grid-DFS practice.</li>
-        <li>Skip list for these 2 weeks: DP (your instinct is right), #295 hard heap, #133/#417, tries, bit tricks.</li>
-      </ul>
-    </div>
-
-    <div class="panel full">
-      <h2>Priority problems — 2 weeks, ranked</h2>
-      <table>
-        <tr><th>Order</th><th>Problems</th><th>Pattern</th><th>Why now</th></tr>
-        <tr><td><b>1</b></td><td>#33, #153, #981 <span class="pill pb">Both</span></td><td>Binary search</td><td>Biggest gap × highest Google frequency. #981 bridges into design.</td></tr>
-        <tr><td><b>2</b></td><td>#56, #57 <span class="pill pb">Both</span></td><td>Intervals</td><td>Plaid's signature shape; Google staple. Two problems, one template.</td></tr>
-        <tr><td><b>3</b></td><td>#146 LRU Cache <span class="pill pb">Both</span></td><td>Design</td><td>Top-5 Google frequency for years; Plaid asks the TTL-store cousin.</td></tr>
-        <tr><td><b>4</b></td><td>#215, #621 <span class="pill pg">Google</span></td><td>Heap</td><td>You have the mechanics; these teach the top-k / greedy-schedule shapes.</td></tr>
-        <tr><td><b>5</b></td><td>#79, #46 <span class="pill pg">Google</span></td><td>Backtracking</td><td>#79 = grid DFS + undo; #46 = the canonical choose/explore/unchoose.</td></tr>
-        <tr><td><b>6</b></td><td>Rate limiter · dedupe transactions · parse nested accounts <span class="pill pp">Plaid</span></td><td>Practical</td><td>No LeetCode number — practice the shape: dict + timestamps + evolving requirements (see Plaid panel).</td></tr>
-      </table>
-      <div class="note">Cadence: 1 gap problem/day on weekdays ≈ all of tiers 1–4 in week one, tiers 5–6 plus timed re-solves in week two. Log each in learning_journal.html as usual.</div>
-    </div>
-
     <div class="panel">
       <h2>Binary search — the gap template</h2>
       <div class="use"><b>When to use:</b> the input is sorted (or monotonic — a yes/no that flips exactly once), or you're searching over an <i>answer range</i> where you can test "is X feasible?" in O(n). Turns O(n) scans into O(log n).</div>
@@ -384,71 +347,6 @@ seen = <span class="f">set</span>()
       </ul>
     </div>
 
-    <div class="panel full">
-      <h2>Coupons — apply &amp; allocate discounts <span class="pill pp">Plaid</span></h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div style="min-width:0">
-          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Setup</div>
-          <ul>
-            <li><b>Items:</b> each has <code>price</code> (non-negative) and <code>category</code> (string).</li>
-            <li><b>Coupons:</b> <code>category</code>, <code>type</code> (<code>"amount"</code> = $ off | <code>"percent"</code> = % off), <code>value</code>. A coupon applies only if <code>item.category == coupon.category</code>.</li>
-          </ul>
-          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">Phase 1 — single coupon</div>
-          <ul>
-            <li>Apply at most one coupon per item; only one coupon exists. Return <code>final_prices</code>.</li>
-            <li><code>amount</code> → <code>price − value</code>; <code>percent</code> → <code>price × (1 − value/100)</code>.</li>
-            <li><b>Clamp:</b> final price never below <code>0</code>; if <code>percent &gt; 100</code>, treat as 100 (price → 0).</li>
-          </ul>
-          <div class="note" style="font-size:12.5px"><b>Phase 1 tests:</b><br>
-          <code>[(10,A),(20,B),(5,A)]</code>, coupon <code>(A,amount,7)</code> → <code>[3, 20, 0]</code><br>
-          <code>[(10,A)]</code>, <code>(A,percent,20)</code> → <code>[8]</code> · <code>(A,percent,150)</code> → <code>[0]</code></div>
-        </div>
-        <div style="min-width:0">
-          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px">Phase 2 — multiple coupons</div>
-          <ul>
-            <li>Each item takes <b>at most one</b> coupon; each coupon used <b>at most once</b>. Allocate to <b>minimize total payment</b>; output the min total.</li>
-            <li>Decomposes by category — coupons only apply within their category, so solve each category independently.</li>
-          </ul>
-          <div class="note" style="font-size:12.5px"><b>Phase 2 tests:</b><br>
-          <code>[(10,A),(10,A)]</code>, <code>[(A,amount,7)]</code> → <code>13</code> (one item 10→3, other unhelped)<br>
-          <code>[(10,A),(20,B)]</code>, <code>[(A,percent,50),(B,amount,5)]</code> → <code>20</code><br>
-          <code>[(5,A)]</code>, <code>[(A,amount,10)]</code> → <code>0</code> (clamp)</div>
-          <div style="font-weight:800;color:var(--accent2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 5px">Extensions they push</div>
-          <ul>
-            <li>Same category appears in multiple coupons → still allocate optimally within the category.</li>
-            <li>A coupon reusable across many items → the greedy changes (apply best coupon to every item independently).</li>
-          </ul>
-          <div style="font-size:12px;color:var(--muted);margin-top:6px">Constraints: items, coupons ≤ 2e5, integer prices/values → aim <b>O(n log n)</b>.</div>
-        </div>
-      </div>
-
-      <div class="use"><b>When to use:</b> assigning a limited set of discounts/resources to items to optimize a total, where each choice is independent once grouped. Phase 1 is pure simulation scored on edge cases; Phase 2 is a category-decomposed greedy allocation.</div>
-      <div class="tell"><b>Tells:</b> "minimize/maximize the total" · each item takes at most one X, each X used once · a value that depends on the item (percent-off) · "allocate optimally".</div>
-
-      <pre><span class="c"># Phase 1 — single coupon per item. The clamps ARE the question.</span>
-<span class="k">def</span> <span class="f">final_price</span>(price, kind, value):
-    <span class="k">if</span> kind == <span class="s">"amount"</span>:  saving = <span class="f">min</span>(value, price)              <span class="c"># discount &gt; price → 0, not negative</span>
-    <span class="k">else</span>:                  saving = price * <span class="f">min</span>(value, <span class="n">100</span>) / <span class="n">100</span>   <span class="c"># percent &gt; 100 → cap at 100</span>
-    <span class="k">return</span> <span class="f">max</span>(<span class="n">0</span>, price - saving)
-
-<span class="c"># Phase 2 — minimize total = maximize total saving. Per category:</span>
-<span class="c"># the saving a coupon gives DEPENDS on the item's price (percent case),</span>
-<span class="c"># so you can't sort coupons once. Match biggest savings to priciest items.</span>
-<span class="k">for</span> cat, prices <span class="k">in</span> by_category.<span class="f">items</span>():
-    prices.<span class="f">sort</span>(reverse=<span class="k">True</span>)                 <span class="c"># priciest first</span>
-    <span class="k">for</span> price <span class="k">in</span> prices:
-        best = <span class="f">max</span>((<span class="f">final_price</span>(price, c.kind, c.value) <span class="k">for</span> c <span class="k">in</span> avail[cat]),
-                   default=price)               <span class="c"># cheapest final for this item</span>
-        total += best
-        <span class="c"># remove the coupon that achieved `best` from avail[cat] (single-use)</span></pre>
-      <ul>
-        <li><b>Rearrangement-inequality intuition:</b> the biggest discount should land where it saves most — for percent coupons that's the priciest item; for amount coupons saving is <code>min(value, price)</code>. Because the two types interleave differently per price, evaluate each coupon <i>against the actual price</i> and pick greedily per item, don't assume one global coupon order.</li>
-        <li><b>The mixed-type caveat to say out loud:</b> plain greedy is clean when a category has one coupon type. If amount and percent coupons compete for the same items, greedy can miss the optimum — that's a min-cost assignment (matching) problem. Name that; don't over-claim the greedy always wins.</li>
-        <li><b>Validation variant (2025 report):</b> coupon = <code>(category / categories, percent, amount, minQuantity, minPurchase)</code>. <b>Exactly one</b> of percent/amount must be set — both or neither → <b>throw</b>. <code>minQuantity</code> / <code>minPurchase</code> are gates that may be null; only apply if met. If one coupon covers multiple categories, apply it where it yields the <b>max</b> discount; if two coupons hit the same category → <b>throw</b>.</li>
-        <li><b>Money edge cases that score:</b> discount &gt; price, percent &gt; 100, zero-price items, empty coupon list, cents-vs-dollars (percent gives fractions — clarify rounding), duplicate/out-of-order input.</li>
-      </ul>
-    </div>
-
     <div class="panel hot">
       <h2>Google — what the round looks like</h2>
       <ul>
@@ -460,23 +358,26 @@ seen = <span class="f">set</span>()
       </ul>
     </div>
 
-    <div class="panel hot">
-      <h2>Plaid — what the round looks like</h2>
-      <ul>
-        <li><b>Style:</b> practical &gt; algorithmic. 45–90 min in CoderPad, starting simple, then <b>requirements layer on mid-problem</b> — design for change: small functions, clear names, no premature cleverness.</li>
-        <li><b>Reported shapes:</b> merge overlapping transaction windows (#56!), KV store with TTL (#981/#146!), parse nested bank-account JSON, dedupe/categorize transactions (hashmap + normalization), rate limiter, cycle detection in service dependencies (#207 ✓ — you have this).</li>
-        <li><b>Your code runs.</b> Unlike whiteboard-style rounds, they execute it — test with real inputs as you go, handle the empty/malformed case without being asked.</li>
-        <li>Money-data edge cases score points: duplicate timestamps, out-of-order events, cents-vs-dollars, idempotent reprocessing.</li>
-        <li>Practice rep: take #56, then self-extend it twice ("now windows have amounts — sum per merged window"; "now events arrive out of order"). That's their interview in miniature.</li>
-      </ul>
-    </div>
-
     <div class="panel full">
       <h2>Python gotchas — quick traps to catch in any round</h2>
       <ul>
         <li><b>Presence check vs truthiness:</b> when a value can legitimately be <code>0</code> or empty, test <code>if x is not None</code>, not <code>if not x</code>. <code>0</code>, <code>0.0</code>, <code>""</code>, <code>[]</code>, <code>False</code> are all falsy — a real value of <code>0</code> makes <code>not x</code> wrongly read as "missing." (Bit me on #56 with a sentinel <code>last_end == 0</code>.)</li>
         <li><b>Sort by a field:</b> <code>sorted(xs, key=lambda x: x[0])</code>; tuple key for tiebreaks <code>key=lambda x: (x[0], x[1])</code>. <code>sorted()</code> returns new, <code>.sort()</code> mutates in place.</li>
       </ul>
+    </div>
+
+    <div class="panel full">
+      <h2>Priority problems — 2 weeks, ranked</h2>
+      <table>
+        <tr><th>Order</th><th>Problems</th><th>Pattern</th><th>Why now</th></tr>
+        <tr><td><b>1</b></td><td>#33, #153, #981 <span class="pill pb">Both</span></td><td>Binary search</td><td>Biggest gap × highest Google frequency. #981 bridges into design.</td></tr>
+        <tr><td><b>2</b></td><td>#56, #57 <span class="pill pb">Both</span></td><td>Intervals</td><td>Plaid's signature shape; Google staple. Two problems, one template.</td></tr>
+        <tr><td><b>3</b></td><td>#146 LRU Cache <span class="pill pb">Both</span></td><td>Design</td><td>Top-5 Google frequency for years; Plaid asks the TTL-store cousin.</td></tr>
+        <tr><td><b>4</b></td><td>#215, #621 <span class="pill pg">Google</span></td><td>Heap</td><td>You have the mechanics; these teach the top-k / greedy-schedule shapes.</td></tr>
+        <tr><td><b>5</b></td><td>#79, #46 <span class="pill pg">Google</span></td><td>Backtracking</td><td>#79 = grid DFS + undo; #46 = the canonical choose/explore/unchoose.</td></tr>
+        <tr><td><b>6</b></td><td>Rate limiter · dedupe transactions · parse nested accounts <span class="pill pp">Plaid</span></td><td>Practical</td><td>No LeetCode number — practice the shape: dict + timestamps + evolving requirements (see Plaid panel).</td></tr>
+      </table>
+      <div class="note">Cadence: 1 gap problem/day on weekdays ≈ all of tiers 1–4 in week one, tiers 5–6 plus timed re-solves in week two. Log each in learning_journal.html as usual.</div>
     </div>
 
   </div>
