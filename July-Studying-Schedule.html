@@ -216,36 +216,40 @@
   <div class="day weekend" data-date="2026-07-18">
     <div class="dh"><h3>Sat July 18</h3><div class="hrs">4 h</div><span class="cat sd">Sys Design</span></div>
     <ul>
-      <li><b>[Sys Design · 4h]</b> Sprint kickoff (for August onsites). Week-1 of <code>systems_design_study_guide.html</code>: core building blocks (load balancer, cache, DB, queue) and the framing template — requirements → estimate → API → data model → scale. One end-to-end out loud (URL shortener or news feed).</li>
+      <li><b>[Sys Design · 1h · read + finish]</b> <a href="https://www.greatfrontend.com/front-end-system-design-playbook" target="_blank">GreatFrontEnd Front End System Design Playbook</a> — all 6 articles (~51 min): Introduction, Types of Questions, the RADIO Framework, Evaluation Criteria, Common Mistakes, Cheatsheet. Plaid's design round is Front End Coding/Architecture-flavored, so this framework leads from here, not generic backend sys design.</li>
+      <li><b>[Sys Design · 3h]</b> Sprint kickoff (for August onsites). Week-1 of <code>systems_design_study_guide.html</code>: core building blocks (load balancer, cache, DB, queue). Then run the RADIO framework you just read on one end-to-end design out loud — free playbook question: <a href="https://www.greatfrontend.com/questions/system-design/news-feed-facebook?format=system-design" target="_blank">News Feed</a>.</li>
     </ul>
   </div>
 
   <div class="day weekend" data-date="2026-07-19">
     <div class="dh"><h3>Sun July 19</h3><div class="hrs">4 h</div><span class="cat sd">Sys Design</span><span class="cat ui">React</span></div>
     <ul>
-      <li><b>[Sys Design · 3.5h]</b> Continue Week-1: caching strategies, DB indexing/sharding, consistency vs availability. Second timed design out loud.</li>
+      <li><b>[Sys Design · 3.5h]</b> Continue Week-1: caching strategies, DB indexing/sharding, consistency vs availability. Second timed design out loud, frontend-specific: <a href="https://www.greatfrontend.com/questions/system-design/autocomplete?format=system-design" target="_blank">Autocomplete</a> (free) — debouncing, caching, race conditions, exactly Plaid-round territory.</li>
       <li><b>[React · 45 min · Waymo must-do build 1 of 4]</b> <b>Countdown timer</b> with a digital input field and start / stop / reset. Drills your <b>setState-placement</b> miss directly — <code>setInterval</code> in a <code>useEffect</code> with a proper cleanup, functional <code>setState</code> updater so you don't close over stale state, and parsing/validating the input. Time it, ~30–40 min.</li>
     </ul>
   </div>
 
   <div class="day" data-date="2026-07-20">
-    <div class="dh"><h3>Mon July 20</h3><div class="hrs">deep block</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <div class="dh"><h3>Mon July 20</h3><div class="hrs">4.5 h</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
     <ul>
-      <li><b>[Sys Design · OOO, full focus]</b> Rate limiter design + one design end-to-end with capacity estimation. This is your carved-out time — protect it, no meetings.</li>
+      <li><b>[Sys Design · 3h]</b> Rate limiter design + capacity estimation, backend-style.</li>
+      <li><b>[Sys Design · FE · 1.5h]</b> <a href="https://www.greatfrontend.com/questions/system-design/pinterest?format=system-design" target="_blank">Pinterest</a> and <a href="https://www.greatfrontend.com/questions/system-design/rich-text-editor?format=system-design" target="_blank">Rich Text Editor</a> — premium solutions, ~45 min each: masonry layout + virtualization, then a content-editable architecture (selection state, undo/redo).</li>
     </ul>
   </div>
 
   <div class="day" data-date="2026-07-21">
-    <div class="dh"><h3>Tue July 21</h3><div class="hrs">deep block</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <div class="dh"><h3>Tue July 21</h3><div class="hrs">4.5 h</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
     <ul>
-      <li><b>[Sys Design · OOO]</b> Real-time / streaming systems, pub-sub, websockets vs polling. Design a live monitoring dashboard out loud — conceptually close to Waymo's Fleet Monitoring, useful framing to have.</li>
+      <li><b>[Sys Design · 3h]</b> Real-time / streaming systems, pub-sub, websockets vs polling.</li>
+      <li><b>[Sys Design · FE · 1.5h]</b> <a href="https://www.greatfrontend.com/questions/system-design/photo-sharing-instagram?format=system-design" target="_blank">Photo Sharing (Instagram)</a> and <a href="https://www.greatfrontend.com/questions/system-design/video-conferencing-zoom?format=system-design" target="_blank">Video Conferencing (Zoom)</a> — premium solutions, ~45 min each. Photo Sharing's feed pagination is close to Waymo's Fleet Monitoring shape; Video Conferencing drills the real-time/pub-sub content from this morning.</li>
     </ul>
   </div>
 
   <div class="day" data-date="2026-07-22">
-    <div class="dh"><h3>Wed July 22</h3><div class="hrs">deep block</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <div class="dh"><h3>Wed July 22</h3><div class="hrs">4.5 h</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
     <ul>
-      <li><b>[Sys Design · OOO]</b> Synthesis. Re-do your two weakest designs cold. Write a one-page personal design template you can run in any round. <b>Part 1 ends here — pivot to Waymo tomorrow.</b></li>
+      <li><b>[Sys Design · 3h]</b> Synthesis. Re-do your two weakest designs cold. Write a one-page personal design template you can run in any round.</li>
+      <li><b>[Sys Design · FE · 1.5h]</b> <a href="https://www.greatfrontend.com/questions/system-design/collaborative-editor-google-docs?format=system-design" target="_blank">Google Docs</a> and <a href="https://www.greatfrontend.com/questions/system-design/design-drawing-tool-figma-canva?format=system-design" target="_blank">Design / Drawing Tool (Figma, Canva)</a> — premium solutions, ~45 min each: OT/CRDT-flavored collaboration, then canvas rendering + layers. Both hard-rated, good stress test. <b>Part 1 ends here — pivot to Waymo tomorrow.</b></li>
     </ul>
   </div>
 
@@ -320,11 +324,36 @@
     </ul>
   </div>
 
-  <div class="day interview" data-date="2026-08-04" data-end="2026-08-07">
-    <div class="dh"><h3>Aug 4–7</h3><span class="ivtag">PLAID onsite (confirmed)</span><div class="hrs">loop</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="cat beh">Behavioural</span><span class="todo">OOO</span></div>
+  <div class="day interview" data-date="2026-08-04">
+    <div class="dh"><h3>Tue Aug 4</h3><span class="ivtag">PLAID onsite (confirmed)</span><div class="hrs">loop</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="cat beh">Behavioural</span><span class="todo">OOO</span></div>
     <ul>
-      <li><b>[OOO Aug 4–7]</b> Full block off — buffer/recovery days around the onsite, no work competing for attention.</li>
-      <li><b>[Plaid onsite — Tue Aug 4, confirmed, 10:30am–3:45pm PT]</b> 10:30–11:30 Behavioural. 12:00–1:00 Architecture / System Design. 1:30–2:00 final-round EM chat. 2:30–3:30 Front-end coding. 3:30–3:45 Recruiter check-in. Before: skim STAR stories + design template + <code>ui_cheatsheet.html</code>. Journal it the same day, log the round in <code>interview_history.html</code>.</li>
+      <li><b>[OOO]</b> Full day off — no work competing for attention.</li>
+      <li><b>[Plaid onsite — confirmed, 10:30am–3:45pm PT]</b> 10:30–11:30 Behavioural. 12:00–1:00 Architecture / System Design. 1:30–2:00 final-round EM chat. 2:30–3:30 Front-end coding. 3:30–3:45 Recruiter check-in. Before: skim STAR stories + the RADIO framework + <code>ui_cheatsheet.html</code>. Journal it the same day, log the round in <code>interview_history.html</code>.</li>
+    </ul>
+  </div>
+
+  <div class="day interview" data-date="2026-08-05">
+    <div class="dh"><h3>Wed Aug 5</h3><span class="ivtag">RETOOL onsite (confirmed)</span><div class="hrs">loop</div><span class="cat sd">Sys Design</span><span class="cat beh">Behavioural</span><span class="todo">OOO</span></div>
+    <ul>
+      <li><b>[OOO]</b> Full day off.</li>
+      <li><b>[Retool onsite — confirmed, 3:00–4:45pm PT]</b> 3:00–3:45 Project Deep Dive. 4:00–4:45 Engineering Expectations &amp; Operating Principles. Before: skim your deep-dive doc + STAR stories. Journal it the same day, log the round in <code>interview_history.html</code>. <span style="color:#be123c">Newly added — wasn't logged in this schedule before, pulled from your calendar.</span></li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-06">
+    <div class="dh"><h3>Thu Aug 6</h3><div class="hrs">4.5 h</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <ul>
+      <li><b>[Sys Design · 3h]</b> Recovery day, but not fully off — one backend-leaning design end to end (whatever's least drilled), untimed.</li>
+      <li><b>[Sys Design · FE · 1.5h]</b> <a href="https://www.greatfrontend.com/questions/system-design/chat-application-messenger?format=system-design" target="_blank">Chat App (Messenger)</a> — full-stack-leaning but frontend-implemented, a good synthesis of the playbook so far.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-07">
+    <div class="dh"><h3>Fri Aug 7</h3><div class="hrs">4 h</div><span class="cat sd">Sys Design</span><span class="todo">OOO</span></div>
+    <ul>
+      <li><b>[Sys Design · 2.5h]</b> Re-run your two weakest designs cold, both flavors (backend + FE).</li>
+      <li><b>[Sys Design · FE · 1.5h]</b> <a href="https://www.greatfrontend.com/questions/system-design/poll-widget?format=system-design" target="_blank">Poll Widget</a> — quick, self-contained, good confidence rep before the week resets.</li>
+      <li style="color:#be123c"><b>Heads up:</b> San Mateo Dental Arts appointment 1:10–2:10pm PT today — plan the two blocks around it.</li>
     </ul>
   </div>
 
