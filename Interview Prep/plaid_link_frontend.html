@@ -330,7 +330,12 @@ sequenceDiagram
 <h2 id="o"><span class="radio-letter">O</span>Optimizations / Deep Dives</h2>
 
 <h3>1. OAuth redirect and rehydration <span class="badge crit">CORE PROBLEM</span></h3>
-<p>When the user goes to the bank and comes back, the SPA reloads from scratch (amnesia). Before redirecting, persist the breadcrumbs (<code>link_token</code> / session handle, <span class="nonce">oauth_state_id</span>) in <code>sessionStorage</code> — and the <span class="nonce">oauth_state_id</span> also rides the redirect URL itself as belt-and-suspenders (sessionStorage does not survive a new-tab redirect). On return, read them, call <code>GET /link/session/:id</code>, and let the server report the real <code>current_step</code>. <strong>Never trust a client flag that says "I was on step 4."</strong></p>
+<p>When the user goes to the bank and comes back, the SPA reloads from scratch (amnesia). The problem on return: <strong>which session does this browser belong to?</strong> Two independent recovery paths, so one failing doesn't kill you:</p>
+<ol>
+  <li><strong>sessionStorage breadcrumb.</strong> Before redirecting, persist the session handle (<code>link_token</code>). Works when the redirect returns in the same tab.</li>
+  <li><strong>The <span class="nonce">oauth_state_id</span> in the callback URL.</strong> The bank echoes it back; the server can look up which session issued it. Works even in a new tab with empty sessionStorage.</li>
+</ol>
+<p><strong>The client never validates the state — it is a courier, not a judge.</strong> A client-side "state I sent vs state I got back" check proves nothing (an attacker controls the client). The server generated the state, stored it in the LinkSession, and does the only comparison that counts. The client's jobs: before redirect, save the session handle and navigate to the bank URL the server built (state already inside); on return, read <code>state</code> + <code>code</code> from the URL and forward them to the server. Then <code>GET /link/session/:id</code> and render whatever <code>current_step</code> the server reports. <strong>Never trust a client flag that says "I was on step 4."</strong></p>
 
 <h4>The return leg: one guarded write, one safe read</h4>
 <ol>
@@ -460,7 +465,7 @@ sequenceDiagram
   <ul>
     <li><strong>Lifetime</strong> is the reason for sessionStorage: scoped to the tab, wiped on close — survives exactly the redirect window and cleans itself up. localStorage persists forever across all tabs, leaving security-relevant ids lying around.</li>
     <li><strong>Caveat:</strong> sessionStorage does not survive a redirect landing in a new tab — so the <span class="nonce">oauth_state_id</span> also rides the redirect URL. Real answer: "URL param plus sessionStorage, belt and suspenders."</li>
-    <li><strong>Storage does NOT replace the GET.</strong> Client-side storage is only a breadcrumb (session handle + state id) — nothing authoritative, no tokens, no trusted step. It exists so the reloaded SPA knows which session to ask about. The authoritative flow state and OAuth result exist only server-side.</li>
+    <li><strong>Storage does NOT replace the GET.</strong> Client-side storage is only a breadcrumb (the session handle) — nothing authoritative, no tokens, no trusted step. It exists so the reloaded SPA knows which session to ask about. The authoritative flow state and OAuth result exist only server-side. The client never validates the state param — it forwards it; the server compares.</li>
   </ul>
 </div>
 
