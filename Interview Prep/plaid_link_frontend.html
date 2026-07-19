@@ -293,7 +293,7 @@ stateDiagram-v2
   <tr><td><code>POST /link/session</code></td><td>Creates the session from the <code>link_token</code></td><td>Write (server assigns id → POST, not PUT)</td></tr>
   <tr><td><code>GET /link/session/:id</code></td><td>Lets the widget rehydrate after the redirect. <strong>Safe to repeat</strong> — survives refresh, back button, prefetch. No side effects, never burns the nonce.</td><td>Read</td></tr>
   <tr><td><code>POST /link/session/:id/institution</code></td><td>Selects an institution</td><td>Write</td></tr>
-  <tr><td><code>POST /link/session/:id/oauth/callback</code></td><td>Finalizes the OAuth return using <span class="nonce">oauth_state_id</span>. Validates state (CSRF), checks single-use (replay), exchanges the auth code with the bank, burns the state, advances the session. <strong>The guarded write that fires exactly once.</strong></td><td>Write</td></tr>
+  <tr><td><code>POST /link/oauth/callback</code></td><td>Finalizes the OAuth return with <code>{state, code}</code> in the body. <strong>Not nested under <code>:id</code></strong> — in the new-tab case the client doesn't know the session id, so the endpoint must be resolvable by state alone; the server looks up the session from the state. Validates state (CSRF), checks single-use (replay), exchanges the auth code with the bank, burns the state, advances the session, and returns the session handle + current step (so a new-tab client rehydrates from the response). <strong>The guarded write that fires exactly once.</strong></td><td>Write</td></tr>
   <tr><td><code>POST /link/session/:id/accounts</code></td><td>Persists the user's account selection (re-submittable — overwrites the set)</td><td>Write</td></tr>
   <tr><td><code>POST /public-token/exchange</code></td><td>Customer backend exchanges public_token + secret creds for access_token. <strong>Server-to-server only.</strong></td><td>Write</td></tr>
 </table>
@@ -356,7 +356,7 @@ sequenceDiagram
     Note over U: SPA reloaded, has amnesia.&lt;br/&gt;Read oauth_state_id from URL,&lt;br/&gt;session handle from sessionStorage
     rect rgb(255,224,224)
     Note over U,PB: WRITE — finalize exactly once
-    U->>PB: POST /link/session/:id/oauth/callback&lt;br/&gt;(oauth_state_id, code, Idempotency-Key)
+    U->>PB: POST /link/oauth/callback&lt;br/&gt;(oauth_state_id, code, Idempotency-Key)
     PB->>PB: state issued for live session? not yet used?
     alt valid + unused
         PB->>Bank: exchange auth_code (server-to-server)
