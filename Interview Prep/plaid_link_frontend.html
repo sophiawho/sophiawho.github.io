@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plaid Link — Frontend Systems Design (RADIO)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --panel2: #eef2f9;
+    --text: #1a2233;
+    --muted: #5b6784;
+    --accent: #0284c7;
+    --green: #16a34a;
+    --amber: #d97706;
+    --red: #dc2626;
+    --purple: #db2777;
+    --border: #dde3ee;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 80px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 600px at 80% -10%, #e7eefb 0, var(--bg) 55%);
+    color: var(--text); line-height: 1.6;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  header.hero {
+    background: linear-gradient(135deg, #ffffff 0%, #eef2f9 100%);
+    border-bottom: 1px solid var(--border); padding: 40px 0 28px;
+  }
+  h1 { font-size: 1.9em; margin: 0 0 6px; letter-spacing: -0.4px; }
+  .subtitle { color: var(--muted); margin: 0; }
+  h2 {
+    font-size: 1.5em; margin: 48px 0 8px; padding-top: 18px;
+    border-top: 2px solid var(--border);
+  }
+  h2 .radio-letter {
+    display: inline-block; background: var(--accent); color: #ffffff;
+    width: 34px; height: 34px; line-height: 34px; text-align: center;
+    border-radius: 8px; margin-right: 10px; font-weight: 800;
+  }
+  h3 { font-size: 1.15em; margin: 28px 0 8px; color: var(--accent); }
+  h4 { margin: 20px 0 6px; color: var(--purple); }
+  code {
+    background: #eef2f9; border: 1px solid var(--line, var(--border)); padding: 1px 6px; border-radius: 5px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em;
+    color: var(--accent);
+  }
+  .key { background: #fef3c7; color: #b45309; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+  .nonce { background: #fce7f3; color: #db2777; padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: "SF Mono", Menlo, monospace; font-size: 0.88em; }
+  strong { color: var(--text); }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 22px; margin: 16px 0;
+    box-shadow: 0 1px 3px rgba(20,30,60,.05);
+  }
+  .card.guide { border-left: 4px solid var(--green); }
+  .card.warn { border-left: 4px solid var(--red); }
+  .card.tip { border-left: 4px solid var(--amber); }
+  .card.db { border-left: 4px solid var(--purple); }
+  .card h3:first-child, .card h4:first-child { margin-top: 4px; }
+  .oneliner {
+    background: var(--panel2); border: 1px dashed var(--accent);
+    border-radius: 8px; padding: 10px 16px; margin: 14px 0;
+    font-style: italic; color: var(--accent); font-weight: 600;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.93em; }
+  th { text-align: left; background: var(--panel2); color: var(--accent); padding: 8px 12px; border: 1px solid var(--border); }
+  td { padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafd; }
+  td { background: #ffffff; }
+  .mermaid {
+    background: #ffffff; border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+    margin: 18px 0; text-align: center; box-shadow: 0 1px 3px rgba(20,30,60,.05);
+  }
+  .diagram-label { color: var(--muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; margin: 24px 0 4px; }
+  ul, ol { margin: 8px 0; padding-left: 24px; }
+  li { margin: 5px 0; }
+  .timeline { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .timeline .slot {
+    flex: 1 1 150px; background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; font-size: 0.88em;
+  }
+  .timeline .slot .mins { color: var(--green); font-weight: 700; display: block; }
+  .badge { display: inline-block; font-size: 0.75em; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-right: 6px; vertical-align: middle; }
+  .badge.crit { background: #fee2e2; color: #b91c1c; }
+  .badge.deep { background: #e0f2fe; color: #0369a1; }
+  .toc { columns: 2; column-gap: 30px; font-size: 0.92em; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  @media (max-width: 700px) { .toc { columns: 1; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>Plaid Link — Frontend Systems Design</h1>
+    <p class="subtitle">Build an embeddable account-linking / authorization widget · RADIO framework · Deep dives: security, OAuth, idempotency</p>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ================= INTERVIEW GUIDE ================= -->
+<div class="card guide">
+  <h3>⏱️ 60-Minute Interview Guide (Cheatsheet)</h3>
+  <div class="timeline">
+    <div class="slot"><span class="mins">0–8 min · R</span>Clarify auth model (OAuth vs legacy), devices, a11y, resilience. State non-goals: SEO, load perf.</div>
+    <div class="slot"><span class="mins">8–18 min · A</span>Draw iframe + SDK + postMessage bridge. Draw the <strong>trust boundary</strong> out loud.</div>
+    <div class="slot"><span class="mins">18–26 min · D</span>LinkSession record, FlowState enum, the three tokens. Say which values the client may hold.</div>
+    <div class="slot"><span class="mins">26–36 min · I</span>SDK surface, postMessage events, REST endpoints. Mention <code>Idempotency-Key</code>.</div>
+    <div class="slot"><span class="mins">36–58 min · O</span><strong>Spend your remaining time here.</strong> OAuth redirect + rehydration → idempotency → postMessage/CSRF security → edge cases.</div>
+  </div>
+  <h4>Do not miss</h4>
+  <ul>
+    <li>The <strong>trust boundary</strong>: credentials live only between the user's browser and the bank. Say it early — it answers half the security questions.</li>
+    <li><span class="nonce">oauth_state_id</span> is a <strong>server-generated, single-use nonce</strong>: correlation + CSRF + replay protection. One value, three guarantees.</li>
+    <li><strong>Server owns the flow state, the client only renders it.</strong> Rehearse this line.</li>
+    <li>Token gradient: <code>link_token</code> in → <code>public_token</code> out → <code>access_token</code> never touches the browser.</li>
+    <li>Never <code>postMessage('*')</code>. Always check <code>event.origin</code> with exact match against a server-derived allowlist.</li>
+    <li>GET = safe read that survives refresh. POST = guarded write that fires once. Different jobs on the OAuth return.</li>
+  </ul>
+  <h4>Where to spend "O" time (in priority order)</h4>
+  <ol>
+    <li>OAuth redirect &amp; SPA rehydration (the core problem — the SPA has amnesia after redirect)</li>
+    <li>Idempotency &amp; anti-optimistic-advance (state machine, single-use nonce, Idempotency-Key)</li>
+    <li>Security surfaces: iframe isolation, postMessage origin checks, CSRF state — name them as <em>three separate boundaries</em></li>
+    <li>Edge cases &amp; resilience, then abuse prevention if time remains</li>
+  </ol>
+  <div class="oneliner">"The server owns the flow state, the client only renders it."</div>
+</div>
+
+<div class="card">
+  <h3>Contents</h3>
+  <div class="toc">
+    <a href="#framing">Problem Framing</a><br>
+    <a href="#r">R — Requirements</a><br>
+    <a href="#a">A — Architecture</a><br>
+    <a href="#d">D — Data Model</a><br>
+    <a href="#i">I — Interfaces</a><br>
+    <a href="#o">O — Optimizations / Deep Dives</a><br>
+    <a href="#edge">Edge Cases &amp; Resilience</a><br>
+    <a href="#abuse">Abuse Prevention</a><br>
+    <a href="#notes">Further Notes (Confusions Resolved)</a>
+  </div>
+</div>
+
+<!-- ================= FRAMING ================= -->
+<h2 id="framing">Problem Framing</h2>
+<p>Plaid Link is a client-side widget that a <strong>customer</strong> (an app that wants bank data) embeds. The end user's bank credentials <strong>never touch the customer's page or the customer's servers</strong>. That credential isolation is the entire product.</p>
+<p><strong>Rendering choice:</strong> a single-page app rendered inside an iframe modal, not a multi-page app. MPA page reloads would destroy in-memory flow state and look broken inside a modal. The one twist: the OAuth step forces a real full-page redirect out to the bank and back, so the SPA must <span class="key">rehydrate cleanly after a redirect</span>. That survival requirement is the same thing as idempotency and is the heart of the problem.</p>
+<div class="oneliner">Frame it as: "an SPA that must rehydrate cleanly after a redirect," not CSR vs MPA.</div>
+<p><strong>Non-goals (state deliberately):</strong> SEO does not matter (widget is not indexed content), and initial load perf is not a focus (small surface). Calling these out shows deliberate scoping.</p>
+
+<!-- ================= R ================= -->
+<h2 id="r"><span class="radio-letter">R</span>Requirements</h2>
+
+<h3>Functional clarifying questions</h3>
+<ul>
+  <li><strong>Auth model.</strong> Modern banks use <span class="key">OAuth redirect</span> — the user authenticates on the bank's own page and we never see credentials. Legacy is credential-based (user types bank username/password into the widget). Confirm we design the OAuth flow, note we would gracefully support both.</li>
+  <li>Do we host the bank auth page (no — in OAuth the bank does) or hand off via redirect/popup?</li>
+  <li>New link vs update/reconnect mode (re-auth an existing item).</li>
+  <li>Institution search and selection in-widget; roughly how many institutions.</li>
+</ul>
+
+<h3>Non-functional clarifying questions</h3>
+<ul>
+  <li><strong>Accessibility.</strong> A modal needs a focus trap, ESC to close, ARIA roles, screen reader support. Call this out early.</li>
+  <li><strong>Security and isolation</strong> (iframe, postMessage origin checks, CSRF state). <span class="badge deep">DEEP DIVE</span> Flag that you will return here.</li>
+  <li><strong>Devices.</strong> Mobile changes redirect vs popup — popups are unreliable on mobile, so OAuth uses full redirect there.</li>
+  <li>i18n and per-customer theming/branding.</li>
+  <li><strong>Resilience.</strong> Network drops mid-flow, back button, refresh, double-clicks.</li>
+</ul>
+
+<!-- ================= A ================= -->
+<h2 id="a"><span class="radio-letter">A</span>Architecture</h2>
+<ul>
+  <li><strong>Host page</strong> loads a small <strong>JS SDK</strong> (a script the customer includes).</li>
+  <li>SDK exposes <code>create</code> / <code>open</code> and injects an <strong>iframe</strong> pointing at the <strong>Widget SPA</strong>, served from our own origin. <span class="key">The iframe is what enforces isolation</span> — the customer's page cannot read inside it.</li>
+  <li><strong>postMessage bridge</strong> between iframe and host for lifecycle events (ready, success, exit, event).</li>
+  <li><strong>Our backend</strong> talks to the <strong>bank's OAuth server</strong>.</li>
+  <li><strong>Customer backend</strong> creates the <code>link_token</code> and later exchanges the <code>public_token</code>. It does not talk to the widget directly — it talks to our backend.</li>
+</ul>
+<div class="card warn">
+  <strong>Trust boundary to draw explicitly:</strong> credentials live only between the user's browser and the bank. That single line answers half the security questions.
+</div>
+
+<p class="diagram-label">Diagram A — Architecture &amp; trust boundaries</p>
+<pre class="mermaid">
+flowchart TB
+    subgraph Browser["User Browser (one tab)"]
+        Host["Host Page&lt;br/&gt;app.customer.com"]
+        SDK["JS SDK loader"]
+        subgraph Iframe["iframe — Widget SPA&lt;br/&gt;link.provider.com"]
+            Widget["Widget UI + FlowState"]
+        end
+        Host -->|includes| SDK
+        SDK -->|injects| Iframe
+        Iframe <-->|"postMessage&lt;br/&gt;(origin-checked)"| Host
+    end
+    OurBackend["Provider (Plaid) Backend"]
+    CustBackend["Customer Backend"]
+    Bank["Bank OAuth Server"]
+    Widget -->|"HTTPS / fetch"| OurBackend
+    Host -->|"public_token via onSuccess"| CustBackend
+    CustBackend -->|"server-to-server exchange"| OurBackend
+    OurBackend <-->|"OAuth"| Bank
+    Widget -.->|"full-page redirect"| Bank
+    classDef secret fill:#ffe0e0,stroke:#c00;
+    classDef safe fill:#e0f0ff,stroke:#06c;
+    class OurBackend,CustBackend,Bank secret;
+    class Host,SDK,Widget safe;
+</pre>
+
+<!-- ================= D ================= -->
+<h2 id="d"><span class="radio-letter">D</span>Data Model / Core Entities</h2>
+
+<div class="card db">
+  <h3>🗄️ Plaid Server — persisted database internals</h3>
+  <p>Each <code>LinkSession</code> is a row the server owns. <strong>This is the object that must survive the OAuth redirect.</strong> The client never holds this record — it holds only the <code>link_token</code> breadcrumb that resolves to it.</p>
+  <table>
+    <tr><th>LinkSession field</th><th>What it is</th><th>Exposed to</th></tr>
+    <tr><td><code>session_id</code></td><td>Internal primary key for this session record. Not a credential. Lifetime ≈ 4 hours (whole flow). Ideally never rides in a bank redirect URL.</td><td>Server-internal (client uses <code>link_token</code> as its handle)</td></tr>
+    <tr><td><code>link_token</code></td><td>Client-facing bearer credential with expiry, minted by customer backend using secret creds. The client's handle for the session.</td><td>Browser (safe-to-leak: short-lived, scoped)</td></tr>
+    <tr><td><code>status</code> / <code>current_step</code></td><td><span class="key">Authoritative FlowState</span>. The server is the source of truth for the current step. Client renders it, never asserts it.</td><td>Reported to client via GET</td></tr>
+    <tr><td><code>institution_id</code></td><td>The bank chosen in SELECT_INSTITUTION.</td><td>Client selects, server persists</td></tr>
+    <tr><td><span class="nonce">oauth_state_id</span></td><td><strong>Server-generated single-use nonce</strong> for the current OAuth leg. Generated at the CONSENT→OAUTH_REDIRECT transition. Overwritten with a fresh value on retry (old value auto-invalidated by the "must match current" rule). Burned on use.</td><td>Bank + browser URL (safe: single-use, unguessable)</td></tr>
+    <tr><td><code>selected_accounts</code></td><td>Account IDs the user kept in ACCOUNT_SELECT, persisted server-side. Final set = intersection of what the bank granted and what the user selected.</td><td>Client proposes via POST, server persists</td></tr>
+    <tr><td><code>created_at</code> / <code>expires_at</code></td><td>Session lifetime bounds (~4 hours).</td><td>Server-internal</td></tr>
+  </table>
+</div>
+
+<h3>FlowState (enum) — the anti-optimistic-advance mechanism</h3>
+<p>Corrected order: <span class="key">CONSENT comes first</span> — the user consents to the data-sharing terms before picking a bank. There are <strong>two consent moments</strong>: (1) up-front consent to Plaid's data use, in-widget, and (2) authorization at the bank during OAuth, on the bank's page. Model the first as CONSENT; the second is part of the OAuth leg itself.</p>
+<p><code>CONSENT → SELECT_INSTITUTION → OAUTH_REDIRECT → OAUTH_RETURN → ACCOUNT_SELECT → SUCCESS</code>, plus <code>ERROR</code>. Belongs to the widget, mirrored on the server — the server copy is authoritative.</p>
+
+<p class="diagram-label">Diagram B — FlowState machine (corrected order)</p>
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> CONSENT
+    CONSENT --> SELECT_INSTITUTION: agrees to data-use terms
+    SELECT_INSTITUTION --> OAUTH_REDIRECT: bank chosen
+    OAUTH_REDIRECT --> OAUTH_RETURN: user authorizes at bank&lt;br/&gt;(bank-side consent + account grant)
+    OAUTH_RETURN --> ACCOUNT_SELECT: server confirms grant
+    ACCOUNT_SELECT --> SUCCESS: selection persisted,&lt;br/&gt;public_token issued
+    SUCCESS --> [*]
+    CONSENT --> ERROR
+    SELECT_INSTITUTION --> ERROR
+    OAUTH_REDIRECT --> ERROR: state mismatch / expired
+    OAUTH_RETURN --> ERROR
+    ACCOUNT_SELECT --> ERROR
+    ERROR --> [*]
+    note right of OAUTH_RETURN
+        SPA reloaded from scratch here.
+        Read oauth_state_id from URL,
+        link_token from sessionStorage,
+        then GET /link/session/:id.
+        Server reports the real step.
+    end note
+</pre>
+
+<h3>Other entities</h3>
+<ul>
+  <li><strong>Institution:</strong> <code>id</code>, <code>name</code>, <code>logo</code>, <code>oauth_supported</code>, <code>products</code>.</li>
+  <li><strong>Tokens:</strong> <code>link_token</code> (init, short-lived), <code>public_token</code> (result, short-lived, exchanged server-side). <span class="key">access_token is server-only</span> and does not belong in any frontend entity.</li>
+</ul>
+
+<div class="card tip">
+  <h4>The token gradient (one idea repeated)</h4>
+  <p>Never let a long-lived secret touch the browser. Each token is weaker and shorter-lived the closer it gets to the browser, and every step that produces a stronger token happens on a server holding a secret.</p>
+  <table>
+    <tr><th>Token</th><th>Role</th><th>Lifetime</th><th>Where it lives</th></tr>
+    <tr><td><code>link_token</code></td><td>Entry ticket — authorizes opening one Link session with a given config</td><td>Minutes–hours</td><td>Browser (safe: scoped, expiring)</td></tr>
+    <tr><td><code>public_token</code></td><td>Throwaway receipt / claim check — can only be exchanged, grants no data access</td><td>~30 min</td><td>Browser → customer backend</td></tr>
+    <tr><td><code>access_token</code></td><td>The crown jewel — actually pulls balances and transactions</td><td>Long-lived</td><td><strong>Server only. Never the browser.</strong></td></tr>
+  </table>
+</div>
+
+<!-- ================= I ================= -->
+<h2 id="i"><span class="radio-letter">I</span>Interfaces</h2>
+
+<h3>SDK surface for the customer</h3>
+<ul>
+  <li><code>PlaidLink.create({ token: link_token, onSuccess, onExit, onEvent })</code></li>
+  <li><code>handler.open()</code> / <code>handler.exit()</code></li>
+  <li><code>onSuccess(public_token, metadata)</code>, <code>onExit(error, metadata)</code>, <code>onEvent(eventName, metadata)</code></li>
+</ul>
+
+<h3>iframe ↔ host over postMessage</h3>
+<p>Every message validated against an <span class="key">origin allowlist</span>, both directions. postMessage is <strong>browser-to-browser</strong> (two frames in one tab), not browser-to-backend.</p>
+<table>
+  <tr><th>Direction</th><th>Messages</th></tr>
+  <tr><td>widget → host</td><td><code>READY</code>, <code>SUCCESS</code> (carries public_token + metadata), <code>EXIT</code>, <code>EVENT</code></td></tr>
+  <tr><td>host → widget</td><td><code>OPEN</code>, <code>CLOSE</code></td></tr>
+</table>
+
+<h3>Backend REST (idempotent by design)</h3>
+<table>
+  <tr><th>Endpoint</th><th>Purpose</th><th>Read/Write</th></tr>
+  <tr><td><code>POST /link/session</code></td><td>Creates the session from the <code>link_token</code></td><td>Write (server assigns id → POST, not PUT)</td></tr>
+  <tr><td><code>GET /link/session/:id</code></td><td>Lets the widget rehydrate after the redirect. <strong>Safe to repeat</strong> — survives refresh, back button, prefetch. No side effects, never burns the nonce.</td><td>Read</td></tr>
+  <tr><td><code>POST /link/session/:id/institution</code></td><td>Selects an institution</td><td>Write</td></tr>
+  <tr><td><code>POST /link/session/:id/oauth/callback</code></td><td>Finalizes the OAuth return using <span class="nonce">oauth_state_id</span>. Validates state (CSRF), checks single-use (replay), exchanges the auth code with the bank, burns the state, advances the session. <strong>The guarded write that fires exactly once.</strong></td><td>Write</td></tr>
+  <tr><td><code>POST /link/session/:id/accounts</code></td><td>Persists the user's account selection (re-submittable — overwrites the set)</td><td>Write</td></tr>
+  <tr><td><code>POST /public-token/exchange</code></td><td>Customer backend exchanges public_token + secret creds for access_token. <strong>Server-to-server only.</strong></td><td>Write</td></tr>
+</table>
+<p>Put an <span class="key">Idempotency-Key</span> (client-generated per action) on the mutating POSTs so retries and double-clicks collapse to one effect. The server dedupes.</p>
+
+<p class="diagram-label">Diagram C — Token flow &amp; the server-to-server exchange</p>
+<pre class="mermaid">
+sequenceDiagram
+    participant U as User Browser
+    participant W as Widget (iframe)
+    participant CB as Customer Backend
+    participant PB as Provider Backend
+    participant Bank as Bank
+    CB->>PB: create link_token (with secret creds)
+    PB-->>CB: link_token (short-lived)
+    CB-->>U: link_token
+    U->>W: open widget with link_token
+    W->>Bank: OAuth redirect (with oauth_state_id)
+    Bank-->>W: callback (echoes oauth_state_id)
+    W->>PB: finalize (oauth_state_id validated)
+    PB-->>W: session ok, public_token
+    W-->>U: onSuccess(public_token)
+    Note over U,CB: public_token sent up to customer backend
+    U->>CB: public_token
+    rect rgb(255,224,224)
+    CB->>PB: exchange public_token + secret creds (server-to-server)
+    PB-->>CB: access_token + item_id
+    end
+    Note over CB: access_token stored server-side,&lt;br/&gt;NEVER returned to browser
+    CB-->>U: "linked, ok"
+</pre>
+
+<!-- ================= O ================= -->
+<h2 id="o"><span class="radio-letter">O</span>Optimizations / Deep Dives</h2>
+
+<h3>1. OAuth redirect and rehydration <span class="badge crit">CORE PROBLEM</span></h3>
+<p>When the user goes to the bank and comes back, the SPA reloads from scratch (amnesia). Before redirecting, persist the breadcrumbs (<code>link_token</code> / session handle, <span class="nonce">oauth_state_id</span>) in <code>sessionStorage</code> — and the <span class="nonce">oauth_state_id</span> also rides the redirect URL itself as belt-and-suspenders (sessionStorage does not survive a new-tab redirect). On return, read them, call <code>GET /link/session/:id</code>, and let the server report the real <code>current_step</code>. <strong>Never trust a client flag that says "I was on step 4."</strong></p>
+
+<h4>The return leg: one guarded write, one safe read</h4>
+<ol>
+  <li>SPA reloads with amnesia. Read <span class="nonce">oauth_state_id</span> from the URL, session handle from sessionStorage.</li>
+  <li><code>POST /oauth/callback</code> with oauth_state_id + auth code. Server validates state (CSRF), checks single-use (replay), exchanges with the bank, burns the state, advances the session. <strong>The one write.</strong></li>
+  <li><code>GET /link/session/:id</code> to read the now-current step and render. <strong>Safe to repeat.</strong></li>
+</ol>
+<p>Why both? They answer different questions. The GET answers "where am I, what should I render" — read-only, refresh five times, nothing breaks. The POST answers "actually finalize this grant, exactly once" — a real state change with an outside effect (token exchange with the bank), guarded by the single-use nonce and the Idempotency-Key. Burning a nonce is a side effect, and <strong>side effects do not belong on a GET</strong> (a refresh or prefetch would blow up the session).</p>
+
+<p class="diagram-label">Diagram D — OAuth return: guarded POST vs safe GET</p>
+<pre class="mermaid">
+sequenceDiagram
+    participant Bank
+    participant U as User Browser (SPA)
+    participant PB as Link Server
+    Note over Bank,U: OAuth done, bank redirects back
+    Bank-->>U: redirect to redirect_uri?state=oauth_state_id&amp;code=auth_code
+    Note over U: SPA reloaded, has amnesia.&lt;br/&gt;Read oauth_state_id from URL,&lt;br/&gt;session handle from sessionStorage
+    rect rgb(255,224,224)
+    Note over U,PB: WRITE — finalize exactly once
+    U->>PB: POST /link/session/:id/oauth/callback&lt;br/&gt;(oauth_state_id, code, Idempotency-Key)
+    PB->>PB: state issued for live session? not yet used?
+    alt valid + unused
+        PB->>Bank: exchange auth_code (server-to-server)
+        Bank-->>PB: grant
+        PB->>PB: burn oauth_state_id, advance step
+        PB-->>U: ok, new step
+    else forged / replayed
+        PB-->>U: reject
+    end
+    end
+    rect rgb(224,240,255)
+    Note over U,PB: READ — safe to repeat on refresh
+    U->>PB: GET /link/session/:id
+    PB-->>U: current_step (authoritative) -> render
+    end
+</pre>
+
+<h3>2. Not optimistically advancing</h3>
+<p>The UI shows a step only after the server confirms the transition. Do not render "success" until the token exchange / session finalize returns ok. Model it as a <span class="key">state machine where illegal transitions are rejected</span>, so a stale message or duplicated redirect cannot jump forward.</p>
+
+<h3>3. Idempotency</h3>
+<ul>
+  <li>Reuse of <span class="nonce">oauth_state_id</span> is rejected — <strong>single-use, like a nonce</strong>.</li>
+  <li>Mutating calls carry an <span class="key">Idempotency-Key</span> so a refresh or double redirect does not create two links. The server dedupes.</li>
+  <li><strong>OAuth retry:</strong> mint a fresh <span class="nonce">oauth_state_id</span> and overwrite the session's field. Validation rule "incoming state must match the session's current active state AND be unused" means the old value is invalidated for free. Known race: if the first attempt's callback is in flight when the user retries, the legit first callback gets rejected — rare and acceptable, the user completes the retry. Stricter option: keep a short list of issued-but-unused states, burn each on use. Invariant either way: <strong>at most one link is created</strong>, because whichever callback finalizes first advances the FlowState, and any other callback finds the session already advanced and is rejected or deduped.</li>
+</ul>
+
+<h3>4. Security <span class="badge deep">THREE SEPARATE BOUNDARIES</span></h3>
+<div class="oneliner">Same-origin policy isolates the iframe by default, postMessage with pinned origins is the one controlled channel through it, and CSRF state protects the redirect that leaves the browser entirely. Three boundaries, three mechanisms.</div>
+<ul>
+  <li><strong>Boundary 1 — iframe isolation.</strong> Widget iframe served from our origin (<code>link.plaid.com</code>), host page on customer origin (<code>app.customer.com</code>). Same-origin policy blocks the frames from reading each other's JS/DOM — that block is what stops the customer's page from scraping credentials.</li>
+  <li><strong>Boundary 2 — postMessage channel.</strong> Sending: name the exact target origin, never <code>'*'</code> — <code>targetWindow.postMessage(data, 'https://app.customer.com')</code>. Receiving: check <code>event.origin</code> against the allowlist before trusting any message; drop silently otherwise. <strong>Origin allowlist trust chain:</strong> customer pre-registers domains at onboarding → that config gates <code>link_token</code> creation → the link_token seeds the per-session allowlist the iframe enforces. Origin = scheme + host + port; exact string match, never substring <code>includes</code> (naive <code>includes('customer.com')</code> passes <code>evil-customer.com.attacker.com</code>).</li>
+  <li><strong>Boundary 3 — CSRF on the OAuth redirect.</strong> Server generates a random, unguessable, session-bound <span class="nonce">oauth_state_id</span> before redirecting; bank echoes it back; server checks it matches a value it issued for a live session and is unused. Forged callbacks fail the match; replayed callbacks fail single-use.</li>
+</ul>
+
+<p class="diagram-label">Diagram E — Security surfaces (postMessage origin check + CSRF state)</p>
+<pre class="mermaid">
+sequenceDiagram
+    participant Evil as Malicious Page
+    participant Host as Host Page
+    participant W as Widget (iframe)
+    participant PB as Provider Backend
+    participant Bank as Bank
+    Note over Host,W: Surface 1 — postMessage channel
+    W->>Host: postMessage(SUCCESS, targetOrigin=app.customer.com)
+    Evil-->>W: postMessage(fake OPEN)
+    W->>W: check event.origin against allowlist
+    Note right of W: origin not allowed -> drop silently
+    Note over W,Bank: Surface 2 — OAuth redirect / CSRF
+    PB->>PB: generate random oauth_state_id (session-bound, single-use)
+    W->>Bank: authorize?state=oauth_state_id
+    Bank-->>W: callback?state=oauth_state_id
+    W->>PB: /oauth/callback (state)
+    PB->>PB: state issued for live session? not used yet?
+    alt valid + unused
+        PB-->>W: finalize ok (mark state used)
+    else forged / replayed
+        PB-->>W: reject
+    end
+</pre>
+
+<div class="card warn">
+  <h4>The trust rule, stated precisely</h4>
+  <p><strong>The client only ever holds values that are safe to leak.</strong> Anything whose exposure would break security stays server-side.</p>
+  <ul>
+    <li>Client-held values are safe or self-protecting: <code>link_token</code> (expires fast, scoped), <span class="nonce">oauth_state_id</span> (single-use, useless once burned), <code>public_token</code> (inert without the secret).</li>
+    <li>Server-only: customer's secret API credentials, <code>access_token</code>, and the <em>authority</em> to validate or burn a nonce. Security nonces are <strong>generated server-side</strong> — a client-generated nonce is worthless for CSRF.</li>
+  </ul>
+</div>
+
+<h3 id="edge">5. Edge cases &amp; resilience</h3>
+<table>
+  <tr><th>Case</th><th>Handling</th></tr>
+  <tr><td><strong>Loading</strong></td><td>Skeleton states in-widget; host shows nothing until the iframe posts <code>READY</code>. Institution list paginated/searched server-side.</td></tr>
+  <tr><td><strong>Errors</strong></td><td>Every FlowState has an edge to <code>ERROR</code> with a typed error (bank down, state mismatch, expired session). Widget renders a recoverable error screen; unrecoverable → <code>EXIT</code> with error metadata so the customer can react.</td></tr>
+  <tr><td><strong>Retry</strong></td><td>OAuth retry mints a fresh <span class="nonce">oauth_state_id</span> on the same session (see Idempotency). Failed API calls retry with backoff + the same Idempotency-Key so retries collapse to one effect.</td></tr>
+  <tr><td><strong>Cancel</strong></td><td>User closes modal or ESC → widget posts <code>EXIT</code> (with step metadata), server marks session abandoned. Reopening requires a fresh or still-valid <code>link_token</code>.</td></tr>
+  <tr><td><strong>Timeout</strong></td><td><code>link_token</code> and LinkSession carry <code>expires_at</code> (~4h). An expired session rejects all transitions; widget shows "session expired, restart." The nonce expires in minutes, independently.</td></tr>
+  <tr><td><strong>Resume</strong></td><td>The rehydration path IS the resume path: breadcrumb (sessionStorage + URL state param) → <code>GET /link/session/:id</code> → server reports authoritative step → render. Works after redirect, refresh, or crash within session lifetime.</td></tr>
+  <tr><td><strong>Network retry &amp; back button</strong></td><td>Back button after return: GET is safe to re-fire; the POST finalize is protected by the burned nonce + Idempotency-Key, so back/forward cannot double-finalize. Offline mid-flow: queue the mutating call with its key, retry on reconnect; the server dedupes.</td></tr>
+  <tr><td><strong>Double-click / double redirect</strong></td><td>First callback wins and burns the state; the second is rejected or deduped to the same response. UI disables the action button until the server responds (no optimistic advance).</td></tr>
+</table>
+
+<h3 id="abuse">6. Abuse prevention</h3>
+<ul>
+  <li><strong>Rate limiting.</strong> Per <code>link_token</code>, per session, per IP, and per customer: cap session creations, institution searches, and OAuth attempts. A single session should never need more than a handful of finalize attempts — throttle and then kill the session.</li>
+  <li><strong>Device signals.</strong> Bind the session loosely to device fingerprint / user agent at creation; a finalize arriving from a wildly different device or geo than the session start is a signal to step up or reject. (Loose binding — IP can legitimately change across the bank redirect, especially on mobile.)</li>
+  <li><strong>Anomaly detection.</strong> Server-side monitoring on nonce failures: spikes in state-mismatch rejections (someone probing forged callbacks), replay attempts, or enumeration of session ids. Alert and auto-block origins/customers showing abuse patterns. Failed <code>event.origin</code> checks in the widget can be beaconed as telemetry.</li>
+  <li><strong>Blast-radius containment (already in the design).</strong> Everything the client holds is short-lived and scoped, so stolen values age out fast; the allowlist stops embedding on unauthorized origins.</li>
+</ul>
+
+<!-- ================= FURTHER NOTES ================= -->
+<h2 id="notes">Further Notes — Confusions Resolved</h2>
+
+<div class="card">
+  <h4>POST vs PUT</h4>
+  <ol>
+    <li>Creation where the <strong>server assigns the id</strong> is POST. <code>POST /link/session</code> returns an id not known in advance. PUT is for when the client already knows the full URI and puts a complete resource there.</li>
+    <li>The action endpoints (select-institution, oauth/callback) are <strong>state transitions with side effects</strong>, not resource replacements. <code>oauth/callback</code> kicks off a token exchange with the bank — an action, so POST reads more honestly.</li>
+  </ol>
+  <p>Subtlety: PUT is required by spec to be idempotent, POST is not — we add idempotency to POST manually via the key. <code>select-institution</code> could defensibly be a PUT (it just sets a field); be ready to justify action-style POST (side effects, consistency).</p>
+</div>
+
+<div class="card">
+  <h4>sessionStorage vs localStorage, and why still GET</h4>
+  <ul>
+    <li><strong>Lifetime</strong> is the reason for sessionStorage: scoped to the tab, wiped on close — survives exactly the redirect window and cleans itself up. localStorage persists forever across all tabs, leaving security-relevant ids lying around.</li>
+    <li><strong>Caveat:</strong> sessionStorage does not survive a redirect landing in a new tab — so the <span class="nonce">oauth_state_id</span> also rides the redirect URL. Real answer: "URL param plus sessionStorage, belt and suspenders."</li>
+    <li><strong>Storage does NOT replace the GET.</strong> Client-side storage is only a breadcrumb (session handle + state id) — nothing authoritative, no tokens, no trusted step. It exists so the reloaded SPA knows which session to ask about. The authoritative flow state and OAuth result exist only server-side.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>link_token vs session_id — two different things</h4>
+  <ul>
+    <li><code>link_token</code> = <strong>bearer credential</strong> with expiry ("token" implies expiry — correct instinct). What the client holds and passes into the widget at init: <code>PlaidLink.create({ token: link_token })</code>.</li>
+    <li><code>session_id</code> = <strong>internal primary key</strong> for the LinkSession record. Not a credential. In real Plaid the client only ever sees the link_token; it is the session handle from the client's point of view, resolved server-side to the record.</li>
+    <li>The sessionStorage breadcrumb is the link_token (or an id derived from it), not an internal server key.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>What <span class="nonce">oauth_state_id</span> is, exactly</h4>
+  <p>It is the OAuth <code>state</code> parameter, specialized. <strong>One value, three guarantees:</strong></p>
+  <ol>
+    <li><strong>Correlation.</strong> The SPA is wiped on redirect; the bank echoes the state back on the return URL so the returning page knows which session it is resuming.</li>
+    <li><strong>CSRF protection.</strong> On return, the server checks the value matches one it actually issued for a live in-flight session. Forged callbacks won't match.</li>
+    <li><strong>Replay / idempotency.</strong> Single-use — once a callback consumes it, it is burned, so a duplicated redirect cannot finalize twice.</li>
+  </ol>
+  <p>Properties: unpredictable (random), tied to one session, single-use. <strong>Created by the server, always</strong> — at the transition into OAUTH_REDIRECT, right before sending the user to the bank. The client only carries it; it never mints or judges it. A client-generated nonce is worthless for CSRF.</p>
+</div>
+
+<div class="card">
+  <h4>Why both session_id AND oauth_state_id</h4>
+  <ul>
+    <li>Different lifetimes: session spans the whole flow (~4h, multiple legs); the state id is scoped to one OAuth leg (minutes, burned on return).</li>
+    <li>Different exposure: the state id is handed to the bank and travels in the browser URL; the session handle should never ride in a bank redirect URL.</li>
+    <li>Failure if merged: user hits back and retries → either the single-use merged id is consumed (whole session dies) or you make it reusable (breaks CSRF/replay). Two ids means "retry this one leg" does not blow up "the whole session."</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h4>The server-to-server exchange ("client" is overloaded)</h4>
+  <p>In the exchange step, "client" means the <strong>customer's backend server</strong> (API client), not the browser. Two totally separate HTTP requests:</p>
+  <ol>
+    <li><strong>Browser → customer backend:</strong> widget fires <code>onSuccess(public_token)</code>; the frontend sends the public_token up to its own backend.</li>
+    <li><strong>Customer backend → Plaid:</strong> a brand-new server-to-server HTTPS call to <code>/item/public_token/exchange</code> with public_token + secret creds. The response carrying <code>access_token</code> travels server-to-server; <strong>the browser is not a party to this request at all</strong>.</li>
+  </ol>
+  <p>What keeps the access_token off the client is not the network — it is the customer's backend deliberately not forwarding it. Echoing it to the frontend would be the exact bug the design exists to prevent.</p>
+  <p><strong>Generalization:</strong> this is the standard OAuth authorization-code exchange. Browser returns a short-lived <code>code</code>; the app's backend exchanges code + client secret for an access_token, server-to-server. Plaid's public_token → access_token is the same pattern — same two-backend handoff as Google OAuth / "sign in with X."</p>
+</div>
+
+<div class="card">
+  <h4>postMessage is browser-to-browser</h4>
+  <p>postMessage has nothing to do with backends. Two communication types — do not conflate:</p>
+  <ul>
+    <li>Widget → our backend, customer backend → Plaid backend: <strong>HTTPS/fetch</strong>. Network.</li>
+    <li>Widget iframe ↔ host page: <strong>postMessage</strong>. Events between two frames in the same tab. No network.</li>
+  </ul>
+  <p>The messages are lifecycle events, not data — except <code>SUCCESS</code> carries the public_token into the customer's <code>onSuccess</code>, which is exactly why the channel must be locked down (pinned target origin on send, <code>event.origin</code> allowlist check on receive).</p>
+</div>
+
+<div class="card">
+  <h4>ACCOUNT_SELECT — who confirms what</h4>
+  <p>Two stacked sources of truth:</p>
+  <ul>
+    <li><strong>What is accessible at all</strong> — decided by the bank during OAuth. The bank tells Plaid which accounts the user authorized; Plaid can never access more than the grant.</li>
+    <li><strong>What is included in the item</strong> — the user's selection within Link, persisted server-side via <code>POST /link/session/:id/accounts</code>. Final set = intersection of bank grant and user selection.</li>
+  </ul>
+  <p>Deselecting narrows the set server-side before the token is issued (re-submittable, overwrites). <strong>Widening beyond the grant requires going back through the bank's OAuth</strong> — the bank owns the grant, your widget cannot expand it alone.</p>
+</div>
+
+<div class="oneliner" style="margin-top:36px;">Final rehearsal lines: "The server owns the flow state, the client only renders it." · "The client only holds values that are safe to leak." · "GET is the safe read that survives refresh; POST is the guarded write that fires once."</div>
+
+</div><!-- /container -->
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+</script>
+</body>
+</html>
