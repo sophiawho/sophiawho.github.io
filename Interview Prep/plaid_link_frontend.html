@@ -79,12 +79,6 @@
   .diagram-label { color: var(--muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; margin: 24px 0 4px; }
   ul, ol { margin: 8px 0; padding-left: 24px; }
   li { margin: 5px 0; }
-  .timeline { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-  .timeline .slot {
-    flex: 1 1 150px; background: var(--panel2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px; font-size: 0.88em;
-  }
-  .timeline .slot .mins { color: var(--green); font-weight: 700; display: block; }
   .badge { display: inline-block; font-size: 0.75em; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-right: 6px; vertical-align: middle; }
   .badge.crit { background: #fee2e2; color: #b91c1c; }
   .badge.deep { background: #e0f2fe; color: #0369a1; }
@@ -108,13 +102,7 @@
 <!-- ================= INTERVIEW GUIDE ================= -->
 <div class="card guide">
   <h3>⏱️ 60-Minute Interview Guide (Cheatsheet)</h3>
-  <div class="timeline">
-    <div class="slot"><span class="mins">0–8 min · R</span>Clarify auth model (OAuth vs legacy), devices, a11y, resilience. State non-goals: SEO, load perf.</div>
-    <div class="slot"><span class="mins">8–18 min · A</span>Draw iframe + SDK + postMessage bridge. Draw the <strong>trust boundary</strong> out loud.</div>
-    <div class="slot"><span class="mins">18–26 min · D</span>LinkSession record, FlowState enum, the three tokens. Say which values the client may hold.</div>
-    <div class="slot"><span class="mins">26–36 min · I</span>SDK surface, postMessage events, REST endpoints. Mention <code>Idempotency-Key</code>: a client-generated UUID header on every mutating POST — server executes once, stores the response, duplicates get the stored response (double-clicks/retries collapse to one effect).</div>
-    <div class="slot"><span class="mins">36–58 min · O</span><strong>Spend your remaining time here.</strong> OAuth redirect + rehydration → idempotency → postMessage/CSRF security → edge cases.</div>
-  </div>
+  <p><strong>Requirements (0–8 min):</strong> clarify auth model (OAuth vs legacy), devices, a11y, resilience; state non-goals: SEO, load perf. <strong>Architecture (8–18 min):</strong> draw iframe + SDK + postMessage bridge, and draw the trust boundary out loud. <strong>Data model (18–26 min):</strong> LinkSession record, FlowState enum, the three tokens; say which values the client may hold. <strong>Interfaces (26–36 min):</strong> SDK surface, postMessage events, REST endpoints; mention <code>Idempotency-Key</code> — a client-generated UUID header on every mutating POST, server executes once and stores the response, duplicates get the stored response so double-clicks/retries collapse to one effect. <strong>Optimizations (36–58 min):</strong> spend your remaining time here — OAuth redirect + rehydration → idempotency → postMessage/CSRF security → edge cases.</p>
   <h4>Do not miss</h4>
   <ul>
     <li>The <strong>trust boundary</strong>: credentials live only between the user's browser and the bank. Say it early — it answers half the security questions.</li>
