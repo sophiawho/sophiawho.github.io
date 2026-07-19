@@ -112,7 +112,7 @@
     <div class="slot"><span class="mins">0–8 min · R</span>Clarify auth model (OAuth vs legacy), devices, a11y, resilience. State non-goals: SEO, load perf.</div>
     <div class="slot"><span class="mins">8–18 min · A</span>Draw iframe + SDK + postMessage bridge. Draw the <strong>trust boundary</strong> out loud.</div>
     <div class="slot"><span class="mins">18–26 min · D</span>LinkSession record, FlowState enum, the three tokens. Say which values the client may hold.</div>
-    <div class="slot"><span class="mins">26–36 min · I</span>SDK surface, postMessage events, REST endpoints. Mention <code>Idempotency-Key</code>.</div>
+    <div class="slot"><span class="mins">26–36 min · I</span>SDK surface, postMessage events, REST endpoints. Mention <code>Idempotency-Key</code>: a client-generated UUID header on every mutating POST — server executes once, stores the response, duplicates get the stored response (double-clicks/retries collapse to one effect).</div>
     <div class="slot"><span class="mins">36–58 min · O</span><strong>Spend your remaining time here.</strong> OAuth redirect + rehydration → idempotency → postMessage/CSRF security → edge cases.</div>
   </div>
   <h4>Do not miss</h4>
