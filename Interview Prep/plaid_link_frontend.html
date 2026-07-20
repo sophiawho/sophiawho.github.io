@@ -169,6 +169,28 @@
   <li><strong>Resilience.</strong> Network drops mid-flow, back button, refresh, double-clicks.</li>
 </ul>
 
+<p style="color:var(--muted);font-style:italic;">The questions above resolve to the committed scope below. State this out loud — "so I'm building this, not that" — before moving to architecture.</p>
+
+<div class="card">
+  <h4>Functional requirements (in scope)</h4>
+  <ul>
+    <li>An embeddable widget the customer opens from their page to link a bank account, returning a <code>public_token</code> on success.</li>
+    <li><strong>OAuth redirect</strong> as the primary auth flow — user authenticates on the bank's page; we never see credentials. Legacy credential flow is out of scope for v1 (note we'd support it later).</li>
+    <li>In-widget institution search and selection.</li>
+    <li>Full flow: <code>CONSENT → SELECT_INSTITUTION → OAUTH_REDIRECT → OAUTH_RETURN → ACCOUNT_SELECT → SUCCESS</code>, and clean rehydration after the bank redirect.</li>
+    <li>Support new-link mode; update/reconnect mode is a follow-up.</li>
+  </ul>
+  <h4>Non-functional requirements (in scope)</h4>
+  <ul>
+    <li><strong>Security &amp; isolation</strong> — iframe sandboxing, postMessage origin allowlist, CSRF state, no long-lived secret in the browser. <span class="badge deep">PRIMARY DEEP DIVE</span></li>
+    <li><strong>Idempotency &amp; resilience</strong> — survive refresh, back button, double-clicks, network drops, and same-tab vs new-tab redirect returns, with no duplicate links.</li>
+    <li><strong>Accessibility</strong> — focus trap, ESC, ARIA roles, screen reader support.</li>
+    <li><strong>Cross-device</strong> — desktop and mobile (full redirect on mobile, popups unreliable).</li>
+    <li><strong>i18n &amp; per-customer theming.</strong></li>
+    <li><strong>Non-goals (explicit):</strong> SEO (widget isn't indexed), initial-load perf (small surface).</li>
+  </ul>
+</div>
+
 <!-- ================= A ================= -->
 <h2 id="a"><span class="radio-letter">A</span>Architecture</h2>
 <ul>
