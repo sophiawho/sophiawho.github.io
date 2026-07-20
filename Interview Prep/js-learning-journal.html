@@ -348,6 +348,8 @@
     <a class="toc-section" href="#async">Async & Timing</a>
     <a class="toc-sub" href="#event-loop">Event Loop</a>
     <a class="toc-sub" href="#settimeout">setTimeout</a>
+    <a class="toc-sub" href="#raf">requestAnimationFrame</a>
+    <a class="toc-sub" href="#ready-gate">Serializing Siblings — ready Gate</a>
     <a class="toc-sub" href="#useeffect-cleanup">useEffect Cleanup</a>
     <a class="toc-sub" href="#debounce-throttle">Debounce & Throttle</a>
     <a class="toc-sub" href="#fetch-shape">Fetching from an API</a>
@@ -1039,6 +1041,41 @@ timeoutId.current = setTimeout(() =&gt; {
 const timeoutId = useRef(null);
 clearTimeout(timeoutId.current);  <span class="cm">// in resetGame()</span></pre></div>
         <div class="tags"><span class="tag">setTimeout</span><span class="tag">useRef</span><span class="tag amber">gotcha</span></div>
+      </div>
+
+      <div class="concept-card" id="raf">
+        <h3>requestAnimationFrame — the primitive for smooth, time-driven UI</h3>
+        <p>Fires right before the next repaint, synced to the display's real refresh rate. Auto-pauses in background tabs, and degrades gracefully under load instead of queueing backlogged calls. Compute position as a pure function of elapsed time, don't increment a counter per tick — that's what makes it robust to dropped frames and backgrounding.</p>
+        <div class="code-block"><pre><span class="cm">// progress bar filling over a fixed duration</span>
+const frameIdRef = useRef(null);
+
+useEffect(() =&gt; {
+  const startTime = performance.now();
+
+  const step = (now) =&gt; {
+    const elapsed = now - startTime;              <span class="cm">// pure function of time, not a counter</span>
+    setPercent(Math.min((elapsed / DURATION) * 100, 100));
+    if (elapsed &lt; DURATION) frameIdRef.current = requestAnimationFrame(step);
+  };
+
+  frameIdRef.current = requestAnimationFrame(step);
+  return () =&gt; cancelAnimationFrame(frameIdRef.current);  <span class="cm">// only fires on unmount — [] means the effect itself never re-runs</span>
+}, []);</pre></div>
+        <div class="note"><code>performance.now()</code> and the timestamp rAF hands its callback are the same clock, monotonic milliseconds from <code>performance.timeOrigin</code>, not wall-clock time. Never use <code>Date.now()</code> for animation math — it can jump if the system clock adjusts. All rAF callbacks scheduled for the same frame get the identical timestamp, so simultaneous animations stay in sync — prefer the argument over calling <code>performance.now()</code> yourself.</div>
+        <div class="gotcha"><code>setInterval</code> isn't wrong, it's just the right tool for a different job. It's not synced to the browser's paint cycle (wasted or missed updates), and it keeps firing in background tabs (throttled, not paused), so a naive per-tick counter can jump when the tab regains focus. Use it for coarse, periodic updates that don't need smooth motion — a countdown timer updating once a second. Use rAF for continuous visual motion — a progress bar, a smooth interpolation between two points.</div>
+        <div class="tags"><span class="tag">requestAnimationFrame</span><span class="tag">performance.now</span><span class="tag">cancelAnimationFrame</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="ready-gate">
+        <h3>Serializing siblings — a <code>ready</code> prop + index gate (Progress Bars II)</h3>
+        <p>Each sibling only starts its own rAF loop once a shared <code>readyIndex</code> reaches its own index, <code>ready={'{index <= readyIndex}'}</code>, and the effect is gated with <code>if (!ready) return;</code> before starting the loop. When a bar finishes it reports its own index up via <code>onFinish</code>, the parent advances <code>readyIndex</code> by exactly one, which flips the next sibling's <code>ready</code> from false to true and its effect (dep <code>[ready]</code>) fires for the first time.</p>
+        <div class="code-block"><pre>onFinish={() =&gt; onFinishHandler(index)}
+
+const onFinishHandler = (completedIndex) =&gt;
+  setReadyIndex((prev) =&gt; Math.max(prev, completedIndex + 1));</pre></div>
+        <div class="note"><code>Math.max(prev, completedIndex + 1)</code> is defensive but not strictly required here — a sibling can only finish after the previous one already has, so completions only ever arrive in increasing order. Worth knowing why it's redundant in case it's questioned, safe to leave in either way.</div>
+        <div class="note"><code>index &lt;= readyIndex</code>, not <code>===</code>. <code>readyIndex</code> is a monotonic high-water mark — once a bar is unlocked it must stay unlocked. <code>===</code> would flip every already-finished bar's <code>ready</code> back to false the moment the frontier passes it, only masked here because <code>percent</code> is separate local state that survives the flip.</div>
+        <div class="tags"><span class="tag">requestAnimationFrame</span><span class="tag">sequencing</span><span class="tag">high priority</span></div>
       </div>
 
       <div class="concept-card" id="useeffect-cleanup">
