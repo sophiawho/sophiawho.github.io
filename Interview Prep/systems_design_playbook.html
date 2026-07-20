@@ -185,6 +185,38 @@
     </div>
   </div>
 
+  <div class="row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="panel">
+      <h2>Technology overview — Sharding</h2>
+      <ul>
+        <li><b>What:</b> split one dataset across nodes by a key (hash or range on <code>user_id</code>).</li>
+        <li><b>Use when:</b> writes or data size exceed one primary — not before. Say that out loud.</li>
+        <li><b>Trade-offs:</b> cross-shard queries become fan-outs; joins and transactions get hard; hot keys (celebrities) skew load; resharding is painful — pick the key carefully.</li>
+      </ul>
+      <h2 style="margin-top:14px">SQL vs NoSQL</h2>
+      <ul>
+        <li><b>SQL (Postgres, MySQL):</b> joins, ACID transactions, strong consistency. The default — most systems fit one instance + read replicas.</li>
+        <li><b>NoSQL (DynamoDB, Cassandra):</b> key-based access at massive write scale, built-in horizontal scaling. Cost: no joins, limited transactions, query patterns fixed up front.</li>
+        <li><b>Redis:</b> in-memory KV — caching, sessions, counters, rate limits. Sub-ms reads, but RAM-priced and lossy on crash.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Durable message queues</h2>
+      <ul>
+        <li><b>What:</b> persist work between producer and consumer, decoupling spikes from the DB.</li>
+        <li><b>Kafka:</b> replayable append-only log, huge throughput — event streams, fan-out, analytics pipelines.</li>
+        <li><b>SQS / RabbitMQ:</b> simpler task queues with per-message ack — background jobs, emails, thumbnails.</li>
+        <li><b>Trade-offs:</b> at-least-once delivery → consumers must be idempotent; ordering only per partition; adds latency and ops surface.</li>
+      </ul>
+      <h2 style="margin-top:14px">Object storage (S3)</h2>
+      <ul>
+        <li><b>What:</b> cheap, ~11-nines-durable blob store for images, video, logs, backups.</li>
+        <li><b>Use when:</b> anything large or unstructured — store the blob in S3, its URL in the DB, serve via CDN with presigned URLs for uploads.</li>
+        <li><b>Trade-offs:</b> higher latency than a DB, no queries or partial updates — wrong for small hot records.</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="foot">Requirements → Estimate → API/Data → High-level → Deep dives → Wrap. <b>Announce each transition. Non-functional requirements choose your deep dives.</b></div>
 </div>
 </body>
