@@ -166,6 +166,16 @@
   </div>
 </div>
 
+<div class="card" style="margin-top:14px">
+  <h3>Why Redis — defend the choice</h3>
+  <ul>
+    <li><b>Speed</b> — sub-millisecond responses for simple ops, so the limiter barely adds to hot-path latency.</li>
+    <li><b>Automatic cleanup</b> — <code>EXPIRE</code> drops inactive user buckets after ~1h of no activity, so memory tracks active users, not all-time users.</li>
+    <li><b>High availability</b> — replicated across instances; a replica takes over so the limiter never becomes the thing that takes down traffic.</li>
+    <li><b>Atomic operations</b> — the LUA / <code>MULTI/EXEC</code> transaction makes read → refill → decrement one indivisible step, so concurrent gateways can't race on the same bucket.</li>
+  </ul>
+</div>
+
 <h2>4. Interfaces</h2>
 <div class="grid2">
   <div class="card">
