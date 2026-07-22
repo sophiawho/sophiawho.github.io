@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatroom — WebSocket + Pub/Sub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --warn:#b45309; --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.5;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:13.5px;margin:12px 0 4px}
+  h3.in{color:var(--accent)} h3.out{color:var(--warn)}
+  p{margin:6px 0}
+  .sub{color:var(--muted);margin:0 0 16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  ol,ul{margin:6px 0;padding-left:20px}
+  li{margin:4px 0}
+  svg{max-width:100%;height:auto;display:block;margin:8px auto}
+  .diagram{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fdfdfd}
+  .line{background:#f2f7ff;border-left:3px solid var(--accent);padding:8px 12px;margin:8px 0;border-radius:0 6px 6px 0}
+  @media print{body{padding:0;font-size:11.5px}.card,.diagram{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Chatroom — WebSocket endpoints + per-room Pub/Sub</h1>
+<p class="sub">The core question: how do the "client → WS server" half and the "chat service → Pub/Sub" half join into one system? Answer: they form a loop, not a line.</p>
+
+<h2>Architecture</h2>
+<div class="diagram">
+<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" font-family="-apple-system,Segoe UI,Roboto,sans-serif">
+  <title>Chatroom architecture with WebSocket endpoints and per-room Pub/Sub</title>
+  <defs>
+    <marker id="aIn" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#2563eb"/></marker>
+    <marker id="aOut" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b45309"/></marker>
+  </defs>
+  <style>
+    .box{fill:#fff;stroke:#94a3b8;stroke-width:1.5}
+    .lbl{fill:#1a1a1a;font-size:13px;font-weight:600}
+    .sb{fill:#5b6470;font-size:11px}
+    .in{stroke:#2563eb;stroke-width:2;fill:none}
+    .out{stroke:#b45309;stroke-width:2;stroke-dasharray:5 4;fill:none}
+    .tin{fill:#2563eb;font-size:11px;font-weight:600}
+    .tout{fill:#b45309;font-size:11px;font-weight:600}
+    .num{font-size:11px;font-weight:800}
+  </style>
+  <rect class="box" x="30" y="235" width="110" height="60" rx="10"/>
+  <text class="lbl" x="85" y="262" text-anchor="middle">Client</text>
+  <text class="sb" x="85" y="279" text-anchor="middle">Alice / Bob</text>
+  <rect class="box" x="185" y="235" width="120" height="60" rx="10"/>
+  <text class="lbl" x="245" y="262" text-anchor="middle">Load Balancer</text>
+  <text class="sb" x="245" y="279" text-anchor="middle">sticky routing</text>
+  <rect class="box" x="360" y="180" width="150" height="170" rx="10"/>
+  <text class="lbl" x="435" y="203" text-anchor="middle">WebSocket servers</text>
+  <text class="sb" x="435" y="219" text-anchor="middle">hold open connections</text>
+  <rect x="378" y="232" width="114" height="30" rx="6" fill="#eef2f7" stroke="#94a3b8"/>
+  <text class="sb" x="435" y="251" text-anchor="middle" font-weight="700">WS-1 (Alice)</text>
+  <rect x="378" y="270" width="114" height="30" rx="6" fill="#eef2f7" stroke="#94a3b8"/>
+  <text class="sb" x="435" y="289" text-anchor="middle" font-weight="700">WS-2 (Bob)</text>
+  <rect x="378" y="308" width="114" height="30" rx="6" fill="#eef2f7" stroke="#94a3b8"/>
+  <text class="sb" x="435" y="327" text-anchor="middle" font-weight="700">WS-3 …</text>
+  <rect class="box" x="580" y="90" width="150" height="66" rx="10"/>
+  <text class="lbl" x="655" y="117" text-anchor="middle">Chat Service</text>
+  <text class="sb" x="655" y="134" text-anchor="middle">validate · persist · publish</text>
+  <rect class="box" x="800" y="90" width="130" height="66" rx="10"/>
+  <text class="lbl" x="865" y="117" text-anchor="middle">Message DB</text>
+  <text class="sb" x="865" y="134" text-anchor="middle">chat history</text>
+  <rect class="box" x="580" y="410" width="150" height="70" rx="10"/>
+  <text class="lbl" x="655" y="440" text-anchor="middle">Pub/Sub</text>
+  <text class="sb" x="655" y="457" text-anchor="middle">topic per room:{id}</text>
+  <line class="in" x1="140" y1="265" x2="182" y2="265" marker-end="url(#aIn)"/>
+  <text class="num tin" x="160" y="256" text-anchor="middle">1</text>
+  <text class="tin" x="161" y="303" text-anchor="middle">WS frame</text>
+  <line class="in" x1="305" y1="265" x2="357" y2="265" marker-end="url(#aIn)"/>
+  <text class="num tin" x="331" y="256" text-anchor="middle">2</text>
+  <path class="in" d="M510,235 C550,210 555,175 578,140" marker-end="url(#aIn)"/>
+  <text class="num tin" x="548" y="188" text-anchor="middle">3</text>
+  <text class="tin" x="585" y="200" text-anchor="start">RPC: send</text>
+  <line class="in" x1="730" y1="123" x2="798" y2="123" marker-end="url(#aIn)"/>
+  <text class="num tin" x="764" y="114" text-anchor="middle">4</text>
+  <text class="tin" x="764" y="82" text-anchor="middle">persist</text>
+  <path class="in" d="M655,156 L655,408" marker-end="url(#aIn)"/>
+  <text class="num tin" x="655" y="290" text-anchor="middle">5</text>
+  <text class="tin" x="663" y="305" text-anchor="start">publish room:42</text>
+  <path class="out" d="M578,455 C520,470 490,410 500,350" marker-end="url(#aOut)"/>
+  <text class="num tout" x="512" y="430" text-anchor="middle">6</text>
+  <text class="tout" x="470" y="400" text-anchor="middle">fan-out to</text>
+  <text class="tout" x="470" y="413" text-anchor="middle">subscribers</text>
+  <line class="out" x1="360" y1="285" x2="307" y2="278" marker-end="url(#aOut)"/>
+  <text class="num tout" x="333" y="300" text-anchor="middle">7</text>
+  <line class="out" x1="185" y1="278" x2="142" y2="285" marker-end="url(#aOut)"/>
+  <text class="tout" x="163" y="318" text-anchor="middle">push</text>
+  <line class="in" x1="40" y1="510" x2="80" y2="510"/>
+  <text class="sb" x="88" y="514" text-anchor="start">Inbound: send a message (1→5)</text>
+  <line class="out" x1="330" y1="510" x2="370" y2="510"/>
+  <text class="sb" x="378" y="514" text-anchor="start">Outbound: fan-out to room members (6→7)</text>
+</svg>
+</div>
+
+<h2>The loop, step by step</h2>
+<div class="grid2">
+  <div class="card">
+    <h3 class="in">Inbound — Alice sends "hi" to room 42</h3>
+    <ol>
+      <li>Alice's phone sends the frame over her open WebSocket to the server she's pinned to (WS-1).</li>
+      <li>LB routed her there originally (sticky, so the long-lived connection stays put).</li>
+      <li>WS-1 makes an <b>RPC to the Chat Service</b>. <i>This is the connection the two halves share.</i></li>
+      <li>Chat Service validates, then persists to the Message DB (history).</li>
+      <li>Chat Service <b>publishes</b> to Pub/Sub topic <code>room:42</code>.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3 class="out">Outbound — Bob (room 42) is on a different server WS-2</h3>
+    <ol start="6">
+      <li>Every endpoint server holding a member of room 42 is <b>subscribed</b> to <code>room:42</code>. Pub/Sub fans the message out to all of them, including WS-2.</li>
+      <li>WS-2 pushes the frame down Bob's WebSocket.</li>
+    </ol>
+    <p class="sb">The sender's server never needs to know where the other members are connected. That's the whole reason Pub/Sub sits in the middle.</p>
+  </div>
+</div>
+
+<div class="line">
+  <b>Two corrections to watch for:</b> the client pushes to its <b>WS server</b>, not to Pub/Sub. And the WS server receives updates from <b>Pub/Sub</b>, not directly from the Chat Service. The Chat Service publishes; WS servers subscribe.
+</div>
+
+<h2>Why each piece is there</h2>
+<ul>
+  <li><b>WebSocket servers are stateful</b> — they hold the open connection per client. This forces sticky LB routing and makes them the thing that's hard to scale/restart.</li>
+  <li><b>Chat Service is stateless</b> — validate, persist, publish. Scales horizontally, easy to restart.</li>
+  <li><b>Pub/Sub decouples fan-out from topology.</b> One publish reaches N servers without the sender knowing who's where. Redis Pub/Sub for simple, Kafka if you need replay/history-of-events.</li>
+  <li><b>Message DB</b> holds durable history (Pub/Sub is fire-and-forget; a client that reconnects pulls missed messages from the DB, not the topic).</li>
+</ul>
+
+<h2>Follow-ups an interviewer will hit</h2>
+<ul>
+  <li><b>Subscription bookkeeping:</b> servers subscribe/unsubscribe from room topics as clients join/leave. Where's that state? What happens on WS server crash (connections drop, clients reconnect through LB to a new server, re-subscribe)?</li>
+  <li><b>Missed messages:</b> Pub/Sub is at-most-once and ephemeral. On reconnect, client fetches messages since <code>last_seen_id</code> from the DB. Pub/Sub is only for live delivery.</li>
+  <li><b>Delivery guarantees / ordering:</b> per-room ordering via a single partition or sequence number per room.</li>
+  <li><b>Scale of topics:</b> millions of rooms = millions of topics. Redis Pub/Sub doesn't shard by topic cleanly — may need Redis Cluster or a partitioned Kafka topic keyed by room ID.</li>
+  <li><b>Presence</b> (who's online) is a separate concern, often its own service.</li>
+</ul>
+
+</body>
+</html>
