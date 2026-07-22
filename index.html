@@ -300,6 +300,18 @@
             <span class="link-arrow">→</span>
           </a>
         </div>
+
+        <button class="subfolder-label" data-section="sysdesign-examples">🔬 Worked Examples<span class="subfolder-chevron">▼</span></button>
+        <div class="subfolder-group" id="group-sysdesign-examples">
+          <a class="page-link" href="Interview Prep/worked-examples/rate_limiter_cheatsheet.html">
+            <span class="link-name"><span class="page-icon">🚦</span>Rate Limiter <span class="tag-label">[Systems Design]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+          <a class="page-link" href="Interview Prep/worked-examples/plaid_link_frontend.html">
+            <span class="link-name"><span class="page-icon">🏦</span>Plaid Link <span class="tag-label">[Systems Design]</span></span>
+            <span class="link-arrow">→</span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -347,7 +359,7 @@
 
   <script>
     (function () {
-      var SECTIONS = ['dsa', 'frontend', 'sysdesign'];
+      var SECTIONS = ['dsa', 'frontend', 'sysdesign', 'sysdesign-examples'];
 
       function getState(id) {
         var stored = localStorage.getItem('subfolder-' + id);

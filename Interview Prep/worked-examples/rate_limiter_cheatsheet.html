@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Limiter Cheatsheet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+    --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.5;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:14px;margin:14px 0 4px;color:var(--accent)}
+  p{margin:6px 0}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow:auto;font-size:12.5px;line-height:1.45}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:3px 0}
+  table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--chip);font-weight:600}
+  .chip{display:inline-block;background:var(--chip);border-radius:20px;padding:2px 10px;font-size:12px;margin:2px 2px}
+  .tag-g{color:var(--green);font-weight:600}
+  .tag-r{color:var(--red);font-weight:600}
+  .tag-a{color:var(--amber);font-weight:600}
+  .q{font-weight:600;margin-top:10px}
+  .a{color:var(--muted)}
+  svg{max-width:100%;height:auto}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Rate Limiter — System Design Cheatsheet</h1>
+<p class="sub">Token bucket · Redis-backed · 1M req/s · availability &gt; consistency</p>
+
+<h2>1. Requirements in one line</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Functional</h3>
+    <ul>
+      <li>Identify client by user ID, IP, or API key (even logged out)</li>
+      <li>Enforce configurable rules (e.g. 100 req/min/user)</li>
+      <li>On breach return <code>429</code> + <code>limit</code>, <code>remaining</code>, <code>reset_at</code></li>
+      <li>Different tiers/groups get different limits</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Non-functional</h3>
+    <ul>
+      <li>Low latency (limiter sits in the hot path of every request)</li>
+      <li><b>Availability &gt; consistency</b> — never take down traffic</li>
+      <li>Scale to 1M req/s</li>
+      <li>Out of scope: analytics, long-term storage of counts</li>
+    </ul>
+  </div>
+</div>
+
+<h2>2. Request flow</h2>
+<svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="12.5">
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#5b6470"/>
+    </marker>
+    <marker id="arwg" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#15803d"/>
+    </marker>
+    <marker id="arwr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#b91c1c"/>
+    </marker>
+  </defs>
+
+  <!-- Client -->
+  <rect x="30" y="20" width="120" height="46" rx="8" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="90" y="48" text-anchor="middle" font-weight="600">Client</text>
+
+  <!-- Gateway box -->
+  <rect x="250" y="20" width="470" height="360" rx="10" fill="none" stroke="#5b6470" stroke-dasharray="5 4"/>
+  <text x="262" y="38" fill="#5b6470" font-weight="600">API Gateway (rules cached in memory)</text>
+
+  <!-- extract -->
+  <rect x="280" y="55" width="200" height="52" rx="8" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="380" y="76" text-anchor="middle">1. Extract client ID from JWT</text>
+  <text x="380" y="93" text-anchor="middle">2. Build key bucket:{id}</text>
+
+  <!-- token check -->
+  <rect x="280" y="130" width="200" height="62" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="380" y="152" text-anchor="middle">Atomic LUA on Redis</text>
+  <text x="380" y="169" text-anchor="middle" font-size="11.5" fill="#5b6470">read → lazy refill → decrement</text>
+  <text x="380" y="184" text-anchor="middle" font-size="11.5" fill="#5b6470">clock via Redis TIME</text>
+
+  <!-- allowed diamond -->
+  <polygon points="380,215 445,255 380,295 315,255" fill="#fff" stroke="#1a1a1a"/>
+  <text x="380" y="259" text-anchor="middle">Allowed?</text>
+
+  <!-- redis down path -->
+  <rect x="510" y="235" width="190" height="52" rx="8" fill="#fff8ec" stroke="#b45309"/>
+  <text x="605" y="256" text-anchor="middle" font-size="11.5" fill="#b45309">Redis down → fail-open</text>
+  <text x="605" y="273" text-anchor="middle" font-size="11" fill="#5b6470">local bucket = limit/N</text>
+
+  <!-- backend -->
+  <rect x="300" y="330" width="160" height="40" rx="8" fill="#fff" stroke="#15803d"/>
+  <text x="380" y="355" text-anchor="middle" fill="#15803d">backend server</text>
+
+  <!-- Redis -->
+  <rect x="770" y="150" width="160" height="120" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="850" y="180" text-anchor="middle" font-weight="600">Redis</text>
+  <text x="850" y="200" text-anchor="middle" font-size="11.5" fill="#5b6470">sharded by user ID</text>
+  <text x="850" y="217" text-anchor="middle" font-size="11.5" fill="#5b6470">consistent hashing</text>
+  <text x="850" y="234" text-anchor="middle" font-size="11.5" fill="#5b6470">TTL auto-cleanup</text>
+  <text x="850" y="251" text-anchor="middle" font-size="11.5" fill="#5b6470">shards 1–15</text>
+
+  <!-- arrows -->
+  <line x1="150" y1="43" x2="278" y2="70" stroke="#5b6470" marker-end="url(#arw)"/>
+  <text x="185" y="45" font-size="11" fill="#5b6470">HTTP</text>
+  <line x1="380" y1="107" x2="380" y2="128" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="380" y1="192" x2="380" y2="213" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="480" y1="155" x2="768" y2="195" stroke="#5b6470" marker-end="url(#arw)"/>
+  <text x="610" y="140" text-anchor="middle" font-size="11" fill="#5b6470">EVAL (pooled + pipelined)</text>
+  <line x1="440" y1="180" x2="508" y2="250" stroke="#b45309" stroke-dasharray="4 3" marker-end="url(#arwr)"/>
+  <!-- allowed yes -->
+  <line x1="380" y1="295" x2="380" y2="328" stroke="#15803d" marker-end="url(#arwg)"/>
+  <text x="392" y="315" font-size="11" class="tag-g" fill="#15803d">forward</text>
+  <!-- allowed no -->
+  <line x1="445" y1="255" x2="180" y2="90" stroke="#b91c1c" stroke-dasharray="4 3" marker-end="url(#arwr)"/>
+  <text x="470" y="255" font-size="11" fill="#b91c1c">429 + reset_at</text>
+</svg>
+
+<h2>3. Token bucket (the core algorithm)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Store per (user, endpoint)</h3>
+    <pre>{ tokens, last_filled }</pre>
+    <p><b>Lazy refill in LUA on each request:</b></p>
+    <pre>1. read tokens, last_filled
+2. tokens += (now - last_filled) * rate
+   tokens = min(tokens, CAPACITY)
+3. if tokens >= 1: tokens -= 1 → allow
+   else: → deny (429)
+4. write back, set TTL</pre>
+    <p class="a">One atomic LUA script = no read-modify-write race.</p>
+  </div>
+  <div class="card">
+    <h3>Why token bucket</h3>
+    <ul>
+      <li>O(1) memory per key (2 fields), not a list of timestamps</li>
+      <li>Smooths traffic, tolerates short legit bursts</li>
+      <li><b>CAPACITY = burst allowance.</b> This is the strict-vs-bursty knob</li>
+    </ul>
+    <h3>Alternatives</h3>
+    <table>
+      <tr><th>Algo</th><th>Trade</th></tr>
+      <tr><td>Fixed window</td><td>Cheap, but 2× spike at window edge</td></tr>
+      <tr><td>Sliding log</td><td>Exact, but stores every timestamp (heavy)</td></tr>
+      <tr><td>Sliding window counter</td><td>Good middle ground, approximate</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2>4. Follow-ups — the answers to have ready</h2>
+
+<p class="q tag-a">Burst: doesn't token bucket still allow ~2×?</p>
+<p class="a">Yes. Full bucket drained at t=0, refills over the minute, drained again near t=60 → ~200 in a 60s sliding window. The fix is lowering <b>max CAPACITY</b> (not the initial value — it refills back up). That's a policy dial: lower it and legit bursty clients get 429s. State it as a tradeoff, not a bug.</p>
+
+<p class="q tag-a">Hot key: one user hammers one shard</p>
+<p class="a"><b>Default:</b> gateway-local "blocked" cache. Once Redis says over-limit, cache blocked for a few seconds and stop calling Redis for that user — protects the shard. <b>Escalation (legit whale only):</b> split bucket into K sub-keys <code>user:{id}:0..K-1</code>, each capped at limit/K, pick one at random per request. Cost: <code>remaining</code>/<code>reset_at</code> must sum all K. Don't reach for splitting unless forced.</p>
+
+<p class="q tag-a">Redis dies</p>
+<p class="a">Fail-open (availability &gt; consistency). Local in-memory bucket per gateway, sized <b>limit/N</b> for N gateways so total stays near the real limit. Choose fail-open vs fail-closed <b>per route</b> — open for low-risk reads, closed for expensive/write routes.</p>
+
+<p class="q tag-a">1M req/s with a Redis hop on every request</p>
+<p class="a">Connection <b>pooling</b> (skip handshake) + <b>pipelining</b>, Redis in same rack/region (~0.5ms RTT). Shard to spread load. Pooling does not remove the round-trip — say that explicitly.</p>
+
+<p class="q tag-a">Rules change mid-flight (100 → 50)</p>
+<p class="a">Grandfather existing buckets, eventual consistency is fine. Rules pushed via ZooKeeper/config, cached in gateway memory. Brief disagreement across gateways during propagation is acceptable.</p>
+
+<p class="q tag-a">Multiple rules match (user AND IP AND endpoint)</p>
+<p class="a">Evaluate all, enforce the <b>most restrictive</b>. Cost: multiple Redis ops per request (pipeline them).</p>
+
+<p class="q tag-a">reset_at with lazy refill</p>
+<p class="a">You store <code>last_filled</code>, not a window start. Compute <code>reset_at = now + (tokens_needed / rate)</code> — time until enough tokens refill.</p>
+
+<p class="q tag-a">Clock skew across gateways</p>
+<p class="a">Use the Redis server clock via <code>TIME</code> inside the LUA script → one authoritative clock per shard, gateway skew irrelevant.</p>
+
+<h2>5. Numbers to drop</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Memory</h3>
+    <p>~100 bytes/entry × 1M keys = <b>100 MB</b>. Even at 10 endpoints/user → ~1 GB. Fits comfortably in RAM. <span class="tag-g">Small footprint = a point in your favor.</span></p>
+  </div>
+  <div class="card">
+    <h3>Throughput</h3>
+    <p>One Redis node ≈ 100K ops/s. 1M req/s → ~10–15 shards. Consistent hashing so adding shards moves few keys.</p>
+  </div>
+</div>
+
+<h2>6. 30-second recap script</h2>
+<div class="card a">
+  Client hits the gateway. Gateway extracts identity from the JWT, builds <code>bucket:{id}</code>, and runs one atomic LUA script on the Redis shard for that key: read tokens, lazily refill by elapsed time, decrement if any remain. Allowed → forward; empty → 429 with reset_at. Redis sharded by user ID via consistent hashing, TTL cleans up idle keys. Rules cached in gateway memory, pushed on change. If Redis is down we fail open to a local limit/N bucket, because availability beats consistency for a limiter. Hot keys handled by a local blocked-cache, with key-splitting held in reserve for legit whales.
+</div>
+
+</body>
+</html>
