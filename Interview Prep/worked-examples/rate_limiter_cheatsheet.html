@@ -166,7 +166,33 @@
   </div>
 </div>
 
-<h2>4. Follow-ups — the answers to have ready</h2>
+<h2>4. Interfaces</h2>
+<div class="grid2">
+  <div class="card">
+    <h3><code>isRequestAllowed</code> — the hot-path check</h3>
+    <pre>isRequestAllowed(clientId, endpoint)
+  → { allowed, limit,
+      remaining, reset_at }</pre>
+    <ul>
+      <li>Called on <b>every</b> request in the gateway before forwarding. Runs the atomic LUA on the client's shard.</li>
+      <li><code>allowed=false</code> → gateway returns <code>429</code> with <code>limit</code>/<code>remaining</code>/<code>reset_at</code> headers; <code>true</code> → forward to backend.</li>
+      <li>Pure read-decrement, no config writes — keep it as cheap as possible.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3><code>PUT /rules/:id</code> — modify a rule</h3>
+    <pre>PUT /rules/{ruleId}
+{ scope: "user"|"ip"|"key",
+  limit: 50, window: "1m",
+  tier: "free" }</pre>
+    <ul>
+      <li>Admin/control-plane path, <b>not</b> the hot path. Writes to config store (ZooKeeper/etcd), gateways pick it up in-memory.</li>
+      <li>PUT = idempotent replace of a known rule id. Grandfather existing buckets; new limit applies as they refill (eventual consistency is fine).</li>
+    </ul>
+  </div>
+</div>
+
+<h2>5. Follow-ups — the answers to have ready</h2>
 
 <p class="q tag-a">Burst: doesn't token bucket still allow ~2×?</p>
 <p class="a">Yes. Full bucket drained at t=0, refills over the minute, drained again near t=60 → ~200 in a 60s sliding window. The fix is lowering <b>max CAPACITY</b> (not the initial value — it refills back up). That's a policy dial: lower it and legit bursty clients get 429s. State it as a tradeoff, not a bug.</p>
@@ -192,7 +218,7 @@
 <p class="q tag-a">Clock skew across gateways</p>
 <p class="a">Use the Redis server clock via <code>TIME</code> inside the LUA script → one authoritative clock per shard, gateway skew irrelevant.</p>
 
-<h2>5. Numbers to drop</h2>
+<h2>6. Numbers to drop</h2>
 <div class="grid2">
   <div class="card">
     <h3>Memory</h3>
@@ -204,7 +230,7 @@
   </div>
 </div>
 
-<h2>6. 30-second recap script</h2>
+<h2>7. 30-second recap script</h2>
 <div class="card a">
   Client hits the gateway. Gateway extracts identity from the JWT, builds <code>bucket:{id}</code>, and runs one atomic LUA script on the Redis shard for that key: read tokens, lazily refill by elapsed time, decrement if any remain. Allowed → forward; empty → 429 with reset_at. Redis sharded by user ID via consistent hashing, TTL cleans up idle keys. Rules cached in gateway memory, pushed on change. If Redis is down we fail open to a local limit/N bucket, because availability beats consistency for a limiter. Hot keys handled by a local blocked-cache, with key-splitting held in reserve for legit whales.
 </div>
