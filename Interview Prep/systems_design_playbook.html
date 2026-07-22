@@ -217,6 +217,27 @@
     </div>
   </div>
 
+  <div class="row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="panel">
+      <h2>Technology overview — Connection pooling</h2>
+      <ul>
+        <li><b>What:</b> reuse a set of open TCP connections instead of dialing one per request — amortizes the TCP handshake (1 RTT) + TLS (1–2 RTT) across many calls.</li>
+        <li><b>Use when:</b> repeated calls to the same long-lived backend — app→DB, app→Redis, service→service, proxy→upstream. At high QPS a fresh connection per request burns more time handshaking than working, and exhausts ports (TIME_WAIT).</li>
+        <li><b>Skip when:</b> connectionless (UDP), already-multiplexed transports (HTTP/2, HTTP/3), serverless workers that die between invocations, fan-out to many distinct hosts, or very low request rates.</li>
+        <li><b>Trade-offs:</b> holds connections open (memory + file descriptors both ends); must size the pool — too big blows past the backend's connection cap (Postgres limits are real and low, hence <b>PgBouncer</b>); needs health checks to drop dead connections.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>The line to say</h2>
+      <ul>
+        <li>"I'd <b>pool connections to Redis</b> to amortize TCP and TLS handshake cost across requests, <b>sized to the backend's connection limit</b>, plus <b>pipelining</b> to batch round trips."</li>
+        <li><b>Why it lands:</b> naming the cost you remove (handshake RTTs) and the risk you manage (backend connection cap) is what separates it from buzzword-dropping.</li>
+        <li><b>One-liner rule:</b> pool when you make repeated calls to the same long-lived backend. Broadly applicable, not a universal law.</li>
+        <li><b>Note:</b> pooling avoids handshake setup — it does <b>not</b> remove the round trip. Say that explicitly.</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="foot">Requirements → Estimate → API/Data → High-level → Deep dives → Wrap. <b>Announce each transition. Non-functional requirements choose your deep dives.</b></div>
 </div>
 </body>
