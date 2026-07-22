@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Back-of-the-Envelope Cheatsheet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --amber:#b45309; --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.5;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:13.5px;margin:12px 0 4px;color:var(--accent)}
+  p{margin:6px 0}
+  .sub{color:var(--muted);margin:0 0 16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  table{border-collapse:collapse;width:100%;margin:6px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:5px 8px;text-align:left}
+  th{background:var(--chip);font-weight:600}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .big{font-weight:600;color:var(--accent)}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:3px 0}
+  .rule{background:#fff8ec;border:1px solid #f0d9a8;border-radius:6px;padding:8px 12px;margin:8px 0}
+  @media print{body{padding:0;font-size:11.5px}.card{break-inside:avoid}h2{margin-top:14px}}
+</style>
+</head>
+<body>
+
+<h1>Back-of-the-Envelope Cheatsheet</h1>
+<p class="sub">Napkin math for system design. Use powers of 1000, never apologize for rounding.</p>
+
+<h2>1. The core trick: multiply, then count zeros</h2>
+<div class="rule">
+  <b>bytes/item × items = total.</b> Work in powers of 10. Every <b>×1000</b> moves you up one unit:
+  <code>B → KB → MB → GB → TB → PB</code>. So 3 zeros per step.
+</div>
+
+<table>
+  <tr><th>Unit</th><th class="n">Bytes (approx)</th><th class="n">Zeros</th></tr>
+  <tr><td>1 KB</td><td class="n">10<sup>3</sup> = 1,000</td><td class="n">3</td></tr>
+  <tr><td>1 MB</td><td class="n">10<sup>6</sup> = 1,000,000</td><td class="n">6</td></tr>
+  <tr><td>1 GB</td><td class="n">10<sup>9</sup></td><td class="n">9</td></tr>
+  <tr><td>1 TB</td><td class="n">10<sup>12</sup></td><td class="n">12</td></tr>
+  <tr><td>1 PB</td><td class="n">10<sup>15</sup></td><td class="n">15</td></tr>
+</table>
+
+<h3>Memorize these anchor products</h3>
+<table>
+  <tr><th>Per item</th><th class="n">× 1 thousand</th><th class="n">× 1 million</th><th class="n">× 1 billion</th></tr>
+  <tr><td>1 byte</td><td class="n">1 KB</td><td class="n">1 MB</td><td class="n">1 GB</td></tr>
+  <tr><td>100 bytes</td><td class="n">100 KB</td><td class="n"><b>100 MB</b></td><td class="n">100 GB</td></tr>
+  <tr><td>1 KB</td><td class="n">1 MB</td><td class="n"><b>1 GB</b></td><td class="n">1 TB</td></tr>
+  <tr><td>1 MB</td><td class="n">1 GB</td><td class="n">1 TB</td><td class="n">1 PB</td></tr>
+</table>
+<p class="sub">Sanity check from the interview: 100 bytes × 1M users = 100 MB. (Not 100 GB — that would be 100 bytes × 1B, or 100 KB × 1M.)</p>
+
+<h2>2. QPS / throughput conversions</h2>
+<div class="rule">
+  <b>1 day ≈ 100,000 seconds</b> (actually 86,400, round to 10<sup>5</sup>). So
+  <b>per-day ÷ 100,000 = per-second.</b>
+</div>
+<table>
+  <tr><th>Volume</th><th class="n">≈ QPS</th><th>How</th></tr>
+  <tr><td>1 million / day</td><td class="n">~12 /s</td><td>10<sup>6</sup> / 10<sup>5</sup></td></tr>
+  <tr><td>10 million / day</td><td class="n">~120 /s</td><td>bump one zero</td></tr>
+  <tr><td>100 million / day</td><td class="n">~1,200 /s</td><td></td></tr>
+  <tr><td>1 billion / day</td><td class="n">~12,000 /s</td><td>10<sup>9</sup> / 10<sup>5</sup></td></tr>
+  <tr><td>1 billion / month</td><td class="n">~400 /s</td><td>÷ 30 days more</td></tr>
+</table>
+<p class="sub">Peak factor: multiply average QPS by <b>~2–3×</b> for peak, and provision for peak.</p>
+
+<h2>3. Common datastore sizes (single node, rules of thumb)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Redis (in-memory)</h3>
+    <table>
+      <tr><td>Throughput</td><td class="n">~100K ops/s</td></tr>
+      <tr><td>Latency</td><td class="n">&lt;1 ms</td></tr>
+      <tr><td>Practical RAM/node</td><td class="n">25–100 GB</td></tr>
+      <tr><td>Hard ceiling</td><td class="n">RAM-bound</td></tr>
+    </table>
+    <p class="sub">It's a cache. If your dataset &gt; RAM you shard, full stop.</p>
+  </div>
+  <div class="card">
+    <h3>Postgres (disk)</h3>
+    <table>
+      <tr><td>Writes/node</td><td class="n">~5K–10K/s</td></tr>
+      <tr><td>Reads (w/ replicas)</td><td class="n">10s of K/s</td></tr>
+      <tr><td>Comfortable size</td><td class="n">up to a few TB</td></tr>
+      <tr><td>Row (rough)</td><td class="n">~1 KB</td></tr>
+    </table>
+    <p class="sub">Vertical scale + read replicas first. Shard only when writes or size force it.</p>
+  </div>
+</div>
+<table>
+  <tr><th>Store</th><th>Use for</th><th class="n">Ballpark cap / node</th></tr>
+  <tr><td>Redis / Memcached</td><td>cache, counters, sessions</td><td class="n">~100 GB, 100K ops/s</td></tr>
+  <tr><td>Postgres / MySQL</td><td>transactions, relational</td><td class="n">~few TB, ~10K w/s</td></tr>
+  <tr><td>Cassandra / Dynamo</td><td>high write, wide scale</td><td class="n">scales horizontally by design</td></tr>
+  <tr><td>Kafka</td><td>event stream / log</td><td class="n">~1M+ msg/s (cluster)</td></tr>
+  <tr><td>S3 / object store</td><td>blobs, backups</td><td class="n">effectively unbounded</td></tr>
+</table>
+
+<h2>4. When to scale horizontally / shard</h2>
+<div class="rule">Shard when a <b>single node hits any one ceiling</b>: RAM, disk, or throughput. Reach for the cheaper levers first.</div>
+<ul>
+  <li><b>Vertical first.</b> Bigger box. Cheap, no code change, buys you a lot.</li>
+  <li><b>Read replicas.</b> When reads &gt;&gt; writes and you're read-bound.</li>
+  <li><b>Cache layer.</b> Before sharding the DB, put Redis in front.</li>
+  <li><b>Shard (partition) when:</b>
+    <ul>
+      <li>Redis dataset &gt; ~50–100 GB, or ops &gt; ~100K/s</li>
+      <li>Postgres write throughput &gt; single-node limit (~10K/s)</li>
+      <li>Dataset &gt; a few TB, or working set no longer fits RAM</li>
+    </ul>
+  </li>
+  <li><b>How to shard:</b> consistent hashing (minimal key movement when adding nodes). Watch for <b>hot keys</b> / uneven partitions.</li>
+</ul>
+
+<h2>5. Latency numbers (order of magnitude)</h2>
+<table>
+  <tr><th>Operation</th><th class="n">Time</th><th>Mental anchor</th></tr>
+  <tr><td>L1 cache reference</td><td class="n">~1 ns</td><td>free</td></tr>
+  <tr><td>Main memory (RAM) reference</td><td class="n">~100 ns</td><td>100× L1</td></tr>
+  <tr><td>Read 1 MB sequentially from RAM</td><td class="n">~0.25 ms</td><td></td></tr>
+  <tr><td>SSD random read (4 KB)</td><td class="n">~150 µs</td><td>~1000× RAM</td></tr>
+  <tr><td>Read 1 MB from SSD</td><td class="n">~1 ms</td><td></td></tr>
+  <tr><td>Round trip, same datacenter</td><td class="n">~0.5 ms</td><td>the Redis hop</td></tr>
+  <tr><td>Disk seek (spinning)</td><td class="n">~10 ms</td><td>avoid</td></tr>
+  <tr><td>Read 1 MB from spinning disk</td><td class="n">~20 ms</td><td></td></tr>
+  <tr><td>Round trip, cross-region (CA↔EU)</td><td class="n">~100–150 ms</td><td>the expensive one</td></tr>
+</table>
+<div class="rule">
+  Rough ladder: <b>RAM 100 ns → SSD 100 µs → same-DC network 0.5 ms → disk seek 10 ms → cross-region 100 ms.</b>
+  Each rung is roughly 100–1000× the last. Memory is ~1M× faster than a cross-region hop.
+</div>
+
+<h2>6. Fast facts to keep handy</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Time</h3>
+    <ul>
+      <li>1 day ≈ 86,400 s ≈ <b>10<sup>5</sup> s</b></li>
+      <li>1 month ≈ 2.6M s ≈ <b>2.5×10<sup>6</sup></b></li>
+      <li>1 year ≈ 31.5M s ≈ <b>3×10<sup>7</sup></b></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Sizes of common things</h3>
+    <ul>
+      <li>char/int: 1–8 bytes · UUID: 16 B · timestamp: 8 B</li>
+      <li>Short text row: ~100 B–1 KB</li>
+      <li>Web page / small image: ~100 KB–1 MB</li>
+      <li>1 min 1080p video: ~50 MB</li>
+    </ul>
+  </div>
+</div>
+
+<h2>7. Worked example (the pattern to repeat)</h2>
+<div class="card">
+  <p><b>Q: 500M daily active users, each posts 2 tweets/day, 300 bytes each. Storage per year?</b></p>
+  <ul>
+    <li>Writes/day = 500M × 2 = 10<sup>9</sup> → QPS = 10<sup>9</sup> / 10<sup>5</sup> = <span class="big">~12K writes/s</span> (peak ~25K)</li>
+    <li>Bytes/day = 10<sup>9</sup> × 300 = 3×10<sup>11</sup> = <span class="big">300 GB/day</span></li>
+    <li>Per year = 300 GB × 365 ≈ <span class="big">~110 TB/year</span> (before replication/index)</li>
+    <li>×3 replication → ~330 TB → clearly needs sharding + object storage for media</li>
+  </ul>
+</div>
+
+</body>
+</html>
