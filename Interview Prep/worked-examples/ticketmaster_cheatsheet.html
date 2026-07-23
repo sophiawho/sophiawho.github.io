@@ -364,7 +364,57 @@ and sees position + ETA.</pre>
   </div>
 </div>
 
-<h2>11. Follow-ups — answers to have ready</h2>
+<h2>11. Seat assignment by section + quantity (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Server picks the seats, not the user</h3>
+    <p>User picks a <b>section</b> and a <b>quantity</b>, not specific seats. Server atomically selects and reserves the best available block in one statement — <b>no human between the read and the write</b>.</p>
+    <pre>BEGIN;
+SELECT id FROM tickets
+  WHERE eventId=? AND section=?
+    AND status='available'
+  ORDER BY seat_quality
+  LIMIT ?                     -- qty
+  FOR UPDATE SKIP LOCKED;     -- key
+-- reserve exactly those rows
+UPDATE tickets SET status='reserved',
+       userId=? WHERE id IN (...);
+COMMIT;</pre>
+  </div>
+  <div class="card">
+    <h3>Why it works</h3>
+    <ul>
+      <li><b>No stale-read window.</b> Selection and reservation are the same atomic step, so there's nothing to go stale in between.</li>
+      <li><code>SKIP LOCKED</code> makes concurrent requests <b>walk past each other's locked rows</b> instead of colliding — roughly one success per available seat, not thousands fighting over the same few hundred attractive ones.</li>
+      <li>Success rate is bounded by <b>real inventory, not contention</b>. Kills the retry storm since almost nobody loses a race.</li>
+    </ul>
+    <h3>Cost (defend it)</h3>
+    <p class="a">Users give up <b>specific seat choice</b>. Fine for a general-admission-style onsale; <span class="tag-r">wrong for resale or accessible seating</span>, where the user must pick the exact seat — there you fall back to per-seat locking.</p>
+  </div>
+</div>
+
+<h2>12. Live seat map — short-interval polling, not SSE (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Poll every 1–2s</h3>
+    <p>For high-demand events, clients <b>poll the seat map every 1–2s</b> rather than holding an SSE/WebSocket connection.</p>
+    <ul>
+      <li>The response is <b>cacheable</b>: snapshot the map, cache at the edge with a <b>1s TTL</b>, serve 50k clients with almost no DB load.</li>
+      <li>SSE can't do that — each client needs a live per-connection stream held open on your servers.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Why polling wins here (defend it)</h3>
+    <ul>
+      <li><b>Freshness converges anyway.</b> At this scale you'd batch SSE pushes to ~1/s regardless, or you're fanning out millions of msgs/s — so SSE stops being more real-time.</li>
+      <li><b>Degrades gracefully.</b> A dropped poll = one missed request. 50k dropped SSE connections all <b>reconnect at once</b> and take your servers down.</li>
+      <li>The usual "wasted empty polls" knock <b>doesn't apply</b> — a popular event changes constantly, so nearly every poll returns new data.</li>
+    </ul>
+    <p class="a">Use SSE/WebSocket for low-fanout, truly push-driven cases; for a 50k-viewer onsale map, cached polling is cheaper and more robust.</p>
+  </div>
+</div>
+
+<h2>13. Follow-ups — answers to have ready</h2>
 
 <p class="q tag-a">User reserves a seat then vanishes</p>
 <p class="a">The Redis lock has a 10-min TTL; it auto-releases and the seat returns to <code>available</code>. No sweeper job needed. Availability count is recomputed on read (or the count is decremented/incremented as locks flip).</p>
@@ -387,7 +437,7 @@ and sees position + ETA.</pre>
 <p class="q tag-a">Why not just lock rows in Postgres and skip Redis?</p>
 <p class="a">You can, and the DB is the ultimate guarantee. Redis is there to keep long-held "reserved-but-not-paid" state off the leader and to absorb the popular-event spike cheaply. It's a performance layer in front of the correctness layer.</p>
 
-<h2>12. Numbers to drop</h2>
+<h2>14. Numbers to drop</h2>
 <div class="grid2">
   <div class="card">
     <h3>Load</h3>
@@ -399,7 +449,7 @@ and sees position + ETA.</pre>
   </div>
 </div>
 
-<h2>13. 30-second recap script</h2>
+<h2>15. 30-second recap script</h2>
 <div class="card a">
   Two paths with opposite priorities. <b>Reads favor availability</b>: search hits Elasticsearch (fed by CDC from Postgres), event pages and availability counts are cached in Redis and served from read replicas, so the 100:1 read load never touches the write leader and stays under 500ms. <b>Writes favor consistency</b>: booking is a two-step reserve-then-pay. Reserve does an atomic <code>SET NX</code> Redis lock per seat with a 10-minute TTL so abandoned carts self-release; payment commits a single Postgres transaction that flips ticket status and is the real source of truth — Redis is just a fast reservation in front of it. Every mutation is idempotent via a client UUID key, forwarded to Stripe so retries never double-charge. Postgres is single-leader for writes with read replicas and is sharded by <code>eventId</code> so a megaevent stays on one partition. For a 10M-user on-sale we put a Redis virtual waiting queue in front, admitting a bounded trickle in FIFO order so the booking path never sees the full spike. If Redis dies we fail closed to the DB's row locks — never into a double-sell.
 </div>
