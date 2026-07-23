@@ -292,6 +292,15 @@ POST /bookings/{id}/payment
   </div>
 </div>
 
+<div class="card" style="margin-top:14px">
+  <h3>Pick ONE reservation store — this vs §11 are alternatives, not a stack</h3>
+  <p>The Redis <code>SET NX</code> + TTL here and the DB <code>SKIP LOCKED</code> in §11 both hold a reservation. <b>Don't run both</b> — two stores drift (Redis key expires but the DB row stays <code>reserved</code> forever). The choice follows the <b>seat-selection model</b>:</p>
+  <ul>
+    <li><b>User picks a specific seat</b> (this section) → Redis <code>SET NX</code> per <code>ticketId</code>, TTL auto-releases. DB row stays <code>available</code> until payment; Redis is the only reservation store.</li>
+    <li><b>Server assigns seats under heavy contention</b> (§11, popular onsale) → skip Redis entirely. Reservation lives in the DB as <code>status='reserved'</code> + <code>reserved_until</code>, reclaimed lazily + by a sweeper. <code>SKIP LOCKED</code> removes the stale-read window that Redis was there to paper over.</li>
+  </ul>
+</div>
+
 <h2>8. Idempotency (deep dive)</h2>
 <div class="grid2">
   <div class="card">
@@ -368,17 +377,20 @@ and sees position + ETA.</pre>
 <div class="grid2">
   <div class="card">
     <h3>Server picks the seats, not the user</h3>
-    <p>User picks a <b>section</b> and a <b>quantity</b>, not specific seats. Server atomically selects and reserves the best available block in one statement — <b>no human between the read and the write</b>.</p>
+    <p>The go-to for <b>popular onsales</b>. User picks a <b>section</b> and a <b>quantity</b>, not specific seats. Server atomically selects and reserves the best available block in one statement — <b>no human between the read and the write, and no Redis</b>. Reservation state lives in the DB.</p>
     <pre>BEGIN;
 SELECT id FROM tickets
   WHERE eventId=? AND section=?
-    AND status='available'
+    AND (status='available'
+      OR (status='reserved'
+          AND reserved_until &lt; now()))
   ORDER BY seat_quality
   LIMIT ?                     -- qty
   FOR UPDATE SKIP LOCKED;     -- key
--- reserve exactly those rows
-UPDATE tickets SET status='reserved',
-       userId=? WHERE id IN (...);
+UPDATE tickets
+  SET status='reserved', userId=?,
+      reserved_until = now()+'10 min'
+  WHERE id IN (...);
 COMMIT;</pre>
   </div>
   <div class="card">
@@ -388,8 +400,10 @@ COMMIT;</pre>
       <li><code>SKIP LOCKED</code> makes concurrent requests <b>walk past each other's locked rows</b> instead of colliding — roughly one success per available seat, not thousands fighting over the same few hundred attractive ones.</li>
       <li>Success rate is bounded by <b>real inventory, not contention</b>. Kills the retry storm since almost nobody loses a race.</li>
     </ul>
+    <h3>Expiry without Redis</h3>
+    <p class="a">The txn is <b>short</b> — pick, flip to <code>reserved</code>, commit. It does <b>not</b> hold the row lock for the 10-min checkout (that would pin a connection). The <code>reserved</code> status is what keeps other pickers off. Abandoned carts are reclaimed <b>lazily</b> (the <code>reserved_until &lt; now()</code> predicate treats them as free) plus a light sweeper for count accuracy. This replaces the Redis TTL from §7.</p>
     <h3>Cost (defend it)</h3>
-    <p class="a">Users give up <b>specific seat choice</b>. Fine for a general-admission-style onsale; <span class="tag-r">wrong for resale or accessible seating</span>, where the user must pick the exact seat — there you fall back to per-seat locking.</p>
+    <p class="a">Users give up <b>specific seat choice</b>. Fine for a general-admission-style onsale; <span class="tag-r">wrong for resale or accessible seating</span>, where the user must pick the exact seat — there you fall back to the per-seat Redis lock in §7.</p>
   </div>
 </div>
 
