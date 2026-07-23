@@ -235,7 +235,31 @@ POST /bookings/{id}/payment
   </div>
 </div>
 
-<h2>6. Booking path — no double-sell (deep dive)</h2>
+<h2>6. Elasticsearch &amp; CDC (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>DB is truth, ES is a derived read model</h3>
+    <ul>
+      <li>Writes go to <b>Postgres</b>. A <b>CDC</b> stream (Debezium tailing the WAL, or an <b>outbox</b> table) propagates event changes to ES asynchronously.</li>
+      <li>ES is <b>eventually consistent, stale by seconds</b> — acceptable because booking re-checks truth on the leader. Never book off the search index.</li>
+      <li>Make the sync <b>idempotent</b>: upsert by <code>eventId</code>, so replays/duplicates are safe. Reconcile ES against Postgres periodically to heal CDC gaps.</li>
+    </ul>
+    <pre>Postgres --WAL--> CDC (Debezium)
+         --> Kafka --> ES upsert(eventId)</pre>
+  </div>
+  <div class="card">
+    <h3>ES doesn't replace the Redis cache</h3>
+    <p>ES has internal caches, but none is an app-layer read-through store:</p>
+    <ul>
+      <li><b>Shard request cache</b> — full query result per shard, keyed by request. Helps exact repeats/aggregations; cleared on refresh.</li>
+      <li><b>Query/filter cache</b> — bitsets of which docs match a filter (e.g. <code>city=SF</code>) per segment.</li>
+      <li><b>OS page cache</b> — the real reason ES is fast: memory-mapped Lucene segments live in RAM.</li>
+    </ul>
+    <p class="a">Keep <b>Redis</b> in front for hot event pages / exact-repeat queries: sub-ms, you control the TTL. Different job than ES.</p>
+  </div>
+</div>
+
+<h2>7. Booking path — no double-sell (deep dive)</h2>
 <div class="grid2">
   <div class="card">
     <h3>Reserve → Pay, with a Redis lock</h3>
@@ -268,7 +292,7 @@ POST /bookings/{id}/payment
   </div>
 </div>
 
-<h2>7. Idempotency (deep dive)</h2>
+<h2>8. Idempotency (deep dive)</h2>
 <div class="grid2">
   <div class="card">
     <h3>Problem</h3>
@@ -291,7 +315,7 @@ POST /bookings/{id}/payment
   </div>
 </div>
 
-<h2>8. Replicas &amp; leader-follower (deep dive)</h2>
+<h2>9. Replicas &amp; leader-follower (deep dive)</h2>
 <div class="grid2">
   <div class="card">
     <h3>Topology</h3>
@@ -312,7 +336,7 @@ POST /bookings/{id}/payment
   </div>
 </div>
 
-<h2>9. Popular events — the virtual waiting queue (deep dive)</h2>
+<h2>10. Popular events — the virtual waiting queue (deep dive)</h2>
 <div class="grid2">
   <div class="card">
     <h3>Why</h3>
@@ -340,7 +364,7 @@ and sees position + ETA.</pre>
   </div>
 </div>
 
-<h2>10. Follow-ups — answers to have ready</h2>
+<h2>11. Follow-ups — answers to have ready</h2>
 
 <p class="q tag-a">User reserves a seat then vanishes</p>
 <p class="a">The Redis lock has a 10-min TTL; it auto-releases and the seat returns to <code>available</code>. No sweeper job needed. Availability count is recomputed on read (or the count is decremented/incremented as locks flip).</p>
@@ -363,7 +387,7 @@ and sees position + ETA.</pre>
 <p class="q tag-a">Why not just lock rows in Postgres and skip Redis?</p>
 <p class="a">You can, and the DB is the ultimate guarantee. Redis is there to keep long-held "reserved-but-not-paid" state off the leader and to absorb the popular-event spike cheaply. It's a performance layer in front of the correctness layer.</p>
 
-<h2>11. Numbers to drop</h2>
+<h2>12. Numbers to drop</h2>
 <div class="grid2">
   <div class="card">
     <h3>Load</h3>
@@ -375,7 +399,7 @@ and sees position + ETA.</pre>
   </div>
 </div>
 
-<h2>12. 30-second recap script</h2>
+<h2>13. 30-second recap script</h2>
 <div class="card a">
   Two paths with opposite priorities. <b>Reads favor availability</b>: search hits Elasticsearch (fed by CDC from Postgres), event pages and availability counts are cached in Redis and served from read replicas, so the 100:1 read load never touches the write leader and stays under 500ms. <b>Writes favor consistency</b>: booking is a two-step reserve-then-pay. Reserve does an atomic <code>SET NX</code> Redis lock per seat with a 10-minute TTL so abandoned carts self-release; payment commits a single Postgres transaction that flips ticket status and is the real source of truth — Redis is just a fast reservation in front of it. Every mutation is idempotent via a client UUID key, forwarded to Stripe so retries never double-charge. Postgres is single-leader for writes with read replicas and is sharded by <code>eventId</code> so a megaevent stays on one partition. For a 10M-user on-sale we put a Redis virtual waiting queue in front, admitting a bounded trickle in FIFO order so the booking path never sees the full spike. If Redis dies we fail closed to the DB's row locks — never into a double-sell.
 </div>
