@@ -191,7 +191,7 @@
       <ul>
         <li><b>What:</b> split one dataset across nodes by a key (hash or range on <code>user_id</code>).</li>
         <li><b>Use when:</b> writes or data size exceed one primary — not before. Say that out loud.</li>
-        <li><b>Trade-offs:</b> cross-shard queries become fan-outs; joins and transactions get hard; hot keys (celebrities) skew load; resharding is painful — pick the key carefully.</li>
+        <li><b>Trade-offs:</b> cross-shard queries become fan-outs; joins and transactions get hard; hot keys (celebrities) skew load; resharding is painful — pick the key carefully, and <b>colocate rows that commit together</b> so writes stay single-shard (no 2PC).</li>
       </ul>
       <h2 style="margin-top:14px">SQL vs NoSQL</h2>
       <ul>
@@ -217,23 +217,111 @@
     </div>
   </div>
 
-  <div class="row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+  <div style="margin-top:24px;margin-bottom:4px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--warn)">Don't forget — high-value patterns to reach for</div>
+  <div class="row" style="grid-template-columns:1fr 1fr 1fr;margin-top:8px">
     <div class="panel">
-      <h2>Technology overview — Connection pooling</h2>
+      <h2>CDC + outbox — commit to DB, then emit to Kafka</h2>
       <ul>
-        <li><b>What:</b> reuse a set of open TCP connections instead of dialing one per request — amortizes the TCP handshake (1 RTT) + TLS (1–2 RTT) across many calls.</li>
-        <li><b>Use when:</b> repeated calls to the same long-lived backend — app→DB, app→Redis, service→service, proxy→upstream. At high QPS a fresh connection per request burns more time handshaking than working, and exhausts ports (TIME_WAIT).</li>
-        <li><b>Skip when:</b> connectionless (UDP), already-multiplexed transports (HTTP/2, HTTP/3), serverless workers that die between invocations, fan-out to many distinct hosts, or very low request rates.</li>
-        <li><b>Trade-offs:</b> holds connections open (memory + file descriptors both ends); must size the pool — too big blows past the backend's connection cap (Postgres limits are real and low, hence <b>PgBouncer</b>); needs health checks to drop dead connections.</li>
+        <li><b>Problem (dual write):</b> you need to update the DB <i>and</i> publish an event (Kafka). Doing both directly isn't atomic — DB commits but the publish fails (or vice versa) and the two diverge.</li>
+        <li><b>Outbox:</b> in the <b>same transaction</b> as the business write, insert the event into an <code>outbox</code> table. One atomic commit — data and intent-to-publish succeed or fail together.</li>
+        <li><b>CDC relay:</b> a separate process (<b>Debezium</b> tailing the WAL, or a poller) reads committed outbox rows and publishes to Kafka. DB is the single source of truth; the event is guaranteed to ship.</li>
+        <li><b>Cost:</b> at-least-once delivery → <b>consumers must be idempotent</b>; small publish lag.</li>
+        <li><b>Line:</b> "To dodge the dual-write problem I write an outbox row in the same txn and a CDC relay publishes to Kafka — atomic commit, at-least-once, consumers dedupe."</li>
       </ul>
     </div>
     <div class="panel">
-      <h2>The line to say</h2>
+      <h2>Load balancer + API gateway — the edge</h2>
       <ul>
-        <li>"I'd <b>pool connections to Redis</b> to amortize TCP and TLS handshake cost across requests, <b>sized to the backend's connection limit</b>, plus <b>pipelining</b> to batch round trips."</li>
-        <li><b>Why it lands:</b> naming the cost you remove (handshake RTTs) and the risk you manage (backend connection cap) is what separates it from buzzword-dropping.</li>
-        <li><b>One-liner rule:</b> pool when you make repeated calls to the same long-lived backend. Broadly applicable, not a universal law.</li>
-        <li><b>Note:</b> pooling avoids handshake setup — it does <b>not</b> remove the round trip. Say that explicitly.</li>
+        <li><b>Load balancer:</b> spreads traffic across <b>stateless</b> app servers with health checks (drops dead nodes). L4 (TCP, fast) vs L7 (HTTP, can route by path/header). Stateless tier is what lets it scale horizontally.</li>
+        <li><b>API gateway:</b> the single client entry point and <b>policy layer</b> — auth, rate limiting, routing to services, TLS termination, request shaping. In microservices it fronts many services so clients hit one endpoint.</li>
+        <li><b>Where they sit:</b> <code>Client → CDN → LB → API gateway → app/services</code>. LB = spread load, gateway = policy + routing; often merged at the edge.</li>
+        <li><b>Line:</b> "LB load-balances a stateless app tier with health checks; the gateway handles auth, rate limiting, and routing so services stay focused on business logic."</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Connection pooling — short</h2>
+      <ul>
+        <li><b>What:</b> reuse open TCP connections instead of one per request — amortizes TCP + TLS handshake RTTs.</li>
+        <li><b>Use when:</b> repeated calls to the same long-lived backend (app→DB, app→Redis). Size to the backend's connection cap (Postgres limits are low → <b>PgBouncer</b>).</li>
+        <li><b>Note:</b> avoids the handshake, <b>not</b> the round trip — say that. Skip for HTTP/2-3, serverless, or many distinct hosts.</li>
+        <li><b>Line:</b> "Pool connections to Redis/DB to amortize handshake cost, sized to the connection limit, plus pipelining to batch round trips."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="panel">
+      <h2>ACID + shard to colocate transactions</h2>
+      <ul>
+        <li><b>Postgres gives you ACID:</b> atomic multi-row commits with real isolation. That's why booking/payment logic stays simple — flip N tickets and write the booking in one transaction, all-or-nothing.</li>
+        <li><b>Shard so a transaction stays on one shard.</b> Pick the key so rows that commit together colocate — e.g. shard by <code>eventId</code> so every ticket for an event lives on the same shard.</li>
+        <li><b>Why it matters:</b> a cross-shard transaction needs distributed commit (<b>2PC</b>) — slow, complex, and a new failure mode. Single-shard transactions keep ACID cheap.</li>
+        <li><b>Line:</b> "I'll shard by the entity we transact against so writes stay single-shard and I never need 2PC."</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Idempotent writes — safe retries</h2>
+      <ul>
+        <li><b>Client generates a UUID</b> per logical write, sent as <code>Idempotency-Key</code>. The client owns it because it needs to be stable across retries.</li>
+        <li><b>Server stores</b> <code>key → response</code> on first execution; a retry with the same key <b>returns the stored response</b> instead of re-running the write.</li>
+        <li><b>Why:</b> networks retry on timeout — without this you double-charge or double-book. Essential on any non-idempotent POST; forward the key to the payment provider so it dedupes the charge too.</li>
+        <li><b>Line:</b> "Every mutating call carries a client UUID; a retry returns the same response, so a timeout never double-applies."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="panel">
+      <h2>Cache strategy + stampede protection</h2>
+      <ul>
+        <li><b>Cache-aside (default):</b> app reads cache, on miss reads DB and populates. On write, update the DB then <b>invalidate</b> the key. Simple, resilient to cache loss.</li>
+        <li><b>Write-through / write-back:</b> writes go via the cache — stronger read consistency (through) or faster writes at durability risk (back). Only reach for these with a reason.</li>
+        <li><b>Stampede (thundering herd):</b> a hot key expires and thousands of misses hit the DB at once. Fix with <b>jittered TTLs</b>, a <b>single-flight lock</b> (one request recomputes, others wait), and refresh-ahead before expiry.</li>
+        <li><b>Line:</b> "Cache-aside with jittered TTLs and a single-flight lock, so one hot key expiring can't stampede the DB."</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Consistent hashing</h2>
+      <ul>
+        <li><b>What:</b> place keys and nodes on a ring; a key maps to the next node clockwise. Adding/removing a node moves only <b>~1/N of keys</b>, not the whole keyspace.</li>
+        <li><b>Use when:</b> sharding caches or DBs across a node set that <b>changes</b> — autoscaling, failures, adding capacity. <b>Virtual nodes</b> smooth out uneven load.</li>
+        <li><b>Why it matters:</b> naive <code>hash % N</code> remaps almost everything when N changes, cold-flushing every cache at once.</li>
+        <li><b>Line:</b> "Consistent hashing so adding a shard remaps ~1/N of keys instead of reshuffling the whole ring."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="panel">
+      <h2>Replica lag + read-after-write</h2>
+      <ul>
+        <li><b>Setup:</b> leader takes writes, replicas stream asynchronously and <b>lag</b> by ms to seconds. Great for scaling reads, but the copy is a moment in the past.</li>
+        <li><b>Read-after-write trap:</b> user writes, immediately reads a lagging replica, and doesn't see their own change. Fix by routing that user's reads to the <b>leader</b> briefly, or a version/timestamp token, or sticky routing.</li>
+        <li><b>Correctness rule:</b> never authorize a write off a replica (e.g. "is this seat free?"). That read must hit the leader with a row lock — replicas are for display, not for gating writes.</li>
+        <li><b>Line:</b> "Replicas lag, so I route read-after-write to the leader and never make a write decision from a replica."</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Backpressure + dead-letter queue</h2>
+      <ul>
+        <li><b>Backpressure:</b> a queue decouples spikes, but consumers fall behind. Bound the queue and shed/throttle producers so you degrade instead of OOM-ing. Queue depth is a key metric + alert.</li>
+        <li><b>Retries + DLQ:</b> transient failures → retry with <b>exponential backoff</b>; after N tries a <b>poison message</b> goes to a <b>dead-letter queue</b> for inspection instead of blocking the pipeline.</li>
+        <li><b>Idempotent consumers:</b> delivery is at-least-once, so processing the same message twice must be safe.</li>
+        <li><b>Line:</b> "Bounded queue with backoff retries and a DLQ for poison messages; consumers idempotent because delivery is at-least-once."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:1fr;margin-top:14px">
+    <div class="panel">
+      <h2>Sagas + compensating actions — when one transaction won't fit</h2>
+      <ul>
+        <li><b>What:</b> a workflow that spans services or an external system (booking + Stripe, order + inventory + shipping) can't sit in one ACID transaction. Break it into a <b>sequence of local transactions</b>, each with a <b>compensating action</b> that semantically undoes it if a later step fails. This is the alternative to 2PC.</li>
+        <li><b>Compensation is a semantic undo, not a rollback:</b> <code>refund</code> reverses a charge, <code>release</code> reverses a reservation, <code>cancel</code> reverses a shipment. It must be <b>idempotent</b>, since it may be retried.</li>
+        <li><b>Ticketmaster example:</b> reserve seats <i>(compensate: release)</i> → charge Stripe <i>(compensate: refund)</i> → confirm booking. Charge fails → release the seats; a crash after charge but before confirm → retry confirm, or refund if it can't complete.</li>
+        <li><b>Choreography vs orchestration:</b> choreography = each step emits an event (via the outbox) and the next reacts — decoupled, simple; orchestration = a central coordinator drives the steps — clearer for complex flows, one place to reason about state.</li>
+        <li><b>Trade-off (say it):</b> a saga has <b>no isolation</b> — intermediate states are visible (a seat is reserved-but-not-paid). You design for that window explicitly, which is exactly what the reservation TTL / <code>reserved_until</code> is for. Consistency is eventual.</li>
+        <li><b>Line:</b> "The booking-plus-payment flow is a saga, not a distributed transaction: reserve, charge, confirm, each with a compensating action — release and refund — and idempotent so retries are safe."</li>
       </ul>
     </div>
   </div>

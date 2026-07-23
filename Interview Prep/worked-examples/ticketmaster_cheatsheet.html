@@ -301,6 +301,16 @@ POST /bookings/{id}/payment
   </ul>
 </div>
 
+<div class="card" style="margin-top:14px">
+  <h3>How the request knows which path to take</h3>
+  <ul>
+    <li>Route on an explicit <code>sales_mode</code> (<code>'pick_seat' | 'best_available'</code>) — a <b>config field</b> set by the promoter/ops <b>before the onsale</b>, not a live popularity guess and not a separate hand-kept map.</li>
+    <li>It rides along on the <b>event metadata already cached</b> in Redis / gateway memory (<code>event:{id}</code>), pushed on change. No per-request DB lookup just to route.</li>
+    <li>Store it <b>per section / ticket tier</b>, not per event — one show can run <code>best_available</code> for general sections and <code>pick_seat</code> for accessible/premium seats. Cleanly handles the §11 accessible-seating exception.</li>
+    <li><span class="tag-r">Immutable once the sale opens.</span> Never flip mode or auto-switch mid-sale — that leaves some seats reserved in Redis and others in the DB for the same event, i.e. two drifting stores again.</li>
+  </ul>
+</div>
+
 <h2>8. Idempotency (deep dive)</h2>
 <div class="grid2">
   <div class="card">
