@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticketmaster Cheatsheet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎟️</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+    --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.5;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:14px;margin:14px 0 4px;color:var(--accent)}
+  p{margin:6px 0}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow:auto;font-size:12.5px;line-height:1.45}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:3px 0}
+  table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--chip);font-weight:600}
+  .chip{display:inline-block;background:var(--chip);border-radius:20px;padding:2px 10px;font-size:12px;margin:2px 2px}
+  .tag-g{color:var(--green);font-weight:600}
+  .tag-r{color:var(--red);font-weight:600}
+  .tag-a{color:var(--amber);font-weight:600}
+  .q{font-weight:600;margin-top:10px}
+  .a{color:var(--muted)}
+  svg{max-width:100%;height:auto}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Ticketmaster — System Design Cheatsheet</h1>
+<p class="sub">Search (availability) · Booking (consistency, no double-sell) · 10M users on 1 event · read-heavy 100:1 · &lt;500ms search</p>
+
+<h2>1. Requirements in one line</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Functional</h3>
+    <ul>
+      <li>View events; search by name, date, city (or combo)</li>
+      <li>View one event + its available tickets/seats</li>
+      <li>Book one or more tickets to an event</li>
+    </ul>
+    <h3>Out of scope</h3>
+    <ul>
+      <li>Viewing booked events, adding events, dynamic pricing, GDPR, backups, CI/CD</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Non-functional (the real design drivers)</h3>
+    <ul>
+      <li><b>Search:</b> prioritize <span class="tag-g">availability</span> — stale-by-seconds is fine</li>
+      <li><b>Booking:</b> prioritize <span class="tag-r">consistency</span> — never double-sell a seat</li>
+      <li><b>Scalable:</b> 10M users hitting one popular event at once</li>
+      <li>Low-latency search &lt;500ms; read-heavy <b>100:1</b></li>
+    </ul>
+    <p class="a">The split personality (availability for search, consistency for booking) is the whole interview. Say it up front.</p>
+  </div>
+</div>
+
+<h2>2. Core entities &amp; schema</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Tables (Postgres, ACID)</h3>
+    <pre>Event    { id, venueId, performerId,
+           name, description, date }
+Venue    { id, location, seatMap }
+Performer{ id, name }
+Ticket   { id, eventId, seat, price,
+           status: available|reserved|booked,
+           userId }
+Booking  { id, userId, ticketIds[],
+           status: pending|completed|failed }</pre>
+  </div>
+  <div class="card">
+    <h3>Why relational / ACID here</h3>
+    <ul>
+      <li>Booking needs <b>transactions</b> — flip N tickets + create booking atomically.</li>
+      <li>Ticket status is the source of truth for "sold". Must be strongly consistent.</li>
+      <li>Rich search filters (name/date/city) map to a normalized schema; the heavy search load is offloaded to Elasticsearch, not run on the primary.</li>
+    </ul>
+    <p class="a">Ticket state lives in the DB. Redis holds a <b>short-lived lock</b>, never the truth.</p>
+  </div>
+</div>
+
+<h2>3. API interfaces</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Reads (availability path)</h3>
+    <pre>GET /events?search_term=&location=&date=
+   → [Event]      (search by any combo)
+
+GET /events/{id}
+   → Event + available tickets</pre>
+  </div>
+  <div class="card">
+    <h3>Writes (consistency path)</h3>
+    <pre>POST /bookings
+   Idempotency-Key: &lt;uuid&gt;
+   { eventId, ticketIds: string[] }
+   → { bookingId }        (reserves, TTL)
+
+POST /bookings/{id}/payment
+   → confirmation         (commits sale)</pre>
+    <p class="a">Two-step: reserve first (lock seats), pay second (finalize). Client generates the idempotency key.</p>
+  </div>
+</div>
+
+<h2>4. Architecture</h2>
+<svg viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="12">
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b6470"/></marker>
+    <marker id="arwg" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#15803d"/></marker>
+    <marker id="arwa" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b45309"/></marker>
+  </defs>
+
+  <!-- Client -->
+  <rect x="20" y="200" width="110" height="46" rx="8" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="75" y="228" text-anchor="middle" font-weight="600">Client</text>
+
+  <!-- CDN -->
+  <rect x="150" y="205" width="60" height="36" rx="6" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="180" y="228" text-anchor="middle" font-size="11">CDN</text>
+
+  <!-- Gateway -->
+  <rect x="230" y="185" width="130" height="78" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="295" y="208" text-anchor="middle" font-weight="600">LB + Gateway</text>
+  <text x="295" y="226" text-anchor="middle" font-size="10.5" fill="#5b6470">auth</text>
+  <text x="295" y="240" text-anchor="middle" font-size="10.5" fill="#5b6470">rate limit</text>
+  <text x="295" y="254" text-anchor="middle" font-size="10.5" fill="#5b6470">routing</text>
+
+  <!-- Search service -->
+  <rect x="420" y="40" width="120" height="44" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="480" y="67" text-anchor="middle">Search svc</text>
+
+  <!-- Elasticsearch -->
+  <rect x="600" y="30" width="130" height="64" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="665" y="56" text-anchor="middle" font-weight="600">Elasticsearch</text>
+  <text x="665" y="74" text-anchor="middle" font-size="10.5" fill="#5b6470">inverted index</text>
+
+  <!-- Event service -->
+  <rect x="420" y="140" width="120" height="44" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="480" y="167" text-anchor="middle">Event svc</text>
+
+  <!-- Redis cache -->
+  <rect x="600" y="135" width="120" height="54" rx="27" fill="#fff" stroke="#1a1a1a"/>
+  <text x="660" y="158" text-anchor="middle" font-weight="600">Redis cache</text>
+  <text x="660" y="174" text-anchor="middle" font-size="10.5" fill="#5b6470">hot events</text>
+
+  <!-- DB -->
+  <rect x="790" y="120" width="150" height="120" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="865" y="146" text-anchor="middle" font-weight="600">Postgres</text>
+  <text x="865" y="164" text-anchor="middle" font-size="10.5" fill="#5b6470">leader (writes)</text>
+  <text x="865" y="180" text-anchor="middle" font-size="10.5" fill="#5b6470">+ read replicas</text>
+  <text x="865" y="196" text-anchor="middle" font-size="10.5" fill="#5b6470">ACID · sharded</text>
+  <text x="865" y="212" text-anchor="middle" font-size="10.5" fill="#5b6470">by eventId</text>
+
+  <!-- Waiting queue -->
+  <rect x="230" y="330" width="130" height="52" rx="8" fill="#fff8ec" stroke="#b45309"/>
+  <text x="295" y="352" text-anchor="middle" font-size="11" fill="#b45309">Virtual waiting</text>
+  <text x="295" y="368" text-anchor="middle" font-size="11" fill="#b45309">queue (Redis)</text>
+
+  <!-- Booking service -->
+  <rect x="420" y="325" width="120" height="44" rx="8" fill="#fff" stroke="#15803d"/>
+  <text x="480" y="352" text-anchor="middle" fill="#15803d">Booking svc</text>
+
+  <!-- Ticket lock -->
+  <rect x="600" y="320" width="130" height="54" rx="27" fill="#fff" stroke="#b91c1c"/>
+  <text x="665" y="342" text-anchor="middle" font-size="11" fill="#b91c1c">Ticket Lock</text>
+  <text x="665" y="358" text-anchor="middle" font-size="10" fill="#5b6470">{ticketId:userId} TTL 10m</text>
+
+  <!-- Stripe -->
+  <rect x="420" y="415" width="120" height="40" rx="8" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="480" y="440" text-anchor="middle" font-size="11">Stripe payment</text>
+
+  <!-- arrows -->
+  <line x1="130" y1="223" x2="148" y2="223" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="210" y1="223" x2="228" y2="223" stroke="#5b6470" marker-end="url(#arw)"/>
+  <!-- gateway to search -->
+  <line x1="360" y1="205" x2="418" y2="70" stroke="#5b6470" marker-end="url(#arw)"/>
+  <!-- gateway to event -->
+  <line x1="360" y1="220" x2="418" y2="165" stroke="#5b6470" marker-end="url(#arw)"/>
+  <!-- gateway to queue -->
+  <line x1="330" y1="263" x2="300" y2="328" stroke="#b45309" marker-end="url(#arwa)"/>
+  <text x="300" y="300" text-anchor="middle" font-size="10" fill="#b45309">popular event</text>
+  <!-- queue to booking -->
+  <line x1="360" y1="352" x2="418" y2="349" stroke="#15803d" marker-end="url(#arwg)"/>
+  <!-- search to ES -->
+  <line x1="540" y1="62" x2="598" y2="62" stroke="#5b6470" marker-end="url(#arw)"/>
+  <!-- event to redis -->
+  <line x1="540" y1="162" x2="598" y2="162" stroke="#5b6470" marker-end="url(#arw)"/>
+  <!-- redis to db -->
+  <line x1="720" y1="162" x2="788" y2="170" stroke="#5b6470" marker-end="url(#arw)"/>
+  <!-- ES CDC from DB -->
+  <line x1="788" y1="130" x2="732" y2="80" stroke="#5b6470" stroke-dasharray="4 3" marker-end="url(#arw)"/>
+  <text x="770" y="100" text-anchor="middle" font-size="10" fill="#5b6470">CDC</text>
+  <!-- booking to lock -->
+  <line x1="540" y1="349" x2="598" y2="349" stroke="#b91c1c" marker-end="url(#arw)"/>
+  <!-- booking to db -->
+  <line x1="540" y1="335" x2="788" y2="225" stroke="#5b6470" marker-end="url(#arw)"/>
+  <text x="660" y="270" text-anchor="middle" font-size="10" fill="#5b6470">commit txn</text>
+  <!-- booking to stripe -->
+  <line x1="480" y1="369" x2="480" y2="413" stroke="#5b6470" marker-end="url(#arw)"/>
+</svg>
+<p class="a" style="margin-top:8px"><b>Two paths.</b> <span class="tag-g">Read path</span>: Client → CDN → Gateway → Search (Elasticsearch) or Event svc (Redis → replicas). <span class="tag-r">Write path</span>: Gateway → (waiting queue if hot) → Booking svc → Redis lock → leader Postgres → Stripe.</p>
+
+<h2>5. Search path (availability, &lt;500ms)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>How</h3>
+    <ul>
+      <li>Reads served from <b>Elasticsearch</b> — inverted index over name/date/location, fast fuzzy/partial matches.</li>
+      <li>ES stays fresh via <b>CDC</b> (change-data-capture) streaming from Postgres. Eventually consistent by seconds — fine for search.</li>
+      <li>Cache popular query results + hot event pages in <b>Redis</b>; static assets on <b>CDN</b>.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Why this scales the 100:1 read ratio</h3>
+    <ul>
+      <li>Search never touches the write leader → booking throughput is protected.</li>
+      <li><b>Read replicas</b> of Postgres absorb <code>GET /events/{id}</code> misses. Leader only takes writes.</li>
+      <li><b>Available seat count is intentionally cached/stale</b> — the truth is re-checked atomically at booking time, so a stale "12 left" is harmless.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>6. Booking path — no double-sell (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Reserve → Pay, with a Redis lock</h3>
+    <pre>POST /bookings {eventId, ticketIds}
+1. For each ticketId, SET NX in Redis:
+     SET lock:{ticketId} {userId}
+         NX EX 600          (10-min TTL)
+   Multiple tickets → acquire in sorted
+   order (avoid deadlock), atomic.
+2. Any SET NX fails → seat taken →
+   release the ones you got → 409.
+3. All locks held → Booking row
+   (status=pending), return bookingId.
+
+POST /bookings/{id}/payment
+4. Stripe charge succeeds →
+   TXN: tickets.status=booked,
+        booking.status=completed,
+        delete Redis locks.</pre>
+  </div>
+  <div class="card">
+    <h3>Why a Redis lock + TTL</h3>
+    <ul>
+      <li><b>SET NX</b> is atomic — first writer wins, so two users can't both reserve the same seat.</li>
+      <li><b>TTL</b> auto-releases seats if a user reserves then abandons checkout. No cron/cleanup job needed.</li>
+      <li>Lock is a <b>fast-path reservation</b>; the DB transaction at payment is the <b>durable source of truth</b>. Lock disagreeing with DB is safe because DB wins.</li>
+    </ul>
+    <h3>Belt-and-suspenders (defend it)</h3>
+    <p class="a">The final commit re-checks <code>ticket.status='available'</code> inside the transaction (or uses <b>SELECT ... FOR UPDATE</b> / optimistic <code>version</code> column). If Redis ever fails open, the DB still refuses a double-sell. Redis is an optimization for the common case, not the correctness guarantee.</p>
+  </div>
+</div>
+
+<h2>7. Idempotency (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Problem</h3>
+    <p>Client retries <code>POST /bookings</code> (timeout, double-tap, flaky network). Without protection you reserve/charge twice.</p>
+    <h3>Mechanism</h3>
+    <ul>
+      <li>Client sends a UUID <code>Idempotency-Key</code> per logical booking attempt.</li>
+      <li>Server stores <code>idem:{key} → {status, bookingId}</code> in Redis on first receipt (SET NX).</li>
+      <li>Retry with same key → return the stored result, don't re-execute.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Where it matters most</h3>
+    <ul>
+      <li><b>Payment</b> is the dangerous one. Pass the idempotency key <b>through to Stripe</b> — Stripe dedupes charges by key, so a retry never double-charges.</li>
+      <li>Make <code>ticketIds</code> the natural idempotency scope: re-reserving seats you already hold is a no-op, not a conflict.</li>
+      <li>Store idempotency records with a TTL (e.g. 24h) — long enough to cover retries, short enough to reclaim memory.</li>
+    </ul>
+    <p class="a">One line to say: "Every mutating call is safe to retry — client key on <code>POST /bookings</code>, same key forwarded to Stripe for the charge."</p>
+  </div>
+</div>
+
+<h2>8. Replicas &amp; leader-follower (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Topology</h3>
+    <ul>
+      <li><b>Single leader</b> takes all writes (bookings/ticket state) → keeps consistency simple, one authority per seat.</li>
+      <li><b>Read replicas</b> stream from the leader and serve <code>GET /events/{id}</code>, availability counts, CDC to Elasticsearch.</li>
+      <li><b>Shard by <code>eventId</code></b> so one megaevent's booking load lands on its own partition and doesn't starve others.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Trade-offs to name</h3>
+    <ul>
+      <li><b>Replica lag</b> → availability counts can read slightly stale. Acceptable: booking re-checks truth on the leader atomically.</li>
+      <li><b>Never read seat availability from a replica for the final commit</b> — that must hit the leader (or the row lock) to avoid double-sell.</li>
+      <li>Leader failover: promote a replica; brief write pause. Booking is paused, not incorrect — the right failure mode for a consistency-first path.</li>
+      <li>Sharding by <code>eventId</code> keeps every ticket for one event co-located → single-partition transactions, no cross-shard 2PC.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>9. Popular events — the virtual waiting queue (deep dive)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Why</h3>
+    <p>10M users refreshing one event will crush the booking service and Redis locks. You can't lock-check 10M/s. Shed load <b>before</b> it reaches the booking path.</p>
+    <h3>How (Redis)</h3>
+    <pre>On event open, gate entry:
+  queue:{eventId}   → sorted set of
+                       sessionIds by ts
+  admitted:{eventId}→ set of allowed
+
+Admit a steady trickle (e.g. N/sec)
+from the front of the queue into the
+real booking flow. Everyone else waits
+and sees position + ETA.</pre>
+  </div>
+  <div class="card">
+    <h3>What it buys you</h3>
+    <ul>
+      <li>Booking service sees a <b>bounded</b> request rate (admission rate), not the full 10M spike → predictable, no meltdown.</li>
+      <li>Fairness: FIFO by arrival timestamp, not "fastest refresher wins".</li>
+      <li>Backpressure lives in cheap Redis, not in Postgres or Stripe.</li>
+      <li>Admitted users get a token (short TTL) allowing them into <code>POST /bookings</code>; token expiry returns their slot.</li>
+    </ul>
+    <p class="a">Only turn the queue on for flagged high-demand events — normal events skip it entirely.</p>
+  </div>
+</div>
+
+<h2>10. Follow-ups — answers to have ready</h2>
+
+<p class="q tag-a">User reserves a seat then vanishes</p>
+<p class="a">The Redis lock has a 10-min TTL; it auto-releases and the seat returns to <code>available</code>. No sweeper job needed. Availability count is recomputed on read (or the count is decremented/incremented as locks flip).</p>
+
+<p class="q tag-a">Two users grab the last seat at the same instant</p>
+<p class="a"><code>SET NX</code> is atomic — exactly one succeeds and gets the lock. The loser gets <code>409</code> immediately. Even if both somehow reached the DB, the commit's <code>FOR UPDATE</code> / status check lets only one flip the row to <code>booked</code>.</p>
+
+<p class="q tag-a">Payment succeeds but the booking write fails</p>
+<p class="a">Charge Stripe with the idempotency key <b>after</b> (or coordinated with) flipping ticket state, and treat the booking as an idempotent workflow: on retry, the Stripe key prevents a second charge and the DB txn is re-attempted. If it can't complete, refund via the same key. Prefer capturing payment only once seats are durably committed.</p>
+
+<p class="q tag-a">Search shows a seat that's already gone</p>
+<p class="a">Expected — search/availability is eventually consistent (CDC + cached counts). The reserve step is the authority: the stale view just means an occasional "sorry, just taken" at booking time, which is acceptable for an availability-first read path.</p>
+
+<p class="q tag-a">Multiple tickets in one booking (all-or-nothing)</p>
+<p class="a">Acquire locks for all <code>ticketIds</code> in a deterministic (sorted) order to avoid deadlock; if any fails, release the rest and fail the whole booking. Commit all ticket rows in one DB transaction.</p>
+
+<p class="q tag-a">Redis (lock store) goes down</p>
+<p class="a">Booking is the consistency-first path, so <b>fail closed</b>: the DB transaction with row locking is the real guarantee, so worst case we fall back to DB-only reservation (slower, still correct) or briefly reject bookings. Never fail open into a double-sell.</p>
+
+<p class="q tag-a">Why not just lock rows in Postgres and skip Redis?</p>
+<p class="a">You can, and the DB is the ultimate guarantee. Redis is there to keep long-held "reserved-but-not-paid" state off the leader and to absorb the popular-event spike cheaply. It's a performance layer in front of the correctness layer.</p>
+
+<h2>11. Numbers to drop</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Load</h3>
+    <p>Read-heavy <b>100:1</b>. 10M users on one on-sale → without a queue that's a multi-million/s spike on booking; the waiting queue admits maybe <b>a few thousand/s</b> into the real flow.</p>
+  </div>
+  <div class="card">
+    <h3>Storage / locks</h3>
+    <p>A ticket lock is ~tens of bytes; even a 100k-seat stadium is a few MB in Redis, all TTL'd. Elasticsearch index sized to event catalog, not to traffic.</p>
+  </div>
+</div>
+
+<h2>12. 30-second recap script</h2>
+<div class="card a">
+  Two paths with opposite priorities. <b>Reads favor availability</b>: search hits Elasticsearch (fed by CDC from Postgres), event pages and availability counts are cached in Redis and served from read replicas, so the 100:1 read load never touches the write leader and stays under 500ms. <b>Writes favor consistency</b>: booking is a two-step reserve-then-pay. Reserve does an atomic <code>SET NX</code> Redis lock per seat with a 10-minute TTL so abandoned carts self-release; payment commits a single Postgres transaction that flips ticket status and is the real source of truth — Redis is just a fast reservation in front of it. Every mutation is idempotent via a client UUID key, forwarded to Stripe so retries never double-charge. Postgres is single-leader for writes with read replicas and is sharded by <code>eventId</code> so a megaevent stays on one partition. For a 10M-user on-sale we put a Redis virtual waiting queue in front, admitting a bounded trickle in FIFO order so the booking path never sees the full spike. If Redis dies we fail closed to the DB's row locks — never into a double-sell.
+</div>
+
+</body>
+</html>
