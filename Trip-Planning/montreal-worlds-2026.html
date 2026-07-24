@@ -28,85 +28,54 @@
     color: var(--ink);
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
-    line-height: 1.7;
+    line-height: 1.5;
     font-size: 16px;
   }
 
-  /* ── HERO ── */
-  .hero {
-    position: relative;
-    height: 100vh;
-    min-height: 560px;
-    overflow: hidden;
-    display: flex;
-    align-items: flex-end;
-    padding: 0 0 80px 0;
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--ink);
+    padding: 34px 32px 28px;
   }
 
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background-image: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1800&q=80');
-    background-size: cover;
-    background-position: center 40%;
-    filter: brightness(0.45);
-    transform: scale(1.02);
-    transition: transform 8s ease;
-  }
-
-  .hero-bg.loaded { transform: scale(1); }
-
-  .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(26,28,46,0.92) 0%, rgba(26,28,46,0.05) 60%);
-  }
-
-  .hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 900px;
+  .header-inner {
+    max-width: 860px;
     margin: 0 auto;
-    padding: 0 32px;
-    width: 100%;
   }
 
   .hero-eyebrow {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--gold);
-    margin-bottom: 20px;
+    margin-bottom: 12px;
   }
 
-  .hero-title {
+  .header-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(48px, 8vw, 96px);
+    font-size: clamp(28px, 5vw, 42px);
     font-weight: 400;
-    line-height: 1;
+    line-height: 1.08;
     color: var(--cream);
   }
 
-  .hero-title em {
-    font-style: italic;
-    color: var(--gold);
-  }
+  .header-title em { font-style: italic; color: var(--gold); }
 
-  .hero-sub {
-    font-size: 18px;
+  .header-sub {
+    font-size: 15px;
     color: rgba(246,244,239,0.72);
     font-weight: 300;
-    margin-top: 20px;
-    max-width: 520px;
+    margin-top: 10px;
+    max-width: 560px;
   }
 
   .hero-dates {
-    margin-top: 32px;
+    margin-top: 18px;
     display: inline-flex;
-    gap: 32px;
+    gap: 28px;
     border-top: 1px solid rgba(212,168,67,0.4);
-    padding-top: 20px;
+    padding-top: 12px;
     flex-wrap: wrap;
   }
 
@@ -122,14 +91,14 @@
 
   .hero-date-val {
     font-family: 'Playfair Display', serif;
-    font-size: 20px;
+    font-size: 17px;
   }
 
   /* ── SECTIONS ── */
   section {
     max-width: 860px;
     margin: 0 auto;
-    padding: 80px 32px;
+    padding: 44px 32px;
   }
 
   section.full-bleed { max-width: 100%; padding: 0; }
@@ -145,10 +114,10 @@
 
   h2 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(26px, 4vw, 42px);
+    font-size: clamp(24px, 4vw, 38px);
     font-weight: 400;
-    line-height: 1.2;
-    margin-bottom: 24px;
+    line-height: 1.15;
+    margin-bottom: 14px;
     color: var(--ink);
   }
 
@@ -156,17 +125,17 @@
     font-family: 'Playfair Display', serif;
     font-size: 22px;
     font-weight: 400;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
 
-  p { margin-bottom: 16px; color: #3a3630; }
+  p { margin-bottom: 10px; color: #3a3630; }
   p:last-child { margin-bottom: 0; }
 
   .pitch {
     border-left: 3px solid var(--gold);
     padding-left: 28px;
-    font-size: 19px;
-    line-height: 1.8;
+    font-size: 18px;
+    line-height: 1.55;
     color: #3a3630;
     font-weight: 300;
   }
@@ -241,7 +210,7 @@
   .race-banner {
     background: var(--blue);
     color: var(--cream);
-    padding: 64px 32px;
+    padding: 44px 32px;
   }
 
   .race-banner-inner {
@@ -339,7 +308,7 @@
   .cost-wrap {
     background: var(--ink);
     color: var(--cream);
-    padding: 64px 32px;
+    padding: 44px 32px;
   }
 
   .cost-inner { max-width: 860px; margin: 0 auto; }
@@ -493,12 +462,12 @@
     margin-bottom: 2px;
   }
 
-  .day-content { padding: 20px 24px; }
+  .day-content { padding: 14px 22px; }
 
   .day-content h4 {
     font-weight: 500;
     font-size: 14px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: var(--ink);
   }
 
@@ -506,14 +475,14 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 5px;
     padding: 0;
   }
 
   .day-bullets li {
     font-size: 13.5px;
     color: #5a5248;
-    line-height: 1.6;
+    line-height: 1.5;
     padding-left: 14px;
     border-left: 2px solid rgba(212,168,67,0.4);
   }
@@ -584,7 +553,7 @@
   /* ── CYCLING ROUTES ── */
   .routes-wrap {
     background: var(--green);
-    padding: 80px 32px;
+    padding: 44px 32px;
   }
 
   .routes-inner { max-width: 860px; margin: 0 auto; }
@@ -662,10 +631,58 @@
 
   .route-card a:hover { border-bottom-color: var(--gold); }
 
+  /* ── ROUTE TABLE (condensed) ── */
+  .route-table {
+    margin-top: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .route-table-row {
+    display: grid;
+    grid-template-columns: 1.5fr 0.7fr 0.7fr 2.3fr;
+    gap: 16px;
+    align-items: baseline;
+    padding: 9px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .route-table-row:last-child { border-bottom: none; }
+
+  .route-table-row.header {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(212,168,67,0.1);
+    padding: 12px 22px;
+  }
+
+  .route-table-row .rt-name a {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    color: var(--cream);
+    border-bottom: 1px solid rgba(212,168,67,0.35);
+    text-decoration: none;
+  }
+
+  .route-table-row .rt-name a:hover { border-bottom-color: var(--gold); }
+
+  .route-table-row .rt-stat {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--gold);
+  }
+
+  .route-table-row .rt-desc {
+    font-size: 13px;
+    color: rgba(246,244,239,0.65);
+    line-height: 1.5;
+  }
+
   .strava-cta {
-    margin-top: 40px;
+    margin-top: 20px;
     border: 1px solid rgba(212,168,67,0.3);
-    padding: 24px 28px;
+    padding: 18px 24px;
     display: flex;
     align-items: center;
     gap: 24px;
@@ -692,7 +709,7 @@
   /* ── PIKNIC FEATURE ── */
   .piknic-wrap {
     background: #1a1c2e;
-    padding: 80px 32px;
+    padding: 44px 32px;
   }
 
   .piknic-inner {
@@ -871,8 +888,7 @@
   @media (max-width: 700px) {
     section { padding: 52px 20px; }
 
-    .hero { padding: 0 0 52px 0; }
-    .hero-content { padding: 0 20px; }
+    .site-header { padding: 26px 20px 22px; }
     .hero-dates { gap: 20px; }
 
     .quick-logistics { padding: 24px 20px; }
@@ -892,6 +908,10 @@
 
     .routes-wrap { padding: 52px 20px; }
     .route-cards { grid-template-columns: 1fr; }
+
+    .route-table-row { grid-template-columns: 1fr; gap: 4px; padding: 16px 18px; }
+    .route-table-row.header { display: none; }
+    .route-table-row .rt-stat { font-size: 14px; display: inline-block; margin-right: 16px; }
 
     .strava-cta { flex-direction: column; align-items: flex-start; }
 
@@ -921,22 +941,16 @@
 </head>
 <body>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-bg" id="heroBg"></div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
     <div class="hero-eyebrow">Montréal · September 2026 · UCI Road World Championships</div>
-    <h1 class="hero-title">Go to<br><em>Montréal</em><br>for Worlds.</h1>
-    <p class="hero-sub">Six days. The biggest cycling race on earth, in one of the most alive cities in North America.</p>
+    <h1 class="header-title">Go to <em>Montréal</em> for Worlds.</h1>
+    <p class="header-sub">Six days. The biggest cycling race on earth, in one of the most alive cities in North America.</p>
     <div class="hero-dates">
       <div class="hero-date-item">
         <span class="hero-date-label">Depart</span>
         <span class="hero-date-val">Sep 23, SFO</span>
-      </div>
-      <div class="hero-date-item">
-        <span class="hero-date-label">Race Day</span>
-        <span class="hero-date-val">Sun Sep 27</span>
       </div>
       <div class="hero-date-item">
         <span class="hero-date-label">Return</span>
@@ -944,7 +958,7 @@
       </div>
     </div>
   </div>
-</div>
+</header>
 
 <!-- QUICK LOGISTICS -->
 <div class="quick-logistics full-bleed">
@@ -996,14 +1010,14 @@
       <h2>Elite Men's Road Race. Sunday, September 27.</h2>
       <p>Over 250 km through Montréal and the surrounding hills, finishing on a city circuit. The best riders in the world — Pogačar, Van der Poel, Van Aert — racing for the rainbow jersey. On our side of the Atlantic. This is the one.</p>
       <br>
-      <p style="font-size:13px; color:rgba(246,244,239,0.5);">Other events run all week — the time trial and women's elite race are both worth catching. Sunday is the day you don't sit down.</p>
+      <p style="font-size:13px; color:rgba(246,244,239,0.5);">We catch both road races: the elite women on Saturday and the elite men on Sunday. Two days on the course, back to back.</p>
       <div class="race-schedule">
         <div class="race-schedule-title">Race Week Schedule</div>
         <div class="rs-row"><span class="rs-day">Wed Sep 23</span><span>Elite Time Trials — Men &amp; Women</span></div>
         <div class="rs-row"><span class="rs-day">Thu Sep 24</span><span>Junior Road Races</span></div>
         <div class="rs-row"><span class="rs-day">Fri Sep 25</span><span>U23 Road Races</span></div>
-        <div class="rs-row"><span class="rs-day">Sat Sep 26</span><span>Elite Women's Road Race</span></div>
-        <div class="rs-row highlight"><span class="rs-day">Sun Sep 27</span><span>Elite Men's Road Race</span></div>
+        <div class="rs-row highlight"><span class="rs-day">Sat Sep 26</span><span>Elite Women's Road Race — 09h00–14h10</span></div>
+        <div class="rs-row highlight"><span class="rs-day">Sun Sep 27</span><span>Elite Men's Road Race — 09h00–15h40</span></div>
         <div class="rs-note">Approximate — verify at <a href="https://www.uci.org/competition-hub/2026-uci-road-world-championships/14QBdFX8GqbCHUPE234D0Q" target="_blank" rel="noopener" style="color:rgba(246,244,239,0.4); border-bottom-color:rgba(246,244,239,0.15);">uci.org</a></div>
       </div>
     </div>
@@ -1035,29 +1049,9 @@
 <!-- COST -->
 <div class="cost-wrap full-bleed">
   <div class="cost-inner">
-    <div class="section-eyebrow">What It Costs</div>
-    <h2>The numbers are straightforward.</h2>
-
-    <div class="cost-grid">
-      <div class="cost-cell header">Item</div>
-      <div class="cost-cell header">Cost</div>
-
-      <div class="cost-cell">
-        <div class="cost-label">Flight (SFO ⇄ YUL, nonstop)</div>
-        <div class="cost-value">$617–$684</div>
-        <div class="cost-note">Per person · round trip · see flight options below</div>
-      </div>
-      <div class="cost-cell">
-        <div class="cost-label">Airbnb — 5 nights total (Sep 23–28)</div>
-        <div class="cost-value good">$6,298.36 total · fits up to 11</div>
-        <div class="cost-note">$572.58–$630 per person for 5 nights, depending on group size</div>
-      </div>
-
-      <div class="cost-total-row">
-        <span class="label">Estimated total per person (flight + share of Airbnb)</span>
-        <span class="value">~$1,200–$1,300</span>
-      </div>
-    </div>
+    <div class="section-eyebrow">Flight Options</div>
+    <h2>Getting there.</h2>
+    <p style="color: rgba(246,244,239,0.7); font-size: 15px;">Nonstop SFO ⇄ YUL, round trip. See the <a href="https://docs.google.com/spreadsheets/d/1ypZdUr7ClgGwirrc8TO_tLEK0o66Argmkk3-jOkhVRo/edit?usp=sharing" target="_blank" rel="noopener" style="color: var(--gold); border-bottom-color: rgba(212,168,67,0.3);">planning spreadsheet</a> for what people booked.</p>
 
     <div class="flight-options">
       <div class="flight-row header">
@@ -1112,7 +1106,7 @@
 <section>
   <div class="section-eyebrow">Day by Day</div>
   <h2>The itinerary.</h2>
-  <p>Five full days in Montréal. Rides in the morning, race events and the city during the day, great dinners at night. Everything builds toward Sunday.</p>
+  <p>Five full days in Montréal. The city and race events during the day, great dinners at night, both road races on the weekend. Everything builds toward Sunday.</p>
 
   <div class="itinerary-grid">
 
@@ -1137,11 +1131,10 @@
         <span class="date">Sep 24</span>Thu
       </div>
       <div class="day-content">
-        <span class="tag-pill ride">Ride</span>
         <span class="tag-pill food">Food</span>
-        <h4>Warm-Up Ride + The Plateau</h4>
+        <span class="tag-pill culture">City</span>
+        <h4>The Plateau &amp; Mile End</h4>
         <ul class="day-bullets">
-          <li><strong>Morning ride:</strong> <a href="https://www.strava.com/routes/3350106931334946908" target="_blank" rel="noopener">Verdun Tour</a> — 41 km, 93m elevation. Lachine Canal through Saint-Henri, along the St. Lawrence through Verdun and Lasalle, back via the Old Port. Flat, scenic, ideal first ride.</li>
           <li><strong>Bagels:</strong> <strong>St-Viateur Bagels</strong> — wood-fired, sesame-crusted, eaten fresh from the oven. This is non-negotiable.</li>
           <li><strong>Afternoon:</strong> Explore the Plateau. Car-free streets, young crowd, patios everywhere. Walk Saint-Denis north through Mile End.</li>
           <li><strong>Dinner:</strong> <a href="https://guide.michelin.com/us/en/quebec/montreal_2433514/restaurant/damas" target="_blank" rel="noopener">Damas</a> (Syrian) — one of the city's most acclaimed restaurants. Book ahead.</li>
@@ -1150,17 +1143,16 @@
     </div>
 
     <div class="day-row">
-      <div class="day-tag ride">
+      <div class="day-tag">
         <span class="date">Sep 25</span>Fri
       </div>
       <div class="day-content">
-        <span class="tag-pill ride">Big Ride</span>
         <span class="tag-pill spa">Spa</span>
         <span class="tag-pill food">Dinner</span>
-        <h4>Sight Seeing Ride + Bota Bota</h4>
+        <span class="tag-pill music">Nightlife</span>
+        <h4>Bota Bota + Joe Beef + Stereo</h4>
         <ul class="day-bullets">
-          <li><strong>Morning ride:</strong> <a href="https://www.strava.com/routes/3350106285031013664" target="_blank" rel="noopener">Sight Seeing Montréal</a> — 64 km, 486m elevation. Hits the St. Lawrence riverfront, climbs Mont-Royal, covers the best of the city on two wheels. The one ride to do if you only do one. For more: <a href="https://www.strava.com/routes/3350105513384629536" target="_blank" rel="noopener">Monteregian Hills</a> at 99.5 km is the real leg day.</li>
-          <li><strong>Post-ride:</strong> <a href="https://botabota.ca/en/" target="_blank" rel="noopener"><strong>Bota Bota Spa</strong></a> — a circuit spa built inside a converted ferry boat, moored in the Old Port. Hot/cold pools, steam rooms, relaxation terraces with views of the St. Lawrence. Perfect post-ride recovery. ~$75 CAD entry.</li>
+          <li><strong>Daytime:</strong> <a href="https://botabota.ca/en/" target="_blank" rel="noopener"><strong>Bota Bota Spa</strong></a> — a circuit spa built inside a converted ferry boat, moored in the Old Port. Hot/cold pools, steam rooms, relaxation terraces with views of the St. Lawrence. ~$75 CAD entry.</li>
           <li><strong>Dinner:</strong> <strong>Joe Beef</strong> (Québécois / French brasserie) — the most famous restaurant in Montréal. Loud, convivial, ingredient-obsessed. Book as soon as flights are confirmed.</li>
           <li><strong>Late night:</strong> <strong>Stereo</strong> — doors at midnight, tickets ~$40–50 CAD. One of the best club sound systems in the world (#2 globally). All-night underground electronic music.</li>
         </ul>
@@ -1168,18 +1160,18 @@
     </div>
 
     <div class="day-row">
-      <div class="day-tag">
+      <div class="day-tag race">
         <span class="date">Sep 26</span>Sat
       </div>
       <div class="day-content">
-        <span class="tag-pill ride">Ride</span>
-        <span class="tag-pill race">Pre-Race</span>
-        <h4>The Pro Tour Climb + Race Eve</h4>
+        <span class="tag-pill race">Race Day 1</span>
+        <span class="tag-pill food">Dinner</span>
+        <h4>Elite Women's Road Race</h4>
         <ul class="day-bullets">
-          <li><strong>Morning ride:</strong> <a href="https://www.strava.com/routes/3350108368155918654" target="_blank" rel="noopener">The Pro Tour</a> — 15.7 km, 319m of climbing on the Camilien-Houde. Short but all uphill — the same road the pros will race on Sunday. Feel it before you watch it.</li>
-          <li><strong>Afternoon:</strong> Walk the course. Watch the time trial or early championship events. The city will be buzzing with cycling fans from everywhere.</li>
+          <li><strong>Women Elite Road Race:</strong> 09h00–14h10, starting in Brossard (Quartier Dix30) and finishing on the Montréal city circuit. Get to the Camilien-Houde climb on Mont-Royal to watch the peloton come through, or catch the finish in the city.</li>
+          <li><strong>Afternoon:</strong> Walk the course while the city is buzzing with cycling fans. Track live on the UCI app.</li>
           <li><strong>Outdoor pool:</strong> <strong>Parc Jarry</strong> outdoor pool — one of the city's best, very cheap (~$5 CAD).</li>
-          <li><strong>Dinner:</strong> <strong>Moishes</strong> (classic steakhouse, institution since 1938) or <strong>Bouillon Bilk</strong> (contemporary French) — either works as a proper pre-race dinner. Early night.</li>
+          <li><strong>Dinner:</strong> <strong>Moishes</strong> (classic steakhouse, institution since 1938) or <strong>Bouillon Bilk</strong> (contemporary French) — either works as a proper race-weekend dinner. Early-ish night before the men's race.</li>
         </ul>
       </div>
     </div>
@@ -1189,11 +1181,11 @@
         <span class="date">Sep 27</span>Sun
       </div>
       <div class="day-content">
-        <span class="tag-pill race">Race Day</span>
+        <span class="tag-pill race">Race Day 2</span>
         <span class="tag-pill music">Piknic</span>
-        <h4>Elite Road Race + Piknic Électronik</h4>
+        <h4>Elite Men's Road Race + Piknic Électronik</h4>
         <ul class="day-bullets">
-          <li><strong>Race:</strong> Get to the course early. Best spot is the Camilien-Houde climb on Mont-Royal — watch the peloton come through multiple times as the race explodes. Track live on the UCI app. The final circuits finish in the city with a proper crowd.</li>
+          <li><strong>Men Elite Road Race:</strong> 09h00–15h40, starting in Brossard (Quartier Dix30). Get to the course early — best spot is the Camilien-Houde climb on Mont-Royal, where you watch the peloton come through multiple times as the race explodes. Track live on the UCI app. The final circuits finish in the city with a proper crowd.</li>
           <li><strong>Evening:</strong> <a href="https://piknicelectronik.com/en/tickets-lineup" target="_blank" rel="noopener"><strong>Piknic Électronik</strong></a> — 4 PM to 10 PM on Île Sainte-Hélène (metro: Jean-Drapeau). $24 CAD. Outdoor electronic music festival, every Sunday all summer. September lineup TBD — check the site closer to the date.</li>
         </ul>
       </div>
@@ -1216,89 +1208,43 @@
   </div>
 </section>
 
-<!-- RACE HISTORY FEATURE -->
-<div class="race-feature full-bleed">
-  <div class="race-feature-inner">
-    <div class="section-eyebrow">Context</div>
-    <h2>Montréal last hosted the Worlds in 1974. That's 52 years.</h2>
-    <p>The UCI Road Worlds has visited North America three times in the modern era. All three are worth noting — but Montréal specifically hasn't seen this race in over half a century.</p>
-
-    <div class="race-history">
-      <div class="race-history-title">UCI Road Worlds in North America</div>
-      <div class="history-row">
-        <span class="year">1974</span>
-        <span>Montréal, Canada — last time this city hosted</span>
-      </div>
-      <div class="history-row">
-        <span class="year">1986</span>
-        <span>Colorado Springs, USA</span>
-      </div>
-      <div class="history-row">
-        <span class="year">2003</span>
-        <span>Hamilton, Canada</span>
-      </div>
-      <div class="history-row">
-        <span class="year">2015</span>
-        <span>Richmond, Virginia, USA</span>
-      </div>
-      <div class="history-row highlight">
-        <span class="year">2026</span>
-        <span><strong>Montréal, Canada</strong> — 52 years since the city last held it. Book the flights.</span>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- CYCLING ROUTES -->
 <div class="routes-wrap full-bleed">
   <div class="routes-inner">
-    <div class="section-eyebrow">Bring Your Bike — Or Rent One</div>
+    <div class="section-eyebrow">If You're Bringing a Bike</div>
     <h2>The routes worth doing.</h2>
-    <p>Le Club — Montréal's best cycling shop and café, on Saint-Denis — has mapped the city's best rides. These are the four to know. Whether you fly with your bike or rent locally, all of these are doable.</p>
+    <p>Most of us aren't flying with bikes this time. But if you are, Le Club — Montréal's best cycling shop and café on Saint-Denis — has mapped the city's best rides. Here are the four to know.</p>
 
-    <div class="route-cards">
-      <div class="route-card">
-        <div class="route-badge">Day 2 · Warm-up</div>
-        <h3>Verdun Tour</h3>
-        <div class="route-stats">
-          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">41 km</span></div>
-          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">93 m</span></div>
-        </div>
-        <p>The flat one. Lachine Canal, St. Lawrence riverfront, Verdun, Lasalle, back through the Old Port. Great first-day ride — scenic, manageable.</p>
-        <a href="https://www.strava.com/routes/3350106931334946908" target="_blank" rel="noopener">View on Strava →</a>
+    <div class="route-table">
+      <div class="route-table-row header">
+        <span>Route</span>
+        <span>Distance</span>
+        <span>Elevation</span>
+        <span>Notes</span>
       </div>
-
-      <div class="route-card">
-        <div class="route-badge">Day 3 · Main Ride</div>
-        <h3>Sight Seeing Montréal</h3>
-        <div class="route-stats">
-          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">64 km</span></div>
-          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">486 m</span></div>
-        </div>
-        <p>The best single ride in the city. St. Lawrence views, the Mont-Royal climb, the riverfront paths. If you do one ride all trip, this is it.</p>
-        <a href="https://www.strava.com/routes/3350106285031013664" target="_blank" rel="noopener">View on Strava →</a>
+      <div class="route-table-row">
+        <span class="rt-name"><a href="https://www.strava.com/routes/3350106931334946908" target="_blank" rel="noopener">Verdun Tour →</a></span>
+        <span class="rt-stat">41 km</span>
+        <span class="rt-stat">93 m</span>
+        <span class="rt-desc">The flat one. Lachine Canal, riverfront, Verdun, Old Port. Scenic and manageable.</span>
       </div>
-
-      <div class="route-card">
-        <div class="route-badge">Day 3 · Go Big Option</div>
-        <h3>Monteregian Hills</h3>
-        <div class="route-stats">
-          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">99.5 km</span></div>
-          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">523 m</span></div>
-        </div>
-        <p>Starts and ends at Le Club Café. Mont-St-Bruno, Mont-St-Hilaire, the Richelieu River. For the days when you want to actually earn the bagel.</p>
-        <a href="https://www.strava.com/routes/3350105513384629536" target="_blank" rel="noopener">View on Strava →</a>
+      <div class="route-table-row">
+        <span class="rt-name"><a href="https://www.strava.com/routes/3350106285031013664" target="_blank" rel="noopener">Sight Seeing Montréal →</a></span>
+        <span class="rt-stat">64 km</span>
+        <span class="rt-stat">486 m</span>
+        <span class="rt-desc">The best single ride in the city. St. Lawrence views and the Mont-Royal climb. Do this one.</span>
       </div>
-
-      <div class="route-card">
-        <div class="route-badge">Day 4 · Pre-Race Climb</div>
-        <h3>The Pro Tour</h3>
-        <div class="route-stats">
-          <div class="route-stat"><span class="rs-label">Distance</span><span class="rs-val">15.7 km</span></div>
-          <div class="route-stat"><span class="rs-label">Elevation</span><span class="rs-val">319 m</span></div>
-        </div>
-        <p>Camilien-Houde climb and Mont-Royal loop. Short but all vertical — the same climb the pros attack on Sunday. Do it the day before and feel the road.</p>
-        <a href="https://www.strava.com/routes/3350108368155918654" target="_blank" rel="noopener">View on Strava →</a>
+      <div class="route-table-row">
+        <span class="rt-name"><a href="https://www.strava.com/routes/3350105513384629536" target="_blank" rel="noopener">Monteregian Hills →</a></span>
+        <span class="rt-stat">99.5 km</span>
+        <span class="rt-stat">523 m</span>
+        <span class="rt-desc">Starts and ends at Le Club Café. Mont-St-Bruno, Mont-St-Hilaire, the Richelieu. The real leg day.</span>
+      </div>
+      <div class="route-table-row">
+        <span class="rt-name"><a href="https://www.strava.com/routes/3350108368155918654" target="_blank" rel="noopener">The Pro Tour →</a></span>
+        <span class="rt-stat">15.7 km</span>
+        <span class="rt-stat">319 m</span>
+        <span class="rt-desc">The Camilien-Houde climb and Mont-Royal loop — the same climb the pros attack on race day.</span>
       </div>
     </div>
 
@@ -1479,40 +1425,7 @@
   </div>
 </section>
 
-<!-- FOOTER CTA -->
-<div class="footer-cta full-bleed">
-  <h2>You in?</h2>
-  <p>The Worlds in Montréal for the first time since 1974. Let's go.</p>
-  <div class="dates-row">
-    <div class="date-block">
-      <div class="label">Depart</div>
-      <div class="val">Sep 23, 2026</div>
-    </div>
-    <div class="date-block">
-      <div class="label">Race Day</div>
-      <div class="val">Sun, Sep 27</div>
-    </div>
-    <div class="date-block">
-      <div class="label">Return</div>
-      <div class="val">Sep 28, 2026</div>
-    </div>
-    <div class="date-block">
-      <div class="label">Flight/person</div>
-      <div class="val">$617–$684</div>
-    </div>
-  </div>
-</div>
-
 <script>
-  const heroBg = document.getElementById('heroBg');
-  window.addEventListener('load', () => { heroBg.classList.add('loaded'); });
-  window.addEventListener('scroll', () => {
-    const scrolled = window.scrollY;
-    if (scrolled < window.innerHeight) {
-      heroBg.style.transform = `scale(1) translateY(${scrolled * 0.25}px)`;
-    }
-  });
-
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -1522,7 +1435,7 @@
     });
   }, { threshold: 0.06 });
 
-  document.querySelectorAll('section, .cost-wrap, .race-banner, .race-feature, .routes-wrap, .piknic-wrap, .quick-logistics, .footer-cta').forEach(el => {
+  document.querySelectorAll('section, .cost-wrap, .race-banner, .routes-wrap, .piknic-wrap, .quick-logistics').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(24px)';
     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
