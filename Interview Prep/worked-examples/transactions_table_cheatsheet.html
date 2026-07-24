@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactions Table — Worked Example</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+    --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.55;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:28px 0 10px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:14px;margin:16px 0 6px;color:var(--accent)}
+  p{margin:8px 0}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow:auto;font-size:12.5px;line-height:1.45}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:4px 0}
+  table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--chip);font-weight:600}
+  .tag-g{color:var(--green);font-weight:600}
+  .tag-r{color:var(--red);font-weight:600}
+  .tag-a{color:var(--amber);font-weight:600}
+  .q{font-weight:600;margin-top:14px}
+  .a{color:var(--muted)}
+  .callout{border-left:3px solid var(--amber);background:#fffbf3;border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0}
+  svg{max-width:100%;height:auto}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Transactions Table at Scale — Worked Example (RADIO)</h1>
+<p class="sub">Plaid-style front-end round · 10k–100k rows · live balances and an updating feed · a teaching walkthrough, not just a cheatsheet. RADIO: Requirements → Architecture → Data model → Interface → Optimizations.</p>
+
+<h2>1. R — Requirements</h2>
+
+<p>Start by restating the problem in your own words, because the restatement is where you earn the right to make assumptions later. Something like: "We're building the transactions view for a consumer fintech app. A user has linked several bank accounts through something like Plaid, and we need to show them every transaction across those accounts — which can be tens of thousands of rows — with filtering, search, and sorting, and the view should feel live: new transactions and balance changes appear without a manual refresh."</p>
+
+<p>The functional scope worth committing to out loud: viewing transactions across multiple accounts, filtering by account, date range, category, and amount, free-text search, sorting, a row detail view, and bulk selection for export or re-categorization. Just as important is what you cut. Say explicitly that money movement, the categorization ML itself, and admin tooling are out of scope. Interviewers read an unstated scope as an unmanaged one, and the recruiter notes say they're watching for planning ahead.</p>
+
+<p>The non-functional requirements are what actually shape this design, and there are three that matter. First, <b>scale of rendering</b>: 100k rows cannot go in the DOM. It's not a JavaScript problem, it's a layout-and-paint problem, and it forces virtualization no matter what else we choose. Second, <b>freshness with honesty</b>: financial data is eventually consistent by nature. A transaction appears as pending, then posts days later with possibly a different amount; a balance reflects a sync that happened minutes ago. Pretending this data is real-time and strongly consistent is the classic fintech red flag — the design has to surface <code>as-of</code> timestamps and treat pending-versus-posted as a first-class state, not an edge case. Third, <b>sensitivity</b>: this screen is nothing but financial PII. That constrains where tokens live, what gets logged to analytics, and what's masked on screen.</p>
+
+<div class="callout"><b>The core tension to name before drawing anything:</b> we have a huge, constantly-changing server-side dataset behind a client that can only afford to hold and render a tiny window of it. Every decision that follows — server-side filtering, cursor pagination, virtualization, cache patching — is a consequence of that one sentence. Saying it up front tells the interviewer you see the shape of the problem, not just its parts.</div>
+
+<h2>2. A — Architecture</h2>
+
+<svg viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="12">
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b6470"/></marker>
+    <marker id="arwg" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#15803d"/></marker>
+  </defs>
+
+  <rect x="20" y="20" width="360" height="330" rx="10" fill="none" stroke="#5b6470" stroke-dasharray="5 4"/>
+  <text x="32" y="40" fill="#5b6470" font-weight="600">Component tree</text>
+
+  <rect x="40" y="55" width="320" height="36" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="200" y="78" text-anchor="middle" font-weight="600">TransactionsPage</text>
+
+  <rect x="40" y="110" width="150" height="34" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="115" y="132" text-anchor="middle">FilterBar</text>
+  <rect x="210" y="110" width="150" height="34" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="285" y="132" text-anchor="middle">BalanceHeader</text>
+
+  <rect x="40" y="165" width="320" height="120" rx="8" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="200" y="188" text-anchor="middle" font-weight="600" fill="#2563eb">VirtualizedTable</text>
+  <text x="200" y="207" text-anchor="middle" font-size="11" fill="#5b6470">renders only visible window (~30 rows)</text>
+  <rect x="60" y="220" width="280" height="24" rx="5" fill="#fff" stroke="#2563eb"/>
+  <text x="200" y="236" text-anchor="middle" font-size="11">Row (memoized, fixed height)</text>
+  <rect x="60" y="250" width="280" height="24" rx="5" fill="#fff" stroke="#2563eb"/>
+  <text x="200" y="266" text-anchor="middle" font-size="11">Row …</text>
+
+  <rect x="40" y="300" width="320" height="34" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="200" y="322" text-anchor="middle">RowDetailDrawer (lazy)</text>
+
+  <rect x="430" y="20" width="240" height="330" rx="10" fill="none" stroke="#5b6470" stroke-dasharray="5 4"/>
+  <text x="442" y="40" fill="#5b6470" font-weight="600">State — 3 layers, separated</text>
+
+  <rect x="450" y="55" width="200" height="72" rx="8" fill="#fff" stroke="#b45309"/>
+  <text x="550" y="76" text-anchor="middle" font-weight="600" fill="#b45309">URL state</text>
+  <text x="550" y="94" text-anchor="middle" font-size="11" fill="#5b6470">?account=&amp;category=</text>
+  <text x="550" y="110" text-anchor="middle" font-size="11" fill="#5b6470">&amp;sort=date&amp;q=…</text>
+
+  <rect x="450" y="142" width="200" height="90" rx="8" fill="#fff" stroke="#15803d"/>
+  <text x="550" y="163" text-anchor="middle" font-weight="600" fill="#15803d">Server cache</text>
+  <text x="550" y="181" text-anchor="middle" font-size="11" fill="#5b6470">React Query / SWR</text>
+  <text x="550" y="197" text-anchor="middle" font-size="11" fill="#5b6470">pages keyed by</text>
+  <text x="550" y="213" text-anchor="middle" font-size="11" fill="#5b6470">(filters, sort, cursor)</text>
+
+  <rect x="450" y="247" width="200" height="86" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="550" y="268" text-anchor="middle" font-weight="600">Local UI state</text>
+  <text x="550" y="286" text-anchor="middle" font-size="11" fill="#5b6470">selection set, expanded row,</text>
+  <text x="550" y="302" text-anchor="middle" font-size="11" fill="#5b6470">raw (undebounced) search text,</text>
+  <text x="550" y="318" text-anchor="middle" font-size="11" fill="#5b6470">scroll offset</text>
+
+  <rect x="720" y="55" width="220" height="120" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="830" y="80" text-anchor="middle" font-weight="600">BFF / API (given boilerplate)</text>
+  <text x="830" y="100" text-anchor="middle" font-size="11" fill="#5b6470">GET /transactions?cursor=…</text>
+  <text x="830" y="116" text-anchor="middle" font-size="11" fill="#5b6470">server-side filter/sort/search</text>
+  <text x="830" y="132" text-anchor="middle" font-size="11" fill="#5b6470">short-lived scoped token</text>
+  <text x="830" y="148" text-anchor="middle" font-size="11" fill="#5b6470">(HttpOnly cookie, no localStorage)</text>
+
+  <rect x="720" y="210" width="220" height="100" rx="10" fill="#fff8ec" stroke="#b45309"/>
+  <text x="830" y="235" text-anchor="middle" font-weight="600" fill="#b45309">Real-time channel</text>
+  <text x="830" y="255" text-anchor="middle" font-size="11" fill="#5b6470">SSE: tx.created / tx.updated /</text>
+  <text x="830" y="271" text-anchor="middle" font-size="11" fill="#5b6470">balance.changed (+ cursor)</text>
+  <text x="830" y="287" text-anchor="middle" font-size="11" fill="#5b6470">fallback: 30s poll</text>
+
+  <line x1="380" y1="128" x2="448" y2="95" stroke="#b45309" marker-end="url(#arw)"/>
+  <text x="410" y="100" font-size="10" fill="#b45309">filters→URL</text>
+  <line x1="380" y1="225" x2="448" y2="190" stroke="#15803d" marker-end="url(#arwg)"/>
+  <text x="402" y="220" font-size="10" fill="#15803d">rows</text>
+  <line x1="650" y1="187" x2="718" y2="120" stroke="#5b6470" marker-end="url(#arw)"/>
+  <text x="672" y="145" font-size="10" fill="#5b6470">fetch page</text>
+  <line x1="718" y1="255" x2="652" y2="205" stroke="#b45309" stroke-dasharray="4 3" marker-end="url(#arw)"/>
+  <text x="660" y="245" font-size="10" fill="#b45309">invalidate/patch cache</text>
+
+  <rect x="20" y="380" width="920" height="100" rx="10" fill="none" stroke="#5b6470" stroke-dasharray="5 4"/>
+  <text x="32" y="400" fill="#5b6470" font-weight="600">Virtualization: DOM = window + overscan, spacers fake the rest</text>
+  <rect x="60" y="415" width="180" height="46" rx="6" fill="#f4f6f9" stroke="#5b6470"/>
+  <text x="150" y="442" text-anchor="middle" font-size="11" fill="#5b6470">top spacer (height = skipped rows × 44px)</text>
+  <rect x="260" y="415" width="300" height="46" rx="6" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="410" y="435" text-anchor="middle" font-size="11" fill="#2563eb" font-weight="600">~20 visible + 10 overscan rows in DOM</text>
+  <text x="410" y="452" text-anchor="middle" font-size="10.5" fill="#5b6470">absolutely positioned, translateY(index × 44)</text>
+  <rect x="580" y="415" width="180" height="46" rx="6" fill="#f4f6f9" stroke="#5b6470"/>
+  <text x="670" y="442" text-anchor="middle" font-size="11" fill="#5b6470">bottom spacer</text>
+  <rect x="790" y="415" width="130" height="46" rx="6" fill="#fff" stroke="#15803d"/>
+  <text x="855" y="436" text-anchor="middle" font-size="11" fill="#15803d">sentinel row →</text>
+  <text x="855" y="452" text-anchor="middle" font-size="10.5" fill="#5b6470">fetch next page</text>
+</svg>
+
+<p>The architecture has three ideas in it, and each one deserves a sentence of defense rather than just a box on the diagram.</p>
+
+<p><b>Idea one: state is split into three layers with different owners, because the three kinds of state have different lifetimes and different consumers.</b> Filters, sort, and the search query go in the URL. This is not a stylistic preference — those values determine <i>what data the user is looking at</i>, and anything that determines the data should be shareable, bookmarkable, and survivable across a refresh. Putting them in the URL also means the browser back button undoes a filter change for free, which users expect and which you'd otherwise have to build. Server data — the transaction pages themselves — lives in a server-cache layer like React Query or SWR, keyed by the URL state. The point of this layer is that it treats server data as a <i>cache of someone else's truth</i> rather than as application state: it knows about staleness, refetching, deduplication, and invalidation, which raw <code>useState</code> plus <code>useEffect</code> does not. Finally, purely local concerns — which rows are selected, which row is expanded, the raw text sitting in the search box before it's debounced — stay in component state, because nothing outside the component needs them and lifting them would just cause wider re-renders. The general rule, worth saying verbatim in the interview: <b>lift state exactly as high as something else needs it, and no higher.</b></p>
+
+<p><b>Idea two: the server owns filtering, sorting, and searching.</b> The client holds a window of maybe a few hundred loaded rows out of 100k. If the client sorted those loaded rows, the result would be simply wrong — the true first row under the new sort might be row 50,001, which the client has never seen. This is worth spelling out because "just sort the array" is such an easy trap, and the failure is silent: the UI looks sorted while lying. So every combination of filters, sort, and query is a distinct server query, and the client's job is to display it, cache it under that key, and paginate through it. Client-side filtering is only defensible when you can <i>prove</i> the full result set is loaded — a few hundred rows, fully fetched — and if you offer that optimization you must say how you know it's complete.</p>
+
+<p><b>Idea three: real-time events never touch the DOM directly — they flow into the cache, and the UI re-renders from the cache.</b> The SSE channel on the diagram delivers <code>tx.created</code>, <code>tx.updated</code>, and <code>balance.changed</code> events, and the handler's only job is to patch or invalidate cache entries. This keeps one source of truth on the client (the cache) and one rendering path (cache → components), so live updates and refetches can't disagree about what's on screen. The alternative — event handlers imperatively poking at rows — is how you get ghost rows and duplicated entries the first time an event races a refetch.</p>
+
+<div class="callout"><b>What "the cache" actually is, precisely.</b> Plain JavaScript objects in browser memory, inside this tab — not Redis, not anything server-side. TanStack Query (or Vercel's SWR library) instantiates a client that holds a map of query key → <code>{data, status, dataUpdatedAt}</code>, and it dies when the tab closes. The name "server cache" is industry shorthand for <i>the client-side cache of server-owned data</i>, and the distinction it draws is about who owns the truth, not where the bytes live: server-owned data is a copy of someone else's truth, so it needs staleness, refetching, and invalidation; client-owned UI state (selection, expanded row) <i>is</i> the truth, so it needs none of that. "Stale-while-revalidate" itself is a caching policy borrowed from HTTP: answer instantly from cache even if stale, refetch in the background, update in place. Invalidation targets entries by <b>hierarchical key-prefix matching</b> — <code>invalidateQueries({queryKey: ['transactions']})</code> marks every filter/sort/page combination under that prefix stale, while an exact key hits one entry. Crucially, invalidation marks stale rather than deleting, so the UI keeps showing the old value until the background refetch replaces it — that mark-don't-evict behavior is what makes it SWR.</div>
+
+<h2>3. D — Data model</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>What the client holds</h3>
+    <pre>Transaction {
+  id, accountId, date,
+  amount,          // integer minor units
+  currency,
+  merchant, category,
+  status: 'pending' | 'posted',
+  version          // for corrections
+}
+Account {
+  id, name, mask,  // "…4821"
+  balance, balanceAsOf
+}
+Page {
+  items: Transaction[],
+  nextCursor: string | null
+}
+// cache: pages keyed by
+// (filters, sort, q) → [Page, …]</pre>
+  </div>
+  <div class="card">
+    <h3>The one-line versions</h3>
+    <p class="a">Money is integers. Pending is a state, not an anomaly. Every row is versioned because rows change after you've shown them. The cache is normalized by id so one event can patch one row. The client is a projection of server truth, never the truth itself.</p>
+  </div>
+</div>
+
+<p>Each of those decisions has a reason you should be able to give in full sentences.</p>
+
+<p><b>Amounts are integers in minor units (cents), never floats.</b> IEEE 754 floating point cannot represent most decimal fractions exactly — <code>0.1 + 0.2 === 0.30000000000000004</code> in JavaScript — and while a penny of drift sounds trivial, in a financial UI it means the client can display a total that disagrees with the server's, which users notice and support tickets follow. So arithmetic happens on integers and formatting happens only at the last moment, at render, with <code>Intl.NumberFormat</code>, which also handles currency symbols and locale separators correctly for free.</p>
+
+<p><b><code>status: pending | posted</code> is first-class in the model because the underlying financial reality works that way.</b> When you swipe a card, the merchant places an authorization hold — that's the pending transaction, and its amount is often not final. A gas station may hold $100 and post $38.62; a restaurant posts with the tip added. Days later the transaction posts, possibly with a different amount, a different date, and an enriched merchant name, or the hold is voided and the transaction vanishes entirely. A design that treats transactions as immutable append-only rows will corrupt its own display the first time a correction arrives. Modeling pending explicitly means the UI can render it distinctly (typically grayed with a "Pending" chip), users learn the semantics, and the correction flow in §7 has somewhere to land.</p>
+
+<p><b>Every row carries a <code>version</code>.</b> Corrections and enrichments arrive asynchronously, and — critically — the events that carry them are not guaranteed to arrive in order. If the client applies whatever event arrives last, an older update can overwrite a newer one (the lost-update problem, in miniature, on the client). A monotonically increasing version per row makes the merge rule trivial and safe: apply the patch only if its version is greater than the cached one, otherwise drop it. This one field is what makes the whole real-time story in §6 correct rather than hopeful.</p>
+
+<p><b>The cache is normalized by id.</b> When a <code>tx.updated</code> event arrives for one transaction, the handler should update exactly one object, not hunt through page arrays or refetch a whole page for one changed merchant name. Store rows in an id-keyed map with pages holding ids (or use a cache that supports surgical updates), and single-row patches become O(1).</p>
+
+<h2>4. I — Interface</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>HTTP contract</h3>
+    <pre>GET /transactions
+  ?cursor={opaque}&amp;limit=50
+  &amp;accountIds=…&amp;category=…
+  &amp;from=…&amp;to=…&amp;q=…
+  &amp;sort=date_desc
+→ { items: Transaction[],
+    nextCursor, asOf }
+
+GET /accounts → [Account]
+
+// real-time (SSE)
+event: tx.created | tx.updated
+       | balance.changed
+data:  { entity…, version, eventId }
+Last-Event-ID: resume after drop</pre>
+  </div>
+  <div class="card">
+    <h3>Component API</h3>
+    <pre>&lt;TransactionsTable
+  filters={filters}
+  onFiltersChange={…}
+  sort={sort} onSortChange={…}
+  selection={sel}
+  onSelectionChange={…}
+/&gt;
+// internal (uncontrolled):
+//   expanded row,
+//   raw search text (debounced up),
+//   scroll position</pre>
+  </div>
+</div>
+
+<p><b>Why cursor pagination and not offset — the full argument, because this is a guaranteed follow-up.</b> Offset pagination (<code>?page=3&amp;limit=50</code>, i.e. "skip 100 rows") has two independent failure modes here. The first is correctness: this list has new rows inserted at the top continuously. Suppose the user loads page 1, and three new transactions arrive before they request page 2. Every row shifts down by three, so page 2's "skip 50" now re-serves the last three rows of the old page 1 — in an infinite-scroll UI those render as visible duplicates — and in the opposite direction (deletions, or scrolling a descending list while rows insert) rows get silently skipped and the user never sees them. The second failure is performance: <code>OFFSET 50000</code> forces the database to walk and discard fifty thousand rows before returning any, so deep pages get progressively slower. Keyset (cursor) pagination fixes both at once: the server returns an opaque token encoding the last row's sort position — say <code>(date, id)</code>, with id as tiebreaker since dates collide — and the next page is "rows after this position," an indexed O(log n) seek that's completely stable under inserts above. The costs are real but acceptable: no "jump to page 7," and the cursor is only meaningful for the exact filter-and-sort combination that issued it. Both costs are fine for an infinite-scrolling feed, and you should name them anyway — conceding the weaknesses of your own choice is exactly the trade-off fluency this round is scoring.</p>
+
+<p><b>The error contract deserves a sentence before anyone asks.</b> Errors come back typed with a machine-readable code and a <code>retryable</code> flag, because the client's correct behavior differs by class: <code>401</code> routes to re-authentication, <code>429</code> backs off, <code>5xx</code> retries with exponential backoff and jitter, and a validation error does none of those. An untyped error string forces the client to guess, and the guess will be wrong in exactly the cases that matter.</p>
+
+<p><b>On the component side, the interface encodes the controlled-versus-uncontrolled decision, and the reasoning is worth internalizing rather than memorizing.</b> A controlled prop means the parent owns the state; uncontrolled means the component keeps it internal. The table is <i>controlled</i> on filters, sort, and selection, and <i>uncontrolled</i> on expansion, scroll, and raw search text — and each assignment follows from asking "does anything outside this component need this value?" Filters and sort: yes — the fetch layer needs them to build queries, and the URL needs them for shareability, so they must live above the table. Selection: yes, but only because there's a bulk-actions bar outside the table that reads it; if selection were cosmetic, it should stay internal. Expanded row: no one else cares, so keeping it internal avoids re-rendering the page when a user opens a row. The search input is the instructive case: the raw text stays local and only a 300ms-debounced value is pushed up, because pushing every keystroke into shared state would re-render the entire table and fire a network request per character. The input is effectively uncontrolled from the table's perspective while the committed query is controlled — a deliberate mixed-ownership design, and saying it that way signals you understand the pattern rather than just following a library convention.</p>
+
+<h2>5. O — Optimization 1: virtualization</h2>
+
+<p>Here's the problem stated concretely. A row in a table like this is realistically ten or so DOM nodes — cells, amount, category chip, icons. Thirty thousand transactions would mean roughly 300,000 DOM nodes. The browser's bottleneck isn't JavaScript at that point; it's style recalculation, layout, and paint, all of which scale with live DOM size. Scrolling a 300k-node page janks no matter how well-written your React is, and the initial render would take seconds. The fix is to stop pretending the DOM must mirror the dataset: render only what's visible.</p>
+
+<p>The mechanism is simple enough to explain in four sentences, and you should, even though in practice you'd use <code>@tanstack/react-virtual</code> or <code>react-window</code> — explaining the mechanism is what proves you didn't just memorize a library name. With a fixed row height of, say, 44px, the row under any scroll position is pure arithmetic: <code>startIndex = floor(scrollTop / 44)</code>. The component renders roughly the visible twenty rows plus an overscan buffer of five to ten on each side, positions them absolutely with <code>transform: translateY(index × 44)</code>, and sets the scroll container's inner height to <code>totalCount × 44</code> so the scrollbar is honest about the full dataset. Rows scrolled far out of view unmount. The DOM cost becomes O(window) — constant, around thirty rows — regardless of whether the dataset is ten thousand or a million rows. That sentence, "DOM cost is O(window), independent of dataset size," is the crisp claim to land.</p>
+
+<p>Two supporting decisions make it work well rather than merely work. <b>Fixed row height</b> is what makes the position math O(1); variable heights force you to measure rows and maintain a running position cache, which is complexity you should refuse unless the design genuinely demands it (and a transactions table doesn't — rows are uniform). <b>Row memoization</b> (<code>React.memo</code> with stable callbacks) matters because during scroll the window's contents mostly don't change — only the edges mount and unmount — and without memoization every scroll tick re-renders all thirty visible rows for nothing. The overscan buffer, meanwhile, is a small tradeoff you can articulate: more overscan means fewer white flashes during fast scrolling but more off-screen work; five to ten rows is the conventional balance.</p>
+
+<p><b>Now say the cost out loud, because virtualization genuinely breaks things.</b> Browser find-in-page (Ctrl-F) can't find rows that aren't in the DOM. Screen readers can't announce a 30k-row table when only 30 rows exist. The mitigations: give the table <code>role="grid"</code> with <code>aria-rowcount</code> set to the true total and <code>aria-rowindex</code> on each rendered row, so assistive tech knows both the real size and each row's true position; implement keyboard navigation (arrow keys, PageUp/PageDown) that moves a focus index and scrolls the window to follow it; and accept that Ctrl-F is traded away in favor of the in-app search — which is part of why search needs to be good. Raising the accessibility cost yourself, unprompted, is the difference between "used a library once" and "owns this pattern" — and per the rubric, ignoring a11y in a data-dense UI caps the rendering pillar.</p>
+
+<p>Infinite scroll integrates naturally: a sentinel element sits at the end of the rendered range with an <code>IntersectionObserver</code> watching it, and when it enters the overscan region the next cursor page is fetched and appended to the cache. Prefetching at around 70% scroll depth hides the fetch latency entirely for a steady scroller. Offer a visible "Load more" button as well — it's the accessible fallback and gives keyboard users a reachable footer.</p>
+
+<h2>6. O — Optimization 2: real-time updates without render thrash</h2>
+
+<p><b>Transport first, because the choice is defensible on requirements rather than fashion.</b> The traffic here is strictly one-directional — the server tells the client about new transactions, corrections, and balance changes; the client never pushes anything upstream on this channel. That asymmetry is the argument for <b>SSE over WebSocket</b>: SSE is plain HTTP (so proxies, load balancers, and corporate networks treat it kindly), the browser's <code>EventSource</code> reconnects automatically, and — the underrated feature — it has resume built in: the browser sends the <code>Last-Event-ID</code> header on reconnect, and a server that keeps a short replay buffer can deliver the missed events instead of forcing a full refetch. WebSocket buys you bidirectional messaging that this feature doesn't need, and in exchange you take on custom reconnect logic, heartbeats, and resume protocol. Choosing the lighter tool and saying why is the trade-off answer. Keep a <b>30-second polling fallback</b> for clients whose networks break streaming — and note the double duty: that poll is also the reconciliation sweep that catches anything the event stream dropped, which turns "polling fallback" from an apology into part of the correctness story.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Event-application pipeline</h3>
+    <pre>on event:
+  1. dedupe by eventId (LRU set)
+  2. version &lt;= cached.version? drop
+  3. known row → patch it in cache
+     new row matching current
+       filter → insert by sort key
+  4. buffer events; flush all
+     once per animation frame</pre>
+  </div>
+  <div class="card">
+    <h3>Why each step exists</h3>
+    <p class="a">1 — at-least-once delivery means duplicates are normal, not exceptional. 2 — out-of-order delivery means "latest received" ≠ "newest"; version is the truth. 3 — patch, don't refetch: one changed row shouldn't cost a page fetch. 4 — a sync burst of 50 events should cost one render, not 50.</p>
+  </div>
+</div>
+
+<p>The mindset that makes this correct: <b>treat events as hints, not as truth.</b> The event stream is fed by webhooks from upstream bank integrations, and webhook pipelines drop messages, deliver them twice, and deliver them out of order — assuming otherwise is on the rubric's red-flag list verbatim. So every event passes through deduplication (by <code>eventId</code>) and a version gate (drop anything not newer than the cache) before it touches state, and the periodic poll reconciles whatever slipped through anyway. If the SSE connection drops and the resume gap exceeds the server's replay buffer, the client doesn't try to be clever: it invalidates page one and balances and refetches. "Reconnected" never implies "consistent" — you reconcile on every reconnect.</p>
+
+<p><b>Render thrash is the other half of the problem.</b> When a bank sync completes, events arrive in bursts — potentially dozens per second. Applying each one individually means dozens of cache updates and dozens of renders per second, which is jank the user can feel while scrolling. The fix is to buffer incoming events and flush the whole buffer as one batched cache update once per animation frame (~16ms). The ceiling becomes one render per frame regardless of event rate, and because rows are memoized, that render only reconciles rows that actually changed. Add a circuit breaker for pathological bursts: past a few hundred buffered events, patching row-by-row costs more than starting over, so drop the buffer and refetch the visible pages instead.</p>
+
+<div class="callout"><b>Scroll anchoring — a detail interviewers at data-product companies specifically love.</b> If the user has scrolled down into last month and new transactions arrive at the top, inserting them immediately would shift every row down and yank the content out from under the user's eyes — the feed equivalent of layout shift. The standard fix, familiar from Twitter and Slack: when scrolled away from the top, don't insert; instead show a pinned pill — <span class="tag-g">"3 new transactions ↑"</span> — and merge the buffered rows only when the user clicks it or scrolls back to the top. When the user is already at the top, merge live. New data must never move content the user is currently reading.</div>
+
+<h2>7. O — Optimization 3: corrections and late arrivals</h2>
+
+<p>This section is the fintech-specific heart of the question, and handling it well is what separates a generic "infinite list" answer from a domain-aware one. Three things happen to financial data after the client has already rendered it, and the design has to be honest about each.</p>
+
+<p><b>Pending transactions mutate.</b> The $100 gas-station hold posts as $38.62. The restaurant charge posts a day later with the tip added. The merchant string "SQ *COFFEE 4821" gets enriched into "Blue Bottle Coffee" with a category. In each case the row the user already saw changes amount, date, merchant, or all three. The client handles this as a patch-in-place by <code>id</code>, gated by <code>version</code>, with a brief highlight animation on the changed row. The animation is not decoration — silently mutating displayed financial data erodes exactly the trust this product depends on, so the UI acknowledges the change visibly.</p>
+
+<p><b>Transactions arrive late, into the middle of loaded data.</b> A transaction dated three days ago can arrive today (slow merchant settlement, delayed sync), and its sorted position falls inside a page range the user already loaded — the "pages are stable" assumption breaks. There are two honest strategies. Locally insert the row if its sort position lands within the loaded window — cheap, instant, and correct <i>for what's visible</i>. Or mark the affected page range stale and refetch it — always correct, but heavier. The right answer combines them: insert locally when the row belongs in or near the visible window so the user sees it now, and mark deeper cached pages stale so they're refetched on next approach rather than eagerly. And if a pending transaction is voided, the corresponding event removes the row — deletions are part of the same patch pipeline, not a special case.</p>
+
+<p><b>The hardest case: a correction changes the sort key itself.</b> When sorted by date and an event updates a row's <i>date</i> (the classic being pending→posted, where the settle date replaces the authorization date), patching in place would leave the row sitting in the wrong position — the client's pages are a mirror of a server-side ordering, and the mirror is now wrong. The honest mental model is that a sort-key change is not an update at all: it's a <b>remove plus insert</b>. Handle it in three cases. If the new position falls within the loaded window, remove the row from its old spot and binary-search its new spot by sort key — cheap and correct. If the new position falls outside what's loaded, remove the row and <i>don't</i> insert it anywhere; it will appear when the user scrolls to that region and fresh pages are fetched. And if the change is bulk or ambiguous (a sync rewrote many dates), stop being surgical — invalidate the transactions prefix and refetch page one, the same circuit-breaker logic as the event-burst case. Layer a UX rule on top: a row that's currently on screen must not teleport mid-glance — animate it to its new position so the eye can follow, or badge it, while off-screen rows move silently. And concede the limitation out loud: after local reinsertion the view is best-effort until the next server fetch, because a correction can also move a row <i>into</i> your filtered range and no event you're holding tells you that reliably — the 30s poll and refetch-on-scroll are what reconcile it. Naming that gap reads as maturity, not weakness.</p>
+
+<p><b>Display pending charges in their own pinned section — it's a UX decision that quietly solves an engineering problem.</b> Real banking UIs (Chase, Amex, Apple Card) pin a "Pending" section above the posted history, and the reasons stack. It matches the user's mental model: pending charges are the "what's in flight" set, checked differently from history. It's honest labeling: visually separating non-final amounts stops users from reconciling against numbers that will change. And structurally, it defuses most of the sort-key problem above — the most common sort-key change is exactly pending→posted, and if pending rows live in their own section, that transition becomes a designed move between two containers instead of a row teleporting within one sorted list. The costs to name: the pinned section breaks pure chronology, so apply it only in the default date-sorted view — when the user explicitly sorts by amount or filters, pendings go inline with a "Pending" chip, because an explicit sort is the user saying "order everything by this." Pending is also naturally small (days of in-flight charges, maybe 5–20 rows), so the section never needs virtualization or pagination of its own.</p>
+
+<p><b>Balances are never computed client-side.</b> It's tempting: the rows are right there, why not sum them into the header? Because the client's window is partial, pending amounts aren't final, and holds, foreign-exchange adjustments, and interest all live server-side — a client-computed balance <i>will</i> drift from truth, and a wrong balance is the single worst number to show in a fintech UI. The balance header refetches on <code>balance.changed</code> and displays the server's number with its <code>as-of</code> timestamp. Server-authoritative, always, with staleness shown honestly rather than hidden.</p>
+
+<h2>8. O — Optimization 4: security, resilience, observability</h2>
+
+<p>These are the two pillars where the rubric says a weak answer is an automatic fail, so this section is not garnish — budget real interview minutes for it.</p>
+
+<p><b>Security and privacy.</b> Tokens never live in <code>localStorage</code>: anything readable by JavaScript is readable by any injected script, so one XSS anywhere in the page means exfiltrated bank tokens. Instead, authentication rides in short-lived, narrowly-scoped tokens delivered as <code>HttpOnly</code>, <code>SameSite</code> cookies via the BFF — the browser attaches them automatically and script cannot touch them, which converts token theft from "one XSS" into "full session hijack," a much higher bar. On screen, account numbers render masked (<code>…4821</code>) with an explicit reveal toggle that re-masks on blur. And analytics deserves its own discipline, because it's the leak nobody notices: telemetry captures event names, ids, timings, and error codes — never amounts, merchant names, or balances — and error reporters are configured to scrub request and response bodies, because a crash log with a bank balance in it is a compliance incident, not a debugging aid. Finally, least-privilege UI: capabilities a role lacks (say, export) are hidden or disabled client-side <i>and</i> enforced server-side — the client-side part is UX, the server-side part is the actual security boundary, and you should say both halves.</p>
+
+<p><b>Resilience.</b> Every view in this design has five states, not two: loading (skeleton rows, sized to prevent layout shift), error (with a retry action, never a dead end), empty ("no transactions match these filters" — with a clear-filters shortcut, since a filtered-to-nothing state is usually user intent gone wrong), <b>permission-denied</b> (a bank link expired → a "reconnect your account" call-to-action, which in a Plaid-style product is a routine state, not an error), and <b>stale</b> ("as of 2:14 PM — reconnecting…" when the live channel is down). Enumerating the matrix unprompted matters because the missing states are the rubric's red flag. Beyond states: network retries use exponential backoff with jitter; and there's a race guard on filter changes — when a user changes filters twice quickly, the slow first response must not overwrite the fast second one, so in-flight requests for abandoned query keys are cancelled via <code>AbortController</code> (keyed caches make this nearly automatic, but name the race anyway — it's the kind of correctness detail this round exists to probe). An error boundary wraps the table so a rendering bug in one row degrades to a retry panel instead of white-screening the page.</p>
+
+<p><b>Observability.</b> Real-user monitoring tracks time-to-first-row, scroll jank via long-task counts, SSE disconnect rates, and fetch failure rates by endpoint; every request carries a correlation ID so a user-reported "my transactions won't load" traces end-to-end through the BFF to the upstream; and there are alerts on financial-data fetch failures specifically — per the rubric, having no telemetry on financial failure modes is a red flag, and the practical version of that sentence is "if transactions fail to load for 1% of users, I want a page, not a support ticket."</p>
+
+<h2>9. Follow-ups — answers to have ready</h2>
+
+<p class="q tag-a">Why not filter and sort client-side? You already have pages cached.</p>
+<p class="a">Because the client holds a window, not the dataset. Sorting three loaded pages of a 100k-row set produces an ordering that's simply wrong — the true first row under the new sort may be one the client has never fetched. Worse, it fails silently: the list looks sorted. Server-side filter/sort with the combination as the cache key is the only honest approach at this scale. The narrow exception: when the full result set is provably loaded (a few hundred rows, fetched to completion), client-side is a fine instant-feel optimization — but you must be able to say how you know it's complete.</p>
+
+<p class="q tag-a">User is deep in the list and changes the sort — what happens to their cursor and scroll position?</p>
+<p class="a">A cursor encodes a position in one specific ordering, so it's meaningless under a new sort — new sort means new query key, fresh fetch from the top, scroll reset to top deliberately. Trying to preserve scroll position across a re-ordering is preserving a number whose meaning changed. What you can offer is continuity of a different kind: keep the previous result on screen (stale-while-revalidate) until the first new page lands, so the transition doesn't flash empty.</p>
+
+<p class="q tag-a">The SSE connection drops for five minutes. Walk through recovery.</p>
+<p class="a">EventSource reconnects on its own, presenting <code>Last-Event-ID</code>. If the server's replay buffer still covers that gap, it replays the missed events, which flow through the normal dedupe→version→batch pipeline — recovery is invisible. If the gap exceeds retention, replay is impossible, so the client falls back to invalidate-and-refetch of page one plus balances. Meanwhile the 30s poll has been bounding staleness the whole time, and the stale banner ("as of 2:14 PM") kept the user informed. The principle to state: reconnection never implies consistency — you reconcile on every reconnect, cheaply if replay covers you, fully if it doesn't.</p>
+
+<p class="q tag-a">Search fires a request per keystroke?</p>
+<p class="a">No — the raw text stays local to the input, and a 300ms-debounced value drives the query. On each new committed query, the in-flight previous request is aborted via <code>AbortController</code>, which kills both the wasted work and the out-of-order-response race (a slow "gro" response landing after the "grocery" response and overwriting it). Results cache per query string, so backspacing to a previous query is instant. Four moves — debounce, cancel, race-guard, cache — and naming all four is the complete answer.</p>
+
+<p class="q tag-a">A burst of 100 events/sec arrives during a bank sync. Does the UI melt?</p>
+<p class="a">No, because events buffer and flush once per animation frame as a single cache update — the render ceiling is one per frame (~60/sec) regardless of event rate, and memoized rows mean each render only reconciles changed rows. Past a threshold (~500 buffered), the client stops patching and refetches visible pages instead, because at that point starting over is cheaper than 500 surgical updates. Off-screen changes cost nothing until scrolled to; on-screen ones highlight briefly.</p>
+
+<p class="q tag-a">"Select all" with 100k matching rows — what does that mean?</p>
+<p class="a">Not 100k ids in client memory. Visible selections are an id Set, but "select all matching" becomes a server-side predicate: the bulk operation ships the current filter plus a list of explicitly excluded ids ("everything matching, except these three"). This also makes the semantics honest about rows the client has never seen. Bulk re-categorize — the one write in this design — carries a client-generated idempotency key so a timeout retry can't double-apply, and since re-categorization is reversible, optimistic UI with rollback on error is acceptable here. Contrast it aloud with money movement, where optimistic UI is forbidden — that contrast is rubric gold.</p>
+
+<p class="q tag-a">What actually breaks at 1M rows?</p>
+<p class="a">Not the DOM — the window is constant size by construction. What strains: the client cache accumulates hundreds of pages (cap retained pages and refetch on scroll-back), and the spacer-height trick hits browser maximum-element-height limits (~33M px, roughly 750k 44px rows — switch to segmented spacers). But the best answer is product-shaped: nobody scrolls a million rows. Past a point, scrolling is the wrong navigation primitive, and the design should be pushing users toward search and filters — which this design has been optimizing all along.</p>
+
+<h2>10. Numbers to drop</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Render budget</h3>
+    <p>60fps means <b>16ms per frame</b>. With ~30 memoized rows in the DOM, scroll work is transform-only — compositor-thread work, no layout or paint on the main thread. <span class="tag-g">"DOM cost is O(window), independent of dataset size"</span> is the sentence that shows you understand <i>why</i> it's fast, not just that it is. A 50-row page at ~300 bytes per transaction is ~15KB — cheap enough to prefetch the next page at 70% scroll depth.</p>
+  </div>
+  <div class="card">
+    <h3>Freshness budget</h3>
+    <p>SSE delivers sub-second when healthy; the 30s poll bounds staleness when it isn't; the <code>as-of</code> stamp makes whatever staleness exists honest. Search debounce is 300ms; with a ~400ms p95 server response, perceived filter-change latency lands ~700ms with skeletons — inside the "feels responsive" envelope for a data view, and you've named every term in the sum.</p>
+  </div>
+</div>
+
+<h2>11. Rubric self-check (FullStack-SysDesign-Rubric)</h2>
+<table>
+  <tr><th>Pillar</th><th>Where it's covered</th></tr>
+  <tr><td>1 Product framing</td><td>§1 — scope, non-goals, the three driving constraints, the core tension named up front</td></tr>
+  <tr><td>2 Data/API contract</td><td>§3–4 — cursor-vs-offset argued in full, typed errors, versioned rows, pending/posted, SSE resume</td></tr>
+  <tr><td>3 Rendering</td><td>§5 — virtualization mechanism explained, memoization, fixed heights, a11y costs raised unprompted</td></tr>
+  <tr><td>4 State/caching/sync</td><td>§2, §4, §6 — three-layer state, keyed queries, dedupe/version/batch pipeline, race guards</td></tr>
+  <tr><td>5 Security/privacy</td><td>§8 — HttpOnly token model, masking, analytics scrubbing, least-privilege both halves</td></tr>
+  <tr><td>6 Reliability/correctness</td><td>§7–8 — five-state matrix, corrections, reconciliation on reconnect, poll as safety net</td></tr>
+  <tr><td>7 Perf/observability</td><td>§8, §10 — quantified budgets, RUM, correlation IDs, alerts on financial fetch failures</td></tr>
+</table>
+
+<h2>12. 30-second recap script</h2>
+<div class="card a">
+  The dataset is huge and always changing, so the client owns a window, never the truth. Filters, sort, and search live in the URL and key a server-cache query; the server does all filtering and returns keyset-cursor pages, because offset pagination drifts and duplicates under top-inserts. The table virtualizes to about thirty memoized DOM rows with ARIA row counts so accessibility survives, and infinite-scrolls through a sentinel. Real-time arrives over SSE with Last-Event-ID resume; events are deduped, version-gated, buffered per frame, and patch the cache — and new rows above the fold become a "new transactions" pill so content never shifts under the reader. Pending-to-posted corrections patch in place by id and version with a visible highlight, balances are server-authoritative with an as-of stamp, and a 30-second poll is the reconciliation safety net for everything the stream drops. Tokens sit in HttpOnly cookies, PII stays masked and out of analytics, every view has loading, error, empty, permission-denied, and stale states, and RUM alerts fire when financial fetches fail.
+</div>
+
+</body>
+</html>

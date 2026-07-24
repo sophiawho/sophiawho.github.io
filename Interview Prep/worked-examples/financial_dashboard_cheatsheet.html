@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Dashboard — Worked Example</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+    --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.55;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:28px 0 10px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:14px;margin:16px 0 6px;color:var(--accent)}
+  p{margin:8px 0}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow:auto;font-size:12.5px;line-height:1.45}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:4px 0}
+  table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--chip);font-weight:600}
+  .tag-g{color:var(--green);font-weight:600}
+  .tag-r{color:var(--red);font-weight:600}
+  .tag-a{color:var(--amber);font-weight:600}
+  .q{font-weight:600;margin-top:14px}
+  .a{color:var(--muted)}
+  .callout{border-left:3px solid var(--amber);background:#fffbf3;border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0}
+  svg{max-width:100%;height:auto}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Financial Dashboard with Charts — Worked Example (RADIO)</h1>
+<p class="sub">Balance over time · spending by category · N independent widgets sharing global filters · a teaching walkthrough. RADIO: Requirements → Architecture → Data model → Interface → Optimizations.</p>
+
+<h2>1. R — Requirements</h2>
+
+<p>Restate the problem first: "We're building the overview page of a personal-finance app. A user with several linked accounts lands here and sees their financial life at a glance — a net-worth header, a balance-over-time chart, spending broken down by category, their most recent transactions, and a card per account. A date-range picker and an account selector at the top control everything below them, and clicking into a chart drills down to the filtered transactions view."</p>
+
+<p>The functional inventory is really a list of widgets — net-worth header, balance chart, category chart, recent-transactions list, account cards — plus two global controls that every widget obeys, plus drill-down navigation. Out of scope, and worth cutting aloud: a user-customizable widget builder, report exports, and any budgeting rules engine. Each of those is its own interview.</p>
+
+<p>The non-functional requirements are where this question differs from the transactions table, and it's worth articulating the difference: <i>the table is one big component with one data stream; the dashboard is many small components with many independent data streams.</i> That shift changes what "good" means. First, <b>perceived speed over total speed</b>: the shell and skeletons should paint under a second, and widgets should settle independently as their data arrives — the page assembles progressively rather than blocking on its slowest member. A reasonable overall target is all widgets settled under 2.5s at p75. Second, <b>failure isolation</b>: one widget erroring must degrade exactly one card, never the page. On a dashboard whose widgets depend on different backend aggregations, partial failure isn't an edge case — it's a Tuesday. Third, <b>honest freshness</b>: these are aggregations over synced bank data, computed minutes ago, and the UI should stamp them <code>as-of</code> rather than performing a real-time-ness it doesn't have. Fourth, <b>bundle discipline</b>: charting libraries are heavy, and a dashboard that ships 300KB of chart code before first paint has lost the performance argument before rendering a single number.</p>
+
+<div class="callout"><b>The core tension to name:</b> N independent widgets share global filter state. Fetch them in parallel and cache them independently — while making sure the shared state that binds them doesn't turn every filter change into a whole-page re-render, and the component tree doesn't quietly serialize what should be concurrent. The whole design is managing that tension.</div>
+
+<h2>2. A — Architecture</h2>
+
+<svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="12">
+  <defs>
+    <marker id="arw2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b6470"/></marker>
+    <marker id="arwg2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#15803d"/></marker>
+  </defs>
+
+  <rect x="20" y="20" width="430" height="300" rx="10" fill="none" stroke="#5b6470" stroke-dasharray="5 4"/>
+  <text x="32" y="40" fill="#5b6470" font-weight="600">DashboardPage</text>
+
+  <rect x="40" y="52" width="390" height="34" rx="8" fill="#fff8ec" stroke="#b45309"/>
+  <text x="235" y="74" text-anchor="middle" font-size="11.5" fill="#b45309">GlobalFilters (dateRange, accounts) → URL state</text>
+
+  <rect x="40" y="98" width="390" height="34" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="235" y="120" text-anchor="middle" font-size="11.5">NetWorthHeader (own query + error boundary)</text>
+
+  <rect x="40" y="144" width="188" height="76" rx="8" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="134" y="168" text-anchor="middle" font-size="11.5" fill="#2563eb" font-weight="600">BalanceChart</text>
+  <text x="134" y="186" text-anchor="middle" font-size="10.5" fill="#5b6470">lazy-loaded chart lib</text>
+  <text x="134" y="202" text-anchor="middle" font-size="10.5" fill="#5b6470">skeleton → data → error</text>
+
+  <rect x="242" y="144" width="188" height="76" rx="8" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="336" y="168" text-anchor="middle" font-size="11.5" fill="#2563eb" font-weight="600">CategoryChart</text>
+  <text x="336" y="186" text-anchor="middle" font-size="10.5" fill="#5b6470">independent query</text>
+  <text x="336" y="202" text-anchor="middle" font-size="10.5" fill="#5b6470">own error boundary</text>
+
+  <rect x="40" y="232" width="188" height="70" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="134" y="258" text-anchor="middle" font-size="11.5">RecentTransactions</text>
+  <text x="134" y="276" text-anchor="middle" font-size="10.5" fill="#5b6470">(first 10, links to table)</text>
+
+  <rect x="242" y="232" width="188" height="70" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="336" y="258" text-anchor="middle" font-size="11.5">AccountCards</text>
+  <text x="336" y="276" text-anchor="middle" font-size="10.5" fill="#5b6470">balance + as-of each</text>
+
+  <rect x="490" y="52" width="200" height="250" rx="10" fill="#fff" stroke="#15803d" stroke-width="1.5"/>
+  <text x="590" y="76" text-anchor="middle" font-weight="600" fill="#15803d">Query cache (SWR)</text>
+  <text x="590" y="98" text-anchor="middle" font-size="10.5" fill="#5b6470">['networth', range, accts]</text>
+  <text x="590" y="116" text-anchor="middle" font-size="10.5" fill="#5b6470">['balanceSeries', range, accts]</text>
+  <text x="590" y="134" text-anchor="middle" font-size="10.5" fill="#5b6470">['categorySums', range, accts]</text>
+  <text x="590" y="152" text-anchor="middle" font-size="10.5" fill="#5b6470">['recentTx', accts]</text>
+  <text x="590" y="170" text-anchor="middle" font-size="10.5" fill="#5b6470">['accounts']</text>
+  <text x="590" y="196" text-anchor="middle" font-size="10.5" fill="#2563eb">stale-while-revalidate:</text>
+  <text x="590" y="212" text-anchor="middle" font-size="10.5" fill="#5b6470">show cached instantly,</text>
+  <text x="590" y="228" text-anchor="middle" font-size="10.5" fill="#5b6470">refetch in background</text>
+  <text x="590" y="252" text-anchor="middle" font-size="10.5" fill="#b45309">webhook/SSE →</text>
+  <text x="590" y="268" text-anchor="middle" font-size="10.5" fill="#b45309">tag invalidation</text>
+
+  <rect x="730" y="52" width="210" height="140" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="835" y="76" text-anchor="middle" font-weight="600">BFF (given boilerplate)</text>
+  <text x="835" y="96" text-anchor="middle" font-size="10.5" fill="#5b6470">GET /dashboard?range=…</text>
+  <text x="835" y="112" text-anchor="middle" font-size="10.5" fill="#5b6470">one aggregate call OR</text>
+  <text x="835" y="128" text-anchor="middle" font-size="10.5" fill="#5b6470">per-widget endpoints —</text>
+  <text x="835" y="144" text-anchor="middle" font-size="10.5" fill="#5b6470">server-computed buckets,</text>
+  <text x="835" y="160" text-anchor="middle" font-size="10.5" fill="#5b6470">sums, as-of stamps</text>
+
+  <line x1="450" y1="180" x2="488" y2="180" stroke="#15803d" marker-end="url(#arwg2)"/>
+  <text x="468" y="170" text-anchor="middle" font-size="10" fill="#15803d">hooks</text>
+  <line x1="690" y1="130" x2="728" y2="122" stroke="#5b6470" marker-end="url(#arw2)"/>
+  <text x="708" y="112" text-anchor="middle" font-size="10" fill="#5b6470">parallel</text>
+
+  <rect x="20" y="350" width="920" height="150" rx="10" fill="none" stroke="#5b6470" stroke-dasharray="5 4"/>
+  <text x="32" y="370" fill="#5b6470" font-weight="600">Waterfall vs parallel — the diagram to draw</text>
+
+  <text x="40" y="398" font-size="11" fill="#b91c1c" font-weight="600">Waterfall (bad): 4 × 300ms = 1.2s</text>
+  <rect x="260" y="386" width="120" height="16" rx="4" fill="#fde8e8" stroke="#b91c1c"/>
+  <text x="320" y="398" text-anchor="middle" font-size="9.5" fill="#b91c1c">accounts</text>
+  <rect x="384" y="386" width="120" height="16" rx="4" fill="#fde8e8" stroke="#b91c1c"/>
+  <text x="444" y="398" text-anchor="middle" font-size="9.5" fill="#b91c1c">networth</text>
+  <rect x="508" y="386" width="120" height="16" rx="4" fill="#fde8e8" stroke="#b91c1c"/>
+  <text x="568" y="398" text-anchor="middle" font-size="9.5" fill="#b91c1c">series</text>
+  <rect x="632" y="386" width="120" height="16" rx="4" fill="#fde8e8" stroke="#b91c1c"/>
+  <text x="692" y="398" text-anchor="middle" font-size="9.5" fill="#b91c1c">categories</text>
+
+  <text x="40" y="436" font-size="11" fill="#15803d" font-weight="600">Parallel (good): max(300ms) = 300ms</text>
+  <rect x="260" y="424" width="120" height="16" rx="4" fill="#e8f5ec" stroke="#15803d"/>
+  <text x="320" y="436" text-anchor="middle" font-size="9.5" fill="#15803d">accounts</text>
+  <rect x="260" y="444" width="120" height="16" rx="4" fill="#e8f5ec" stroke="#15803d"/>
+  <text x="320" y="456" text-anchor="middle" font-size="9.5" fill="#15803d">networth</text>
+  <rect x="260" y="464" width="120" height="16" rx="4" fill="#e8f5ec" stroke="#15803d"/>
+  <text x="320" y="476" text-anchor="middle" font-size="9.5" fill="#15803d">series</text>
+  <rect x="384" y="444" width="180" height="16" rx="4" fill="#eef2f7" stroke="#2563eb"/>
+  <text x="474" y="456" text-anchor="middle" font-size="9.5" fill="#2563eb">charts lazy-load lib meanwhile</text>
+  <text x="620" y="470" font-size="10.5" fill="#5b6470">hidden waterfalls: fetch-in-render children;</text>
+  <text x="620" y="486" font-size="10.5" fill="#5b6470">gated mounts; lazy chunks that fetch on mount</text>
+</svg>
+
+<p>The architecture is one repeated pattern, applied N times: <b>the self-contained widget.</b> Each widget owns its query hook, its skeleton, its error boundary, and its full set of states. Nothing about the balance chart's fetch, failure, or refresh is visible to the category chart. This is the structural enforcement of the failure-isolation requirement — it's not that we <i>handle</i> a widget failure gracefully, it's that the architecture makes cross-widget failure impossible to express. When an interviewer asks "what if the category service is down?", the answer falls out of the structure: that card shows its error state with a retry button, and nothing else knows.</p>
+
+<p>What binds the widgets is deliberately thin: the global filters, living in the URL. Each widget's query key includes them — <code>['categorySums', range, accountIds]</code> — so when the user changes the date range, every widget's key changes, every query refetches in parallel, and any previously-viewed range serves instantly from cache while revalidating in the background. Two subtleties make this work well. First, because filters live in the URL rather than in a top-level <code>useState</code>, the page component isn't re-rendering the world on every change — each widget subscribes to its own query result and re-renders only when <i>its</i> data changes. Second, this gives filter changes back-button behavior and deep-linkability for free, which matters for the drill-down story later.</p>
+
+<p>The third piece is the query cache as the single mediator between widgets and network. All data flows: widget → hook keyed on filters → cache → BFF. Real-time signals (a bank-sync webhook relayed over SSE) flow into the cache as invalidations, not into components. Keeping one mediator means deduplication, staleness, and refetching are solved once, centrally, instead of five times, divergently.</p>
+
+<h2>3. D — Data model</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Per-widget payloads</h3>
+    <pre>NetWorth { total, byType: {cash,
+  credit, invest}, asOf }
+
+BalanceSeries {
+  granularity: 'day'|'week'|'month',
+  points: [{ t, balance }],
+  asOf }
+
+CategorySums {
+  range, total,
+  slices: [{ category, amount, pct }],
+  asOf }
+
+Account { id, name, mask, type,
+  balance, balanceAsOf,
+  status: 'ok'|'relink_required' }</pre>
+  </div>
+  <div class="card">
+    <h3>The one-line versions</h3>
+    <p class="a">The client renders aggregates; it never computes them. Bucketing is server-chosen so payloads stay constant-size. Every payload is stamped as-of. Money is integers. A broken bank link is a modeled state, not an error.</p>
+  </div>
+</div>
+
+<p><b>The defining decision of this data model is that aggregation happens on the server, and it's wrong twice over to do it on the client.</b> The naive design ships raw transactions and lets the client sum them into a pie chart. The first problem is cost: a year of transactions is tens of thousands of rows and megabytes on the wire, to produce twelve numbers. The second problem is worse — correctness. The client doesn't have all the data (it has a page), pending transactions carry non-final amounts, and holds, foreign exchange, and interest adjustments live server-side. A client-computed total <i>will</i> disagree with the server's, and in a finance app a wrong total is the worst possible bug because it's the number the user came to see. So the contract is: the server computes, the client renders. The transactions table owns raw rows; the dashboard owns projections. Drawing that line crisply also keeps the two views from fighting about which one is authoritative.</p>
+
+<p><b>Bucketing is chosen server-side, by range.</b> A seven-day range gets daily points; a one-year range gets weekly. The reason to put this on the server rather than downsampling client-side is that it caps the payload by construction — roughly 360 points worst case, a few kilobytes — regardless of how much underlying data exists. The client should never receive more resolution than it can draw. This also pins the bucketing logic (calendar boundaries, timezone handling, missing-day interpolation) in one place instead of reimplementing it per client platform.</p>
+
+<p><b>Every payload carries <code>as-of</code>, and <code>relink_required</code> is part of the account model.</b> The as-of stamp is the design being honest: these aggregates were computed at sync time, minutes ago, and the UI displays that fact instead of concealing it — the rubric explicitly flags "assuming financial data is strongly consistent" as a red flag, and the as-of stamp is the visible artifact of not assuming it. The <code>relink_required</code> status models the routine reality of a Plaid-style product — bank credentials expire — as data, so the UI renders a purposeful "reconnect your account" card instead of a generic error, and stale numbers are never silently presented as current.</p>
+
+<h2>4. I — Interface</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Per-widget endpoints (chosen)</h3>
+    <pre>GET /accounts
+GET /networth?range&amp;accountIds
+GET /balance-series?range&amp;accountIds
+GET /category-sums?range&amp;accountIds
+GET /transactions?limit=10&amp;accountIds
+
+— alternative —
+GET /dashboard?range&amp;accountIds
+  → { networth, series, sums,
+      recent, accounts }</pre>
+  </div>
+  <div class="card">
+    <h3>The widget contract</h3>
+    <pre>const { data } = useQuery(
+  ['categorySums', range, accountIds],
+  { staleTime: 60_000 })
+
+// every widget provides:
+//   sized skeleton (no CLS)
+//   error card + retry
+//   empty state
+//   relink CTA (permission)
+//   "as of 2:14pm" stale badge</pre>
+  </div>
+</div>
+
+<p><b>Per-widget endpoints versus one aggregate call is a genuine trade-off, and the interviewer wants to hear you argue both sides before picking.</b> The case for per-widget endpoints: each widget gets independent caching (the accounts list can be five-minutes-fresh while balances are sixty-seconds-fresh), independent failure (a broken category aggregation returns a 500 to one widget, not a corrupted composite payload), and independent refetching (a balance webhook invalidates balances without refetching category sums). The case for the single <code>/dashboard</code> aggregate: one round trip instead of five, which matters when round-trip time dominates — high-latency mobile networks — and it gives you one consistency domain, meaning every number on screen was computed at the same instant. The costs mirror each other: the aggregate couples unrelated data's cache lifetimes and failure semantics; per-widget spends RTTs. The answer that scores: <b>choose per-widget endpoints fired in parallel as the default, and say explicitly that the aggregate is the right call for a mobile client or wherever product demands the header and chart never disagree</b> — and note that a BFF can offer both by composing the same internal handlers, so this is a client-driven choice, not an architectural fork. That last sentence matters in Plaid's format, where the backend boilerplate is handed to you: it shows you can adapt to whichever shape they gave.</p>
+
+<p><b>The widget contract is the reusable-component answer hiding inside this question.</b> Every widget — chart, list, header — has the same lifecycle: loading, loaded, error, empty, permission-denied, stale. So the design factors that into a shared <code>Widget</code> wrapper that provides the five states and an error boundary, while each concrete widget supplies only its query key and its rendering of the happy path. This is worth presenting as deliberate component API design: the state matrix <i>is</i> the component's contract, and pushing it into a wrapper means no future widget can forget its error state — the same "make the right thing structural" move as the error-boundary-per-widget decision. Blank space is never an acceptable render.</p>
+
+<h2>5. O — Optimization 1: kill the waterfalls</h2>
+
+<p>A request waterfall is what happens when requests that <i>could</i> run concurrently instead run sequentially, and the insidious thing is that nobody writes a waterfall on purpose — the component tree writes it for you. Understanding the three ways it happens is the real content of this section.</p>
+
+<p><b>Fetch-in-render is the classic.</b> The page component fetches accounts; when accounts arrive it renders its children; each child then begins its own fetch. Every level of the tree adds a full round trip, because a child's fetch cannot start until its parent has rendered it. Four dependent levels at 300ms each and your dashboard takes 1.2 seconds to do what the network could have done in 300ms. The structure of your JSX has silently become the schedule of your network requests — that's the sentence that shows you understand the failure, and the waterfall-versus-parallel timeline in the §2 diagram is the picture to draw while saying it.</p>
+
+<p><b>Gated mounts are subtler.</b> Code like <code>{accounts &amp;&amp; &lt;Charts/&gt;}</code> makes the charts wait for the accounts response before they even mount — even though the chart queries don't use the accounts data. The dependency is an accident of conditional rendering, not of data. The discipline is to ask, for every gate: does the child's <i>query</i> actually need the parent's <i>data</i>? Here, nothing does — the chart endpoints take a range and account ids from the URL, not from the accounts response. The only true join (display names onto account cards) can happen client-side when both queries have landed, independently.</p>
+
+<p><b>Lazy chunks that fetch on mount</b> are the third variant: a code-split widget must download its JavaScript before its <code>useQuery</code> runs, so the network sits idle during the JS download, then starts the data fetch — a two-step waterfall of code, then data.</p>
+
+<p>The fix for all three is the same move: <b>hoist fetch initiation to the route level, decoupled from component rendering.</b> On navigation (or even on hover of the nav link — intent-based prefetching), a route loader calls <code>prefetchQuery</code> for all five query keys, firing every request in parallel immediately. Components, whenever they happen to mount — including after their lazy chunk arrives — subscribe to queries already in flight rather than starting them. Rendering and fetching become independent concerns, connected only by the query key. Settle time collapses from the <i>sum</i> of latencies to the <i>max</i> of latencies, and the lazy-chunk problem dissolves because data was already loading while the code downloaded.</p>
+
+<h2>6. O — Optimization 2: caching and refetch</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Policy per data class</h3>
+    <table>
+      <tr><th>Data</th><th>staleTime</th><th>Event trigger</th></tr>
+      <tr><td>Accounts list</td><td>5 min</td><td>relink event</td></tr>
+      <tr><td>Net worth / balances</td><td>60s</td><td>sync webhook, refocus</td></tr>
+      <tr><td>Series / category sums</td><td>5 min</td><td>sync webhook, range change</td></tr>
+      <tr><td>Recent transactions</td><td>30s</td><td>tx.created event</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>The shape of the policy</h3>
+    <p class="a">Staleness tolerance is a property of the data, not of the app — so the policy is a table, not a constant. Balances move and get 60s; the accounts list barely changes and gets 5 minutes. Being able to produce this table on request is what "thought about caching" looks like.</p>
+  </div>
+</div>
+
+<p>The strategy is <b>stale-while-revalidate everywhere</b>: on any request, show cached data immediately and refetch in the background, updating in place if anything changed. For a returning user this is transformative — the dashboard paints instantly with slightly-old numbers (honestly stamped as-of) rather than blanking behind skeletons, and freshness arrives seconds later without interaction. SWR is the right default precisely because this page's data is <i>already</i> eventually consistent — a background revalidation model matches the truth of the data instead of fighting it.</p>
+
+<p><b>The deeper point to make: TTL is a guess, and event-driven invalidation replaces the guess with knowledge.</b> Any fixed staleTime is a bet about when the backend's data changed. But this backend <i>knows</i> when it changed — a bank sync completed, and a webhook fired. Relay that signal to the client over SSE and let it invalidate by tag: sync completes → invalidate <code>['networth']</code>, <code>['balanceSeries']</code>, <code>['categorySums']</code> → each refetches, in the background, only if currently mounted. The user sees fresh numbers seconds after the truth changed, and the client never polled for it. The TTLs stay in place as the floor — push channels fail silently, so the design degrades from "fresh within seconds" to "fresh within staleTime plus a refocus refetch" rather than to "stale forever." Push is the optimization; TTL-plus-refocus is the guarantee.</p>
+
+<p>Two mechanical details round this out, and both are the kind of thing interviewers probe for. <b>Deduplication:</b> several widgets key on <code>['accounts']</code> — the cache layer collapses them into one request with multiple subscribers, which is precisely why the cache mediates all fetching rather than letting components fetch ad hoc. <b>Race guarding:</b> a user flips the range 7d → 30d → back to 7d quickly; the 30d response must not land into the 7d view. Query-key isolation handles most of it (each response lands in its own cache slot), and cancelling in-flight queries for abandoned keys handles the rest. Name the race explicitly — unnamed races are the difference between a 3 and a 4 on the state-management pillar. One more sentence worth saying: <b>there are no optimistic updates on this page, because there are no writes</b> — the dashboard is a read-only projection of money, and corrections arrive by invalidation. Knowing when optimistic UI is <i>irrelevant</i> (and when it would be forbidden — money movement) is itself rubric material.</p>
+
+<h2>7. O — Optimization 3: charts without sinking the bundle</h2>
+
+<p>Charting libraries are among the heaviest dependencies a front end routinely takes: ECharts and Highcharts land around 300KB gzipped, Recharts around 100KB. Shipping that in the entry bundle means every user pays chart-parse-and-compile cost before the page becomes interactive — including the majority of visits where the user glances at the header number and leaves. The move is to <b>code-split the chart components</b> so the shell — header, account cards, recent transactions, all the actual numbers — renders with zero chart code, and the chart chunks stream in behind sized skeleton placeholders. "Sized" is doing work in that sentence: a placeholder with the chart's exact final dimensions means zero cumulative layout shift when the real chart hydrates in. And because §5 hoisted data fetching to the route, the chart's <i>data</i> loads concurrently with its <i>code</i> — the two-step waterfall never happens.</p>
+
+<p>Two more decisions belong in this section. <b>One library, org-wide.</b> Two charting libraries in one bundle is paying the heaviest cost twice for no user-visible benefit, and it's the kind of thing that creeps in one team at a time — flag it as a governance decision, not just a technical one. <b>SVG rendering at this scale, canvas only under duress.</b> The server's bucketing already caps series at ~360 points, and SVG handles that trivially while keeping chart elements in the DOM — inspectable, styleable, and accessible. Canvas becomes necessary only in the many-thousands-of-points regime, and it costs you DOM-based accessibility when you take it.</p>
+
+<p><b>Chart accessibility deserves its own paragraph, because almost every candidate skips it and the rubric explicitly doesn't.</b> A chart is a visual encoding of data, and users who can't see the encoding still need the data. The floor: a visually-hidden data table or an <code>aria-label</code> summary carrying the actual content ("spending by category: groceries 32%, rent 28%…"), keyboard-reachable data points or an accessible tooltip equivalent, and never encoding meaning in color alone — the pending-versus-posted distinction, for instance, needs a shape or label, not just a lighter shade. Mentioning color-independence in a finance app also quietly covers the red/green colorblindness problem that every gains/losses UI has.</p>
+
+<h2>8. O — Optimization 4: security, resilience, observability</h2>
+
+<p><b>Security and privacy.</b> The token story matches the transactions table — short-lived, scoped tokens in HttpOnly SameSite cookies via the BFF, nothing sensitive in localStorage or the bundle — because one XSS reading a bank token is the catastrophe the whole model exists to prevent. The dashboard adds one UI-level feature worth proposing unprompted: <b>privacy mode</b>, a single toggle that masks every dollar amount on screen. Users open finance dashboards in screen-shares, on trains, next to coworkers; it's a cheap feature that signals you think about the person holding the screen, not just the code. Keep the toggle's state in memory, not in any persisted or logged store. Telemetry follows the same scrubbing discipline: widget timings, error codes, event names — never amounts, categories, or merchant names. And the <code>relink_required</code> state doubles as a security posture: expired-credential accounts show a reconnect call-to-action rather than stale balances dressed up as current — least-privilege presentation of data the client no longer has the right to refresh.</p>
+
+<p><b>Resilience.</b> The per-widget error boundary is the structural centerpiece — a crash in chart-rendering code degrades one card to a retry panel while the rest of the page lives — but walk the rest of the matrix too: sized skeletons while loading; per-widget retry with exponential backoff and jitter; empty states that say something useful ("no spending in this range"); the relink CTA for permission-denied; and the as-of badge plus a reconnect banner when the event channel drops. Offline or on a flaky connection, the SWR cache means the dashboard still renders — stale, stamped, and honest — instead of white-screening. For a finance app on mobile networks, "degrades to stale-but-labeled" versus "degrades to blank" is the difference that matters.</p>
+
+<p><b>Observability.</b> Instrument per-widget: time-to-data for each widget, overall settle time (time until the last widget resolved), error rate by endpoint, and event-channel disconnect rate. Correlation IDs ride every request so a support report traces end-to-end. Alerts key on the two numbers that mean users are hurting: dashboard settle-time p95 regressing, and any financial widget's error rate spiking. The rubric's red flag is having no telemetry on financial failure modes; the strong answer names which metrics page a human.</p>
+
+<h2>9. Follow-ups — answers to have ready</h2>
+
+<p class="q tag-a">Why not one GraphQL query for the whole dashboard?</p>
+<p class="a">It's a legitimate alternative and deserves a fair hearing: one round trip, client-declared shape, no over-fetching. The costs: you reintroduce single-payload failure and caching semantics unless you split at the cache layer anyway, and you take on schema and server infrastructure that this interview's boilerplate may not include. The framing that scores: per-widget REST in parallel is the simpler default; GraphQL or a BFF aggregate earns its keep when round trips dominate (mobile) or when clients genuinely need different shapes (web vs mobile vs partner embeds). Name the condition under which you'd switch — that's what makes it a trade-off rather than a preference.</p>
+
+<p class="q tag-a">A filter change refetches five queries — isn't that wasteful?</p>
+<p class="a">It's five <i>small</i> aggregate queries in parallel — a few KB total — not five table scans from the client's perspective; the server was computing these aggregates anyway. And the cache means previously-viewed ranges cost nothing: flipping between 7d and 30d after the first visit to each is two cache hits with background revalidation. The alternative — trying to derive the 7d view client-side from the 30d data — reintroduces client-side aggregation of financial data, which §3 ruled out on correctness grounds. Cheap, correct, and cached beats clever.</p>
+
+<p class="q tag-a">The net-worth header and the balance chart disagree. Bug?</p>
+<p class="a">Expected behavior, honestly displayed. They're independent queries with independent as-of stamps; a bank sync can land between their fetches, so one reflects it and the other doesn't for a few seconds. The design's answer is the visible as-of stamp per widget, plus event-driven invalidation shrinking the disagreement window to seconds. If product requires that they never disagree, that's the argument for fetching them as one payload — one consistency domain — and it's a product decision with a real cost (coupled caching and failure), not a free fix. Being able to say "this is a consistency-domain choice" is the senior answer.</p>
+
+<p class="q tag-a">How stale can the dashboard get if the event channel dies silently?</p>
+<p class="a">Bounded, and you can compute the bound: staleTime per data class (60s balances, 5min aggregates) plus refetch-on-window-focus as a backstop whenever the user returns to the tab. The as-of badge keeps the staleness visible, and a reconnect banner appears when the SSE connection is known-dead. The design principle: push improves freshness, but TTL-plus-refocus guarantees it. Never build a client whose correctness depends on a webhook arriving.</p>
+
+<p class="q tag-a">Walk through the drill-down: clicking the "groceries" slice.</p>
+<p class="a">Navigate to <code>/transactions?category=groceries&amp;range=30d&amp;accounts=…</code> — serializing the drill-down into the transaction table's URL contract. The table page owns everything from there with its own keyed queries. This is the payoff of both pages keeping filter state in the URL: drill-down is just navigation, it's deep-linkable and back-button-correct with zero shared in-memory state between the two pages. Prefetch the first page of results on slice hover and the transition feels instant.</p>
+
+<p class="q tag-a">What changes on mobile?</p>
+<p class="a">Single-column stack with the header and one chart above the fold; below-fold widgets lazy-mount on approach via IntersectionObserver so first paint only fetches what's visible. This is also where the aggregate endpoint argument flips — on high-RTT networks, one round trip for above-fold data beats five, so the mobile client may genuinely prefer <code>GET /dashboard</code>. Charts simplify: fewer axis ticks, tap targets instead of hover tooltips (hover doesn't exist), and consider replacing the pie with a ranked bar list, which reads better at 375px anyway.</p>
+
+<p class="q tag-a">Skeletons, spinners, or progressive rendering?</p>
+<p class="a">Sized skeletons per widget, and each widget swaps to real content the moment its own data lands — progressive assembly. One global spinner is the worst option: it converts max(latencies) into perceived sum(latencies) by blocking everything on the slowest widget, and it throws away the parallelism §5 bought. When cache exists, skip skeletons entirely — show stale data with a subtle revalidation shimmer, because slightly-old numbers now beat placeholders every time.</p>
+
+<h2>10. Numbers to drop</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Latency budget</h3>
+    <p>Shell + skeletons under 1s; all widgets settled under <b>2.5s p75</b>. With parallel fetching, settle ≈ max(endpoint latencies) ≈ 300–500ms after shell. <span class="tag-g">"Five 300ms endpoints in parallel is 300ms, not 1.5 seconds"</span> — the arithmetic that justifies the entire §5 section in one sentence.</p>
+  </div>
+  <div class="card">
+    <h3>Payload + bundle budget</h3>
+    <p>Series ≤360 points ≈ 10KB; category sums ~1KB; the whole dashboard's data under <b>50KB</b>. Chart library ~100KB gz, code-split so the shell's time-to-interactive never pays it. One SSE connection buys freshness-in-seconds across every widget — cheaper than any polling schedule that achieves the same.</p>
+  </div>
+</div>
+
+<h2>11. Rubric self-check (FullStack-SysDesign-Rubric)</h2>
+<table>
+  <tr><th>Pillar</th><th>Where it's covered</th></tr>
+  <tr><td>1 Product framing</td><td>§1 — widget independence, progressive settle, honesty about freshness, non-goals</td></tr>
+  <tr><td>2 Data/API contract</td><td>§3–4 — server aggregation argued on cost + correctness, bucketing, as-of, per-widget vs aggregate both-sides</td></tr>
+  <tr><td>3 Rendering</td><td>§2, §7 — widget decomposition, code-split charts, CLS-safe skeletons, chart a11y in full</td></tr>
+  <tr><td>4 State/caching/sync</td><td>§4–6 — URL filters, keyed SWR, event-driven tag invalidation, dedupe, named race guards</td></tr>
+  <tr><td>5 Security/privacy</td><td>§8 — token model, privacy mode, telemetry scrubbing, relink as least-privilege</td></tr>
+  <tr><td>6 Reliability/correctness</td><td>§4, §8, §9 — five-state widget contract, error boundaries, partial failure, offline-stale-honest</td></tr>
+  <tr><td>7 Perf/observability</td><td>§5, §7, §10 — waterfall analysis, bundle discipline, quantified budgets, per-widget RUM + paging alerts</td></tr>
+</table>
+
+<h2>12. 30-second recap script</h2>
+<div class="card a">
+  The dashboard is N independent widgets sharing global filters. Filters live in the URL; each widget is self-contained — its own query keyed on those filters, its own skeleton, error boundary, and empty, permission-denied, and stale states — so one failure degrades one card, never the page. All queries fire in parallel at the route level, which makes settle time the max of the endpoint latencies instead of the sum; the classic mistake is letting the component tree serialize the fetches. Aggregation is server-side — the client renders projections of money and never sums raw transactions, because a client-computed total will drift from truth. Caching is stale-while-revalidate with event-driven tag invalidation from bank-sync webhooks: TTL is the guarantee, push is the optimization. Charts are code-split behind sized skeletons so the shell never pays the library cost, with an accessible data fallback under every chart. Tokens stay in HttpOnly cookies, telemetry carries timings but never amounts, and per-widget RUM pages someone when a financial widget's error rate spikes.
+</div>
+
+</body>
+</html>
