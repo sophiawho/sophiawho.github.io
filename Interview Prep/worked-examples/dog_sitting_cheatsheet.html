@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dog-Sitting App — Worked Example</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐕</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+    --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.55;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:28px 0 10px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:14px;margin:16px 0 6px;color:var(--accent)}
+  p{margin:8px 0}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow:auto;font-size:12.5px;line-height:1.45}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:4px 0}
+  table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--chip);font-weight:600}
+  .tag-g{color:var(--green);font-weight:600}
+  .tag-r{color:var(--red);font-weight:600}
+  .tag-a{color:var(--amber);font-weight:600}
+  .q{font-weight:600;margin-top:14px}
+  .a{color:var(--muted)}
+  .callout{border-left:3px solid var(--amber);background:#fffbf3;border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0}
+  svg{max-width:100%;height:auto}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Dog-Sitting App — Worked Example</h1>
+<p class="sub">Rover/Wag-style · 1.5M owners, 1M sitters · geo + time search · no double-booking · extension: recurring walks with pickup/dropoff + lockbox codes. A teaching walkthrough.</p>
+
+<h2>1. Requirements</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Functional</h3>
+    <ul>
+      <li><b>Owner:</b> search sitters available in a time range near them; CRUD their upcoming bookings.</li>
+      <li><b>Sitter:</b> add/remove availability and rates; view upcoming bookings.</li>
+      <li><b>Extension:</b> recurring walks (weekly MWF or daily). Owner chooses to drop the dog at the sitter's place or have the sitter pick up. Pickup gives the sitter a lockbox code.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Non-functional (the drivers)</h3>
+    <ul>
+      <li>Search is a <b>geospatial + time-window</b> query — the read hot path.</li>
+      <li>Booking needs <b>consistency</b>: a sitter is never double-booked for overlapping times.</li>
+      <li>Scale: 1.5M owners, 1M sitters. <b>Read-heavy on search, low write volume, low contention.</b></li>
+      <li>Lockbox codes are sensitive — treat as secrets, not data fields.</li>
+    </ul>
+    <p class="a">Core tension, and the right-sizing note that scores: this is a consistency-on-booking problem like Ticketmaster, but <b>without the hot-key contention</b>. No single sitter is fought over by millions, so the correctness fix is far cheaper.</p>
+  </div>
+</div>
+
+<h2>2. Architecture</h2>
+<svg viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="12">
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b6470"/></marker>
+    <marker id="arwa" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#b45309"/></marker>
+  </defs>
+
+  <text x="600" y="26" font-size="11" fill="#b45309">▬ consistency-critical write path</text>
+
+  <!-- clients -->
+  <rect x="230" y="40" width="150" height="42" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="305" y="66" text-anchor="middle" font-weight="600">Owner app</text>
+  <rect x="410" y="40" width="150" height="42" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="485" y="66" text-anchor="middle" font-weight="600">Sitter app</text>
+
+  <!-- gateway -->
+  <rect x="295" y="110" width="200" height="40" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="395" y="135" text-anchor="middle" font-weight="600">API Gateway + LB</text>
+
+  <!-- services -->
+  <rect x="55" y="185" width="180" height="52" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="145" y="207" text-anchor="middle" font-weight="600">Search service</text>
+  <text x="145" y="225" text-anchor="middle" font-size="10.5" fill="#5b6470">geo + time filter</text>
+
+  <rect x="300" y="185" width="180" height="52" rx="8" fill="#fff" stroke="#b45309" stroke-width="1.6"/>
+  <text x="390" y="207" text-anchor="middle" font-weight="600" fill="#b45309">Booking service</text>
+  <text x="390" y="225" text-anchor="middle" font-size="10.5" fill="#5b6470">reserve → confirm</text>
+
+  <rect x="545" y="185" width="180" height="52" rx="8" fill="#fff" stroke="#1a1a1a"/>
+  <text x="635" y="207" text-anchor="middle" font-weight="600">Availability service</text>
+  <text x="635" y="225" text-anchor="middle" font-size="10.5" fill="#5b6470">slots, rates</text>
+
+  <!-- data -->
+  <rect x="55" y="295" width="180" height="62" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="145" y="319" text-anchor="middle" font-weight="600">Geo / search index</text>
+  <text x="145" y="336" text-anchor="middle" font-size="10.5" fill="#5b6470">S2 / geohash cells</text>
+  <text x="145" y="350" text-anchor="middle" font-size="10.5" fill="#5b6470">+ availability</text>
+
+  <rect x="300" y="295" width="180" height="62" rx="10" fill="#fff" stroke="#b45309" stroke-width="1.6"/>
+  <text x="390" y="319" text-anchor="middle" font-weight="600" fill="#b45309">Bookings DB</text>
+  <text x="390" y="336" text-anchor="middle" font-size="10.5" fill="#5b6470">shard by sitterId</text>
+  <text x="390" y="350" text-anchor="middle" font-size="10.5" fill="#5b6470">EXCLUDE overlap constraint</text>
+
+  <rect x="545" y="295" width="180" height="62" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="635" y="319" text-anchor="middle" font-weight="600">Sitter DB</text>
+  <text x="635" y="336" text-anchor="middle" font-size="10.5" fill="#5b6470">profiles, availability,</text>
+  <text x="635" y="350" text-anchor="middle" font-size="10.5" fill="#5b6470">rates</text>
+
+  <!-- Redis + lockbox -->
+  <rect x="775" y="185" width="150" height="52" rx="27" fill="#fff" stroke="#2563eb"/>
+  <text x="850" y="207" text-anchor="middle" font-size="11.5" fill="#2563eb">Redis cache</text>
+  <text x="850" y="224" text-anchor="middle" font-size="10" fill="#5b6470">search + optional hold</text>
+
+  <rect x="775" y="295" width="150" height="62" rx="10" fill="#fff8ec" stroke="#b45309"/>
+  <text x="850" y="319" text-anchor="middle" font-size="11.5" fill="#b45309">Secrets svc</text>
+  <text x="850" y="336" text-anchor="middle" font-size="10" fill="#5b6470">lockbox codes:</text>
+  <text x="850" y="350" text-anchor="middle" font-size="10" fill="#5b6470">scoped, TTL, audited</text>
+
+  <!-- arrows -->
+  <line x1="305" y1="82" x2="360" y2="108" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="485" y1="82" x2="430" y2="108" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="340" y1="150" x2="160" y2="183" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="395" y1="150" x2="392" y2="183" stroke="#b45309" marker-end="url(#arwa)"/>
+  <line x1="450" y1="150" x2="620" y2="183" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="145" y1="237" x2="145" y2="293" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="390" y1="237" x2="390" y2="293" stroke="#b45309" marker-end="url(#arwa)"/>
+  <text x="402" y="270" font-size="10" fill="#b45309">single-shard txn</text>
+  <line x1="635" y1="237" x2="635" y2="293" stroke="#5b6470" marker-end="url(#arw)"/>
+  <line x1="480" y1="335" x2="390" y2="335" stroke="#5b6470" stroke-dasharray="0" marker-end="url(#arw)" opacity="0"/>
+  <path d="M545,340 C400,395 250,395 145,359" fill="none" stroke="#5b6470" stroke-dasharray="4 3" marker-end="url(#arw)"/>
+  <text x="345" y="393" text-anchor="middle" font-size="10" fill="#5b6470">CDC → refresh search index</text>
+  <line x1="480" y1="326" x2="773" y2="326" stroke="#b45309" stroke-dasharray="4 3" marker-end="url(#arwa)"/>
+  <text x="628" y="316" text-anchor="middle" font-size="10" fill="#b45309">pickup walks → code</text>
+</svg>
+<p class="a" style="margin-top:8px"><b>Two paths.</b> Read: geo+time search served from a derived index (CDC-fed). Write: booking goes through the Booking service into a bookings DB sharded by <code>sitterId</code>, where an overlap exclusion constraint makes double-booking structurally impossible. Redis and the secrets service are optional/extension pieces.</p>
+
+<h2>3. Core entities</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Schema</h3>
+    <pre>Sitter {
+  id, name, location: (lat,lng),
+  geoCell,            // S2/geohash id
+  rates, serviceTypes,
+  willTravel, travelRadius
+}
+Availability {
+  sitterId, during: tstzrange   // open window
+}
+Booking {
+  id, ownerId, sitterId,
+  during: tstzrange,            // the slot
+  status: pending|confirmed|cancelled,
+  serviceType, locationOption   // sit|walk
+}                               // dropoff|pickup</pre>
+  </div>
+  <div class="card">
+    <h3>Decisions to defend</h3>
+    <ul>
+      <li><b>Time slots are ranges</b> (<code>tstzrange</code>), not start/end columns, so the DB can enforce non-overlap natively (§5).</li>
+      <li><b><code>geoCell</code> is precomputed</b> from lat/lng so search is an index lookup, not a per-row distance scan (§4).</li>
+      <li>Money as integer minor units; format at render.</li>
+      <li><b>Location is static, availability is not</b> — so the search index is a derived read model kept fresh by CDC, eventually consistent by seconds, re-checked at booking time.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>4. Geospatial search (the read hot path)</h2>
+<p>The query is "sitters within X miles of me, available between T1 and T2." You cannot scan a million sitters and compute distance to each per search, so you need a spatial index. The shared idea behind all of them is to convert a 2D location into a locality-preserving 1D key, so physically-near sitters share a key prefix and become range-scannable.</p>
+<div class="grid2">
+  <div class="card">
+    <h3>Index options (name the trade-off)</h3>
+    <table>
+      <tr><th>Option</th><th>Trade</th></tr>
+      <tr><td>Geohash</td><td>Simplest, fits any B-tree/Redis. Boundary effects — query target cell + 8 neighbors.</td></tr>
+      <tr><td>Quadtree</td><td>Adapts to density (fine cells in cities). More upkeep.</td></tr>
+      <tr><td>S2 / H3</td><td>Production-grade cells, handle boundaries/distortion well.</td></tr>
+      <tr><td>PostGIS</td><td>GiST index + <code>ST_DWithin</code> radius queries. The pragmatic pick at 1M rows if you're on Postgres.</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Two-stage query</h3>
+    <ul>
+      <li><b>Coarse spatial cut:</b> map the radius to covering cells, pull candidate sitters in those cells — a million rows down to hundreds.</li>
+      <li><b>Fine filter on the small set:</b> available in <code>[T1,T2]</code>, not already booked; then rank by distance, rating, price.</li>
+      <li>Cheap spatial cut first, expensive filters on the candidates — same retrieval-then-ranking shape as text search.</li>
+    </ul>
+    <p class="a">The index (cells + current availability) is a <b>derived read model fed by CDC</b>. Availability edits flow through, the index goes stale by seconds, which is fine because the booking step re-checks truth.</p>
+  </div>
+</div>
+
+<h2>5. No double-booking (the Ticketmaster lesson, right-sized)</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Enforce it in the database</h3>
+    <pre>CREATE EXTENSION btree_gist;
+ALTER TABLE bookings
+  ADD CONSTRAINT no_overlap
+  EXCLUDE USING gist (
+    sitter_id WITH =,
+    during    WITH &amp;&amp;      -- tstzrange overlap
+  ) WHERE (status = 'confirmed');</pre>
+    <p class="a">Two rows with the same <code>sitter_id</code> and overlapping ranges cannot both exist. The DB rejects the second insert <b>atomically</b>, so a double-booking is structurally impossible — not a check-then-insert that can race.</p>
+  </div>
+  <div class="card">
+    <h3>Why this, and why it's simpler than Ticketmaster</h3>
+    <ul>
+      <li>Same principle as Ticketmaster's <code>SET NX</code> / <code>FOR UPDATE</code>: make correctness a property the <b>datastore enforces</b>, not something the app hopes it checked in time.</li>
+      <li><b>Shard by <code>sitterId</code></b> so all of one sitter's bookings colocate → the overlap check + insert is a <b>single-shard transaction</b>, no 2PC. (Shard by the entity you transact against.)</li>
+      <li><span class="tag-g">No waiting queue, no Redis lock needed by default</span> — contention is low, one sitter isn't a hot key like one concert. Reaching for a queue here is over-engineering.</li>
+    </ul>
+    <h3>When you'd add a hold</h3>
+    <p class="a">If there's a checkout/payment step, hold the slot with a <code>pending</code> row (already blocked by the constraint) or a Redis key with a TTL, à la <code>reserved_until</code>. Say you <i>considered</i> it and the workload doesn't require it — that's the senior move.</p>
+  </div>
+</div>
+
+<h2>6. Extension: recurring walks, pickup/dropoff, lockbox codes</h2>
+<p>Three changes. The core booking-consistency machinery doesn't move — each walk is just another booking flowing through the same exclusion constraint, which is the sign the model was factored well.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Recurring walks — materialize, don't just store a rule</h3>
+    <pre>WalkSeries {
+  id, ownerId, sitterId,
+  rrule,              // "weekly MWF" | "daily"
+  window, locationOption, lockboxRef
+}
+// expand into concrete bookings:
+Booking { …, seriesId }   // one per occurrence</pre>
+    <ul>
+      <li>Store the recurrence rule, but <b>materialize individual booking instances</b> for a rolling horizon (next 4–8 weeks). You can't enforce non-overlap on a rule you haven't expanded — each occurrence must reserve a real slot.</li>
+      <li>A background job extends the horizon as time passes.</li>
+      <li><b>Edit/cancel is "this instance vs whole series"</b> — the Google-Calendar problem. An instance can override or detach from its series.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Pickup vs dropoff, and the lockbox secret</h3>
+    <ul>
+      <li><b><code>locationOption</code></b>: dropoff = service at sitter's place (search already assumed this). Pickup = sitter travels to owner, so <b>owner location now matters</b> — filter sitters by <code>willTravel</code>/radius and account for travel time between back-to-back walks.</li>
+      <li><b>Lockbox code = a secret, not a field.</b> Store encrypted/tokenized, never plaintext, never in logs or analytics.</li>
+      <li><b>Scope + time-bound:</b> valid only for this sitter, this walk, and only in a window around the scheduled time. Reveal to the sitter's app just before the walk, not at booking.</li>
+      <li><b>Rotate</b> per series or per instance so last Monday's code doesn't open the box next Monday, and <b>audit</b> every access.</li>
+    </ul>
+    <p class="a">Same "short-lived, scoped, rotated, audited, never logged" token discipline from fintech, applied to a physical key.</p>
+  </div>
+</div>
+
+<div class="callout"><b>Summary of design changes:</b> add a <code>WalkSeries</code> entity + a materialization job; extend <code>Booking</code> with <code>serviceType</code>, <code>locationOption</code>, <code>seriesId</code>, and a lockbox-credential reference; add a small secrets service with its own lifecycle for codes; extend geo-eligibility to consider the owner's location for pickups. The overlap constraint and sitter-sharding are untouched.</div>
+
+<h2>7. Follow-ups — answers to have ready</h2>
+
+<p class="q tag-a">Why don't you need Redis locks or a waiting queue like Ticketmaster?</p>
+<p class="a">Contention. Ticketmaster had 10M people racing for one event, a genuine hot key, so it needed a queue to shed load and Redis locks to serialize. Here, a single sitter is booked by at most a handful of owners, and rarely simultaneously, so a row-level DB exclusion constraint fully serializes the rare conflict with no extra infrastructure. Using the heavy tool only when load demands it is the point — I'd name that I considered it and rejected it.</p>
+
+<p class="q tag-a">Two owners try to book the same sitter for overlapping times at once — walk the race.</p>
+<p class="a">Both transactions attempt to insert a confirmed booking for that <code>sitter_id</code> with overlapping <code>during</code>. The exclusion constraint lets the first commit; the second violates the constraint and is rejected atomically by the DB. The loser gets a clean "no longer available" and re-queries. No application-level check-then-insert window exists, so there's nothing to race.</p>
+
+<p class="q tag-a">How do you keep the search index's availability fresh?</p>
+<p class="a">CDC from the sitter/availability DB into the geo/search index, same as the tweet-search pattern. It's eventually consistent by seconds, which is fine for browsing — the booking step re-checks the authoritative DB and its constraint, so a stale "available" just yields an occasional "just taken" at booking, never a double-booking.</p>
+
+<p class="q tag-a">Pickup walks change the geo query — how?</p>
+<p class="a">For dropoff, the sitter's location is what matters and the existing cell index works. For pickup, eligibility depends on sitter-to-owner distance and the sitter's <code>willTravel</code> radius, so you filter candidates by whether the owner falls inside each sitter's travel range, and you must leave travel time between consecutive pickups (a scheduling constraint on top of the overlap one).</p>
+
+<p class="q tag-a">Does the recurring series need distributed transactions across occurrences?</p>
+<p class="a">No. Each occurrence is a separate booking row for one sitter, and all of a sitter's bookings live on the same shard (sharded by <code>sitterId</code>), so materializing a MWF series is a set of single-shard inserts, each independently checked by the constraint. If one occurrence conflicts, only that instance fails; you surface it and let the owner adjust that date.</p>
+
+<p class="q tag-a">Where does the lockbox code live, and who can read it?</p>
+<p class="a">In a secrets service, encrypted, referenced by the booking but not stored on it. Only the assigned sitter's app can fetch it, only during the walk window, and every fetch is audited. It rotates per series/instance. It never appears in logs, analytics, or the search index. Treat it exactly like a scoped, short-lived credential.</p>
+
+<h2>8. Numbers to drop</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Scale</h3>
+    <p>1M sitters is small — profiles + availability fit comfortably in one sharded Postgres with read replicas. <span class="tag-g">The dataset doesn't force exotic infrastructure; the interesting parts are the geo index and the overlap constraint, not raw scale.</span></p>
+  </div>
+  <div class="card">
+    <h3>Search</h3>
+    <p>Spatial cut takes ~1M candidates to hundreds per query; the fine filter + ranking runs on that small set. Cache popular (location, time-window) query results in Redis; a sitter's availability changes rarely enough that short TTLs are safe.</p>
+  </div>
+</div>
+
+<h2>9. 30-second recap script</h2>
+<div class="card a">
+  Two paths with different priorities. Search is a geospatial-plus-time read: precompute each sitter's S2 or geohash cell, do a coarse spatial cut to a few hundred candidates, then filter by availability and rank by distance and rating, serving it from a CDC-fed derived index that's stale by seconds. Booking is the consistency path: model slots as time ranges and add a Postgres exclusion constraint so two overlapping confirmed bookings for the same sitter can't coexist, making double-booking structurally impossible rather than app-checked. Shard the bookings table by sitter id so that check plus the insert is a single-shard transaction with no 2PC. Crucially, unlike Ticketmaster there's no hot-key contention, so no waiting queue and no Redis lock are needed — a row-level constraint suffices, and I'd say I considered the heavier tools and rejected them. For the recurring-walks extension, store a recurrence rule but materialize concrete booking instances so each occurrence passes the same overlap check, add a pickup-or-dropoff option that pulls owner location into the geo eligibility for pickups, and treat the lockbox code as a scoped, short-lived, rotated, audited secret revealed to the sitter only around the walk time.
+</div>
+
+</body>
+</html>
