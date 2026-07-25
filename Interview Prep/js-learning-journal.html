@@ -363,6 +363,7 @@
     <a class="toc-sub" href="#inline-vs-file">Inline vs File</a>
     <a class="toc-sub" href="#lists">Lists</a>
     <a class="toc-sub" href="#anchor-links">Links & target=_blank</a>
+    <a class="toc-sub" href="#table-tags">Table structure</a>
 
     <hr class="toc-divider">
 
@@ -1358,6 +1359,29 @@ visibility: hidden;        <span class="cm">// invisible but still takes up spac
         <div class="gotcha"><strong>Never ship <code>target="_blank"</code> without <code>rel="noopener noreferrer"</code>.</strong> Without <code>noopener</code>, the opened page receives a reference to your page via <code>window.opener</code> and can redirect it to a phishing site (reverse tabnabbing). <code>noreferrer</code> also strips the <code>Referer</code> header. Interviewers watch for this — it's a one-line security detail that's easy to forget.</div>
         <div class="note">Render an anchor only when there's a real destination. A dead <code>&lt;a href={undefined}&gt;</code> is still clickable and confusing. The ternary falls back to the plain <code>title</code> string when <code>url</code> is absent (common on Hacker News job posts).</div>
         <div class="tags"><span class="tag">HTML</span><span class="tag">anchor</span><span class="tag">target=_blank</span><span class="tag">security</span></div>
+      </div>
+
+      <div class="concept-card" id="table-tags">
+        <h3>&lt;table&gt; structure — cells in rows in sections</h3>
+        <p>A table is rows of cells; the sections are optional grouping. The nesting is strict: content only lives in <code>&lt;td&gt;</code>/<code>&lt;th&gt;</code>, cells only in <code>&lt;tr&gt;</code>, rows only in a section or straight in the table. Text or a <code>&lt;div&gt;</code> as a direct child of <code>&lt;table&gt;</code> or <code>&lt;tr&gt;</code> is invalid and the browser hoists it out.</p>
+        <div class="code-block"><pre>&lt;table&gt;
+  &lt;thead&gt;                    <span class="cm">// groups header row(s)</span>
+    &lt;tr&gt;
+      &lt;th scope="col"&gt;Vehicle&lt;/th&gt;   <span class="cm">// header cell, bold + announced as the column's label</span>
+      &lt;th scope="col"&gt;Status&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;                    <span class="cm">// groups data rows</span>
+    &lt;tr&gt;                      <span class="cm">// table row</span>
+      &lt;td&gt;wm-101&lt;/td&gt;         <span class="cm">// data cell — your content goes here</span>
+      &lt;td&gt;stopped&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre></div>
+        <p><strong>Roles:</strong> <code>&lt;table&gt;</code> container · <code>&lt;tr&gt;</code> a row · <code>&lt;td&gt;</code> a data cell · <code>&lt;th&gt;</code> a header cell (add <code>scope="col"</code> or <code>scope="row"</code> so screen readers know which cells it labels) · <code>&lt;thead&gt;</code>/<code>&lt;tbody&gt;</code> group rows into header/body sections.</p>
+        <div class="gotcha"><strong>Auto-<code>&lt;tbody&gt;</code>:</strong> write <code>&lt;tr&gt;</code> straight inside <code>&lt;table&gt;</code> and the browser inserts a <code>&lt;tbody&gt;</code> for you. So the DOM always has one — <code>querySelector('table &gt; tr')</code> returns nothing because the <code>&lt;tr&gt;</code> is actually under the injected <code>&lt;tbody&gt;</code>.</div>
+        <div class="note">Interview core: <code>table → thead/tbody → tr → th/td</code>, plus <code>scope</code> on <code>&lt;th&gt;</code>. <code>&lt;thead&gt;</code>/<code>&lt;tbody&gt;</code> are optional but writing them is the "I know semantic tables" signal. Prefer a real <code>&lt;table&gt;</code> over a div-grid once headers are interactive — <code>&lt;th&gt;</code> + <code>scope</code> give you accessible column labels for free.</div>
+        <div class="tags"><span class="tag">HTML</span><span class="tag">table</span><span class="tag">semantics</span><span class="tag">a11y</span></div>
       </div>
     </div>
 
