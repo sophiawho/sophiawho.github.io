@@ -62,6 +62,61 @@ a:hover { text-decoration: underline; }
 #sidebar a:hover { background: #e2e8ef; text-decoration: none; }
 #sidebar li.chapter > a { color: var(--text); font-weight: 600; margin-top: 7px; }
 #sidebar li.sub > a { padding-left: 22px; font-size: 12.5px; }
+
+/* Read-progress checkboxes */
+#sidebar li.chapter { display: flex; align-items: flex-start; gap: 2px; }
+#sidebar li.chapter > a { flex: 1; min-width: 0; }
+.read-box {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 14px; height: 14px;
+  margin: 11px 0 0 4px;
+  border: 1.5px solid #b3bcc7;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+}
+.read-box:hover { border-color: var(--accent); }
+.read-box:checked { background: var(--accent); border-color: var(--accent); }
+.read-box:checked::after {
+  content: "";
+  position: absolute;
+  left: 3.5px; top: 0.5px;
+  width: 4px; height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(40deg);
+}
+.read-box:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
+#sidebar li.chapter.done > a { color: #9aa4b0; text-decoration: line-through; font-weight: 500; }
+
+#progress-wrap {
+  margin: 0 0 12px;
+  padding: 8px 8px 9px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+#progress-label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11.5px; color: var(--muted); margin-bottom: 5px;
+}
+#progress-count { font-weight: 700; color: var(--accent-dark); font-size: 12.5px; }
+#progress-track { height: 5px; background: #e4e9ef; border-radius: 3px; overflow: hidden; }
+#progress-fill {
+  height: 100%; width: 0%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+}
+#progress-reset {
+  margin-top: 6px;
+  background: none; border: none; padding: 0;
+  font-size: 11px; color: var(--muted);
+  cursor: pointer; text-decoration: underline;
+}
+#progress-reset:hover { color: var(--accent-dark); }
 #sidebar a.active {
   background: var(--accent-bg);
   color: var(--accent-dark);
@@ -202,6 +257,11 @@ details.quiz .answer {
 
 <nav id="sidebar">
   <div class="toc-title">Full-Stack SD (FE-leaning)</div>
+  <div id="progress-wrap">
+    <div id="progress-label"><span>Read &amp; understood</span><span id="progress-count">0 / 0</span></div>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <button id="progress-reset" type="button">reset</button>
+  </div>
   <ul id="toc">
     <li class="chapter"><a href="#case-study">Case study: Plaid Link</a></li>
     <li class="chapter"><a href="#key-numbers">Key numbers card</a></li>
@@ -1016,7 +1076,7 @@ GET /accounts/1        → If-None-Match: "v7"
 <p>So the SDK splits into two pieces, and drawing this split is most of the whiteboard answer.</p>
 <pre><code>  MERCHANT PAGE (merchant.com)          YOUR ORIGIN (cdn.you.com)
   ┌────────────────────────────┐
-  │ <script src="cdn.you.com/  │
+  │ &lt;script src="cdn.you.com/  │
   │            link.js">       │        thin loader, ~10KB:
   │                            │        - creates the iframe
   │  ┌──────────────────────┐  │        - postMessage bridge
@@ -1239,6 +1299,77 @@ const obs = new IntersectionObserver(entries => {
   });
 }, { rootMargin: '0px 0px -80% 0px' });
 targets.forEach(t => obs.observe(t));
+
+/* ── Read-progress checkboxes, persisted in localStorage ─────────────────── */
+(function () {
+  const KEY = 'fssd-read-v1';
+
+  // Load saved set. Wrapped because localStorage throws in private mode
+  // on some browsers, and a broken checkbox shouldn't break the whole page.
+  let read = new Set();
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) read = new Set(JSON.parse(raw));
+  } catch (e) { /* start empty */ }
+
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify([...read])); } catch (e) {}
+  };
+
+  const items = [...document.querySelectorAll('#sidebar li.chapter')];
+  const fill = document.getElementById('progress-fill');
+  const count = document.getElementById('progress-count');
+  const boxes = [];
+
+  function paint() {
+    count.textContent = read.size + ' / ' + items.length;
+    fill.style.width = (items.length ? (read.size / items.length) * 100 : 0) + '%';
+  }
+
+  items.forEach((li) => {
+    const link = li.querySelector('a');
+    if (!link) return;
+    const id = link.getAttribute('href');          // '#webhooks' — stable key
+
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'read-box';
+    box.checked = read.has(id);
+    box.setAttribute('aria-label', 'Mark "' + link.textContent.trim() + '" as read');
+    li.prepend(box);
+    li.classList.toggle('done', box.checked);
+    boxes.push([box, id, li]);
+
+    box.addEventListener('change', () => {
+      if (box.checked) read.add(id); else read.delete(id);
+      li.classList.toggle('done', box.checked);
+      save();
+      paint();
+    });
+  });
+
+  document.getElementById('progress-reset').addEventListener('click', () => {
+    if (!read.size) return;
+    if (!confirm('Clear all ' + read.size + ' read marks?')) return;
+    read.clear();
+    boxes.forEach(([box, , li]) => { box.checked = false; li.classList.remove('done'); });
+    save();
+    paint();
+  });
+
+  // Keep multiple open tabs in sync.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== KEY) return;
+    try { read = new Set(JSON.parse(e.newValue || '[]')); } catch (err) { return; }
+    boxes.forEach(([box, id, li]) => {
+      box.checked = read.has(id);
+      li.classList.toggle('done', box.checked);
+    });
+    paint();
+  });
+
+  paint();
+})();
 </script>
 
 </body>
