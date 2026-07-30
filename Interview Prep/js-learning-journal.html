@@ -354,6 +354,10 @@
     <a class="toc-sub" href="#debounce-throttle">Debounce & Throttle</a>
     <a class="toc-sub" href="#fetch-shape">Fetching from an API</a>
     <a class="toc-sub" href="#promise-all">Promise.all</a>
+    <a class="toc-sub" href="#quality-fallback-fetch">Racing + Fallback Fetch (gap)</a>
+    <a class="toc-sub" href="#fetch-res-ok">fetch doesn't throw on 404</a>
+    <a class="toc-sub" href="#fetch-race-ignore">Stale response races — ignore flag vs abort</a>
+    <a class="toc-sub" href="#fetch-endpoint-shapes">Endpoint shapes to ask about</a>
 
     <hr class="toc-divider">
 
@@ -986,6 +990,9 @@ const visible = useMemo(() =&gt; VEHICLES
 [statusFilter, query]);</pre></div>
         <div class="note"><strong>In this exact chain <code>slice()</code> is redundant</strong> — the <code>.filter()</code> before it already produced a fresh array, so <code>.sort()</code> is mutating a copy, not <code>VEHICLES</code>. Keep it anyway as cheap insurance: if someone later deletes the filters, <code>.sort()</code> would fall through onto <code>VEHICLES</code> itself. Filter before sort is also faster — fewer items to sort.</div>
         <div class="gotcha"><strong>Rule:</strong> any time you <code>.sort()</code> or <code>.reverse()</code> an array you didn't just create, <code>.slice()</code> it first (or use <code>.toSorted()</code> / <code>.toReversed()</code>). When the previous step is already a <code>.filter()</code>/<code>.map()</code>, the copy is free but leaving <code>slice()</code> in is harmless.</div>
+        <div class="gotcha"><strong>The React-specific reason, added Jul 29.</strong> Mutating a state array returns the <em>same reference</em>, so <code>setItems(items.sort(...))</code> can bail out of re-rendering entirely and the screen never updates. The copy isn't just hygiene, it's what makes the render happen. Better still, don't put sorted data in state at all — derive it during render from the source array plus a <code>sortKey</code>, so there's only one source of truth and nothing to keep in sync.</div>
+        <div class="gotcha"><strong>Default sort is lexicographic, not numeric.</strong> <code>[10, 9, 1].sort()</code> gives <code>[1, 10, 9]</code> because it stringifies first. Always pass a comparator for numbers. For strings, <code>localeCompare</code> beats <code>a &lt; b</code> once accents or casing are involved.</div>
+        <div class="note"><code>toSorted</code> / <code>toReversed</code> / <code>toSpliced</code> / <code>with</code> are ES2023. Fine in current browsers and Node 20+, but a shared coding sandbox may be on an older runtime. In an interview reach for <code>[...arr].sort()</code> and mention <code>toSorted()</code> as the modern equivalent — you get the knowledge credit without risking a <code>not a function</code> error on someone else's machine.</div>
         <div class="tags"><span class="tag">sort</span><span class="tag">mutation</span><span class="tag">slice</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
       </div>
 
@@ -1190,6 +1197,65 @@ const jobs = await Promise.all(
         <div class="gotcha"><strong>Parallel inside, ordered outside.</strong> The requests race in no guaranteed order, but <code>Promise.all</code> returns results positionally — <code>jobs[0]</code> matches <code>pageIds[0]</code> regardless of which response arrived first. Common interview follow-up: "do the results stay in order?" Yes.</div>
         <div class="note"><code>Promise.all</code> rejects as soon as <em>any</em> promise rejects (all-or-nothing). If you need the successful ones even when some fail, use <code>Promise.allSettled</code>, which returns a status + value/reason for each.</div>
         <div class="tags"><span class="tag">Promise.all</span><span class="tag">parallel</span><span class="tag">fetch</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="quality-fallback-fetch">
+        <h3>Racing a best-quality fetch against a fallback timeout — flagged gap</h3>
+        <p>Waymo round, Jul 28. Given an array of URLs ordered best → worst quality: fetch the best one; if a better response doesn't land within 60s, render the current best but keep listening in case one still arrives; if nothing new arrives for 60s at any point, stop and render the best data (or an error if there's none). Went in shaky — <code>.then/.catch/.finally</code>, <code>AbortController</code>, and timer-driven waiting aren't solid yet. <b>[TODO] Review before the next round.</b></p>
+        <div class="note">Shape to re-derive, not yet solved cleanly: kick off the best-quality fetch, race it against a 60s timer (manual <code>setTimeout</code>, or <code>Promise.race</code>). <code>.then</code> handles a response that arrives in time, <code>.catch</code> handles a failed/aborted request, <code>.finally</code> is where you'd clear the pending timer either way so it can't fire after you've already moved on. <code>AbortController</code> is for cancelling an in-flight fetch you've decided you no longer need — not just cleanup, it's the same "stop this in-flight thing" idea as <code>cancelAnimationFrame</code> in the countdown timer, applied to a network request instead of a frame.</div>
+        <div class="gotcha">Re-solve from scratch before this gets asked again. What's real state (best response so far — this is what renders) vs what's just bookkeeping that shouldn't trigger a re-render (a timer id, an <code>AbortController</code> ref — same ref-vs-state split as the countdown timer's refs). And where does the 60-second window reset each time new data lands, vs where does it not.</div>
+        <div class="tags"><span class="tag">fetch</span><span class="tag">AbortController</span><span class="tag">Promise.race</span><span class="tag">finally</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="fetch-res-ok">
+        <h3><code>fetch</code> does not throw on 404 or 500 — check <code>res.ok</code></h3>
+        <p>Jul 29, Plaid front-end prep. <code>fetch</code> only rejects on network failure, CORS, or abort. A 404 or 500 <em>resolves normally</em>, so <code>.then(r =&gt; r.json())</code> happily parses an error page and you render <code>undefined</code> with no error state. The <code>res.ok</code> check is the fix and it's the thing interviewers specifically look for.</p>
+        <div class="code-block"><pre>const res = await fetch(url);
+if (!res.ok) throw new Error(`HTTP ${res.status}`);  <span class="cm">// ← the missing line</span>
+const data = await res.json();</pre></div>
+        <div class="gotcha"><strong>Model state as one <code>status</code> string, not two booleans.</strong> <code>isLoading</code> + <code>error</code> lets you represent loading-AND-errored, which is impossible. <code>status = "idle" | "loading" | "success" | "error"</code> can't. Also: set status in <em>both</em> the success and error branches rather than a <code>finally</code>, so an ignored run never flips loading off.</div>
+        <div class="note">Three render branches is actually four — loading, error, <b>empty</b>, and data. The empty state is the one most candidates skip and it's nearly free.</div>
+        <div class="tags"><span class="tag">fetch</span><span class="tag">res.ok</span><span class="tag">error handling</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="fetch-race-ignore">
+        <h3>Stale-response races — the <code>ignore</code> flag vs <code>AbortController</code></h3>
+        <p>Any fetch keyed off props or state can resolve out of order. Type <code>a</code> then <code>ab</code>: if the <code>a</code> request is slow it lands last and overwrites the correct results. The fix is per-effect-run invalidation in the cleanup function, not a single mounted ref.</p>
+        <div class="code-block"><pre>useEffect(() =&gt; {
+  let ignore = false;                    <span class="cm">// scoped to THIS run of the effect</span>
+  (async () =&gt; {
+    const data = await fetchJson(url);
+    if (ignore) return;                  <span class="cm">// a newer run owns the state now</span>
+    setData(data);
+  })();
+  return () =&gt; { ignore = true; };       <span class="cm">// cleanup runs before the next run</span>
+}, [url]);
+
+<span class="cm">// stronger: also cancels the network request</span>
+useEffect(() =&gt; {
+  const controller = new AbortController();
+  fetchJson(url, { signal: controller.signal })
+    .then(setData)
+    .catch((e) =&gt; { if (e.name !== "AbortError") setStatus("error"); });
+  return () =&gt; controller.abort();
+}, [url]);</pre></div>
+        <div class="gotcha"><strong>Always swallow <code>AbortError</code>.</strong> An abort you caused is expected control flow, not a failure — showing an error banner for it is a visible bug. Check <code>err.name === "AbortError"</code> before setting error state.</div>
+        <div class="note">Debounce and abort are complements, not alternatives: debounce fires <em>fewer</em> requests, abort discards the ones already in flight. A typeahead wants both. And StrictMode's double-mount is the free test for this — if the effect isn't cleanup-safe, dev mode shows it.</div>
+        <div class="tags"><span class="tag">race condition</span><span class="tag">AbortController</span><span class="tag">useEffect cleanup</span><span class="tag">StrictMode</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="fetch-endpoint-shapes">
+        <h3>Endpoint shapes to ask about before writing state</h3>
+        <p>Case 1 is the one to expect in a 60-minute exercise and it's written out in <code>react/skeleton-fetch-for-plaid.jsx</code>. The rest are worth recognizing on sight so you can name the approach even if you don't build it.</p>
+        <div class="code-block"><pre>1. one endpoint, full objects        → fetch once on mount, filter client-side
+2. ids endpoint + item-by-id         → Promise.all hydration, one page at a time
+3. independent endpoints             → Promise.all, never await in a loop
+                                       Promise.allSettled if partial data is OK
+4. changing input (search/filter)    → refetch + AbortController + debounce
+5. pagination                        → offset ?page=  |  cursor ?cursor=  |  client slice</pre></div>
+        <div class="gotcha"><strong>Ask, don't assume, whether filtering is server-side or client-side.</strong> Client-side means one fetch on mount and zero race conditions — a completely different amount of code. Same for pagination: cursor-based can't be parallelised, offset-based can.</div>
+        <div class="note">Other first-3-minutes questions: auth header? roughly how many records (decides pagination/virtualization)? should sort/filter survive reload (URL params vs state)? is CORS open for localhost? Use <code>new URLSearchParams({...})</code> instead of string-concatenating query params — it encodes <code>&amp;</code> and spaces for you.</div>
+        <div class="tags"><span class="tag">fetch</span><span class="tag">pagination</span><span class="tag">clarifying questions</span><span class="tag">Plaid</span><span class="tag">high priority</span></div>
       </div>
     </div>
 

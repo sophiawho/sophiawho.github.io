@@ -246,10 +246,37 @@ details.quiz .answer {
     <li class="sub"><a href="#media-cdn">CDN mechanics for the FE</a></li>
     <li class="sub"><a href="#media-video">Video delivery (Netflix)</a></li>
     <li class="sub"><a href="#media-upload">Resumable uploads</a></li>
-    <li class="chapter"><a href="#ex-dashboard">13. Worked: transactions dashboard</a></li>
-    <li class="chapter"><a href="#ex-widget">14. Worked: embeddable widget</a></li>
-    <li class="chapter"><a href="#ex-netflix">15. Worked: Netflix browse + upload</a></li>
-    <li class="chapter"><a href="#quiz">16. Self-quiz</a></li>
+    <li class="chapter"><a href="#render-deep">13. Rendering &amp; "why this framework"</a></li>
+    <li class="sub"><a href="#render-spectrum">The five strategies</a></li>
+    <li class="sub"><a href="#render-hydration">Hydration &amp; its cost</a></li>
+    <li class="sub"><a href="#render-rsc">RSC &amp; Suspense streaming</a></li>
+    <li class="sub"><a href="#render-framework">The framework answer</a></li>
+    <li class="chapter"><a href="#sec-deep">14. Browser security &amp; auth flows</a></li>
+    <li class="sub"><a href="#sec-sop">Same-origin policy</a></li>
+    <li class="sub"><a href="#sec-cors">CORS &amp; preflight</a></li>
+    <li class="sub"><a href="#sec-csp">CSP that works</a></li>
+    <li class="sub"><a href="#sec-cookies">Cookie attributes</a></li>
+    <li class="sub"><a href="#sec-oauth">OAuth, PKCE, JWT vs opaque</a></li>
+    <li class="chapter"><a href="#webhooks">15. Webhooks &amp; pushing to the browser</a></li>
+    <li class="sub"><a href="#webhooks-path">The full path</a></li>
+    <li class="sub"><a href="#webhooks-verify">Signature verification</a></li>
+    <li class="sub"><a href="#webhooks-idem">Idempotency &amp; ordering</a></li>
+    <li class="sub"><a href="#webhooks-fail">Retries, DLQ, reconciliation</a></li>
+    <li class="sub"><a href="#webhooks-fanout">Fanout without a stampede</a></li>
+    <li class="chapter"><a href="#httpcache">16. HTTP caching</a></li>
+    <li class="sub"><a href="#httpcache-layers">The four caches</a></li>
+    <li class="sub"><a href="#httpcache-directives">Directives</a></li>
+    <li class="sub"><a href="#httpcache-strategy">Strategy per resource</a></li>
+    <li class="sub"><a href="#httpcache-etag">ETags &amp; concurrency</a></li>
+    <li class="chapter"><a href="#embed">17. Cross-origin embedding &amp; SDKs</a></li>
+    <li class="sub"><a href="#embed-iframe">Why an iframe</a></li>
+    <li class="sub"><a href="#embed-postmessage">postMessage done right</a></li>
+    <li class="sub"><a href="#embed-cookies">Storage partitioning</a></li>
+    <li class="sub"><a href="#embed-api">The SDK's public API</a></li>
+    <li class="chapter"><a href="#ex-dashboard">18. Worked: transactions dashboard</a></li>
+    <li class="chapter"><a href="#ex-widget">19. Worked: embeddable widget</a></li>
+    <li class="chapter"><a href="#ex-netflix">20. Worked: Netflix browse + upload</a></li>
+    <li class="chapter"><a href="#quiz">21. Self-quiz</a></li>
   </ul>
 </nav>
 
@@ -301,7 +328,7 @@ details.quiz .answer {
 <tr><td>2</td><td>Security: XSS, CSRF, token storage, PII (Ch 11)</td><td>Fintech interviewer; weak answers here are disqualifying.</td></tr>
 <tr><td>3</td><td>Real-time, forms/flows, uploads/CDN (Ch 7-8, 10, 12)</td><td>Differentiators; also covers the "design Netflix" curveball.</td></tr>
 </table>
-<p>Study method: read a worked example (Ch 13-15), then re-derive it on paper from just the prompt. If you can reproduce the boxes and the decision sentences without looking, you're ready. Don't memorize the prose.</p>
+<p>Study method: read a worked example (Ch 18-20), then re-derive it on paper from just the prompt. If you can reproduce the boxes and the decision sentences without looking, you're ready. Don't memorize the prose.</p>
 
 <h3 id="guide-approach">How to approach any question (45 min)</h3>
 <ol>
@@ -590,7 +617,7 @@ details.quiz .answer {
 <li><strong>CSRF</strong> (another site makes the user's browser fire a state-changing request with their cookies): relevant iff auth rides on cookies. Defenses: <code>SameSite=Lax/Strict</code> cookies (the modern 90%), plus CSRF tokens for anything cross-site, plus "state-changing = never GET."</li>
 <li><strong>Where tokens live:</strong> the exam question. localStorage is readable by any XSS payload, so no long-lived secrets there. Pattern to give: short-lived access token (~15 min) held in memory, refresh token in an <code>httpOnly, Secure, SameSite</code> cookie the JS can't read; on 401, the API client refreshes once and replays the request; refresh rotation limits stolen-token lifetime. Tradeoff honesty: httpOnly cookies reintroduce CSRF surface, hence SameSite above, the two answers go together.</li>
 <li><strong>PII discipline:</strong> mask account numbers in the UI (<code>····4821</code>) and let users explicitly reveal; never put PII in URLs (they land in logs, history, referrers) or analytics events; redact from error reports and session replays; <code>autocomplete="off"</code> on sensitive fields is a hint, not a control. Client-side "encryption" of localStorage is theater, the key is in the same JS, don't offer it.</li>
-<li><strong>Embedded/iframe surfaces</strong> (widget products): sandbox attribute, <code>postMessage</code> with strict origin checks both directions, and never trust the embedding page (Ch 14 runs this in full).</li>
+<li><strong>Embedded/iframe surfaces</strong> (widget products): sandbox attribute, <code>postMessage</code> with strict origin checks both directions, and never trust the embedding page (Ch 17 and Ch 19 run this in full).</li>
 <li><strong>Transport &amp; headers, one breath:</strong> HTTPS everywhere + HSTS, CSP, <code>X-Content-Type-Options: nosniff</code>, frame-ancestors to control who may embed you.</li>
 </ul>
 <div class="soundbite"><div class="sb-label">Decision sentence</div>
@@ -624,7 +651,454 @@ details.quiz .answer {
 <div class="soundbite"><div class="sb-label">Decision sentence</div>
 <p>"Big uploads go browser → object storage with presigned URLs, chunked at 5-10MB with a few parts in parallel. Resume is just 'ask the server which parts it has.' App servers stay out of the byte path, they coordinate, storage carries."</p></div>
 
-<h2 id="ex-dashboard">Chapter 13: Worked example, transactions dashboard from a given API</h2>
+<h2 id="render-deep">Chapter 13: Rendering strategies &amp; "why this framework"</h2>
+<p>Ch 6 gave you the CSR/SSR table. This chapter is the depth behind it, because "why this framework" is a named rubric line and the honest answer is always <em>derived from the rendering requirement</em>, never from taste. The trap is naming a framework first and reverse-engineering a reason.</p>
+
+<h3 id="render-spectrum">The five points on the spectrum</h3>
+<p>They differ on exactly two questions. <strong>When is the HTML generated</strong>, and <strong>who generates it</strong>. Everything else follows.</p>
+<table>
+<tr><th>Strategy</th><th>HTML built</th><th>Per-user data?</th><th>Right for</th></tr>
+<tr><td><strong>CSR</strong> (SPA)</td><td>In the browser, after JS loads</td><td>Yes, client-fetched</td><td>Authenticated tools, dashboards, anything behind a login</td></tr>
+<tr><td><strong>SSG</strong> (static)</td><td>At build time, once</td><td>No</td><td>Docs, marketing, blog. Pure CDN, no servers</td></tr>
+<tr><td><strong>ISR</strong> (incremental static)</td><td>At build, then re-built on a timer or on demand</td><td>No, but content changes</td><td>Product catalogs, pricing pages, anything editorial with a CMS</td></tr>
+<tr><td><strong>SSR</strong></td><td>Per request, on a server</td><td>Yes</td><td>Public pages that are personalized or need fresh SEO-visible data</td></tr>
+<tr><td><strong>Streaming SSR</strong></td><td>Per request, sent in chunks as ready</td><td>Yes</td><td>SSR where one slow query would otherwise block the whole page</td></tr>
+</table>
+<p>The decision rule to say out loud. <strong>Is the content public and crawlable?</strong> If no, SEO is off the table and CSR is legitimate. <strong>Is it the same for every user?</strong> If yes, SSG or ISR beats SSR because a CDN edge hit is cheaper and faster than any render server. <strong>Does first paint on a cold, slow connection drive money?</strong> If yes, you need server-generated HTML of some kind.</p>
+
+<h3 id="render-hydration">Hydration, and why it's the expensive part</h3>
+<p>This is the concept most candidates fumble, so be precise. SSR sends HTML that <em>looks</em> finished. It has no event listeners, so nothing works yet. Hydration is React re-running your component tree in the browser, comparing it against the server's DOM, and attaching listeners. So on an SSR page you ship the markup <strong>and</strong> the JS that would have produced that markup. You paid twice for one screen.</p>
+<ul>
+<li><strong>The gap you should name.</strong> Between first paint and end of hydration the page is visible but dead. Clicks land on nothing. That window is a real INP and user-trust problem, and it's worse on mid-tier phones where parse time dominates. This is why "SSR is faster" is only true for <em>paint</em>, not for <em>interactive</em>.</li>
+<li><strong>Hydration mismatch.</strong> If the client's first render doesn't match the server HTML, React throws it out and re-renders from scratch, losing the whole benefit. Classic causes are <code>Date.now()</code>, <code>Math.random()</code>, <code>localStorage</code>, and <code>window</code> checks in render. Fix by rendering the server-safe value first and moving the browser-only value into an effect.</li>
+<li><strong>Selective / progressive hydration</strong> is the mitigation. Hydrate interactive regions on priority or on interaction rather than the whole tree top-down. <strong>Islands architecture</strong> (Astro) is the extreme version, where the page is static HTML and only marked components ship JS at all.</li>
+</ul>
+
+<h3 id="render-rsc">React Server Components and Suspense as a network boundary</h3>
+<p>The one-sentence version. <strong>RSC moves components to the server permanently</strong>, so they never ship JS to the browser at all, and they can read the database directly instead of going through an HTTP endpoint you designed.</p>
+<ul>
+<li>Server Components render on the server and stream a serialized description of the UI, not HTML and not a bundle. They cannot use state, effects, or event handlers, because there is no browser for them to run in.</li>
+<li>Client Components are the old thing, marked <code>'use client'</code>. That directive is a <strong>boundary, not a file property</strong>, so everything imported below it also becomes client code. Bundle regressions in RSC apps almost always trace to a <code>'use client'</code> placed too high in the tree.</li>
+<li>Props crossing the boundary must be serializable. You can pass data down, you cannot pass a function down.</li>
+<li><strong>The architectural consequence worth saying.</strong> RSC collapses the BFF layer (Ch 9). If the component that needs the data can query for it directly, you stop designing endpoints whose only job is shaping data for one screen. That's a real reduction in API surface, and a real coupling of UI to schema.</li>
+</ul>
+<p><strong>Suspense</strong> is what makes streaming useful. A <code>&lt;Suspense fallback&gt;</code> boundary tells the server "flush everything above this now, send this region's HTML later when its data resolves." So Suspense boundaries are not a loading-spinner convenience, they are <strong>where you cut the page into delivery units</strong>. Draw them on the whiteboard. Shell and nav flush immediately, the slow transaction table streams in behind its own boundary. That single move turns a 900ms blocking SSR page into a 100ms shell.</p>
+
+<h3 id="render-framework">The framework answer, derived</h3>
+<table>
+<tr><th>Pick</th><th>When</th><th>The cost you admit</th></tr>
+<tr><td><strong>Vite + React SPA</strong></td><td>Authenticated dashboard. Every route is behind a login, SEO is irrelevant, users load once and stay an hour.</td><td>Slow cold start, and you own routing/data-loading choices yourself.</td></tr>
+<tr><td><strong>Next.js (App Router)</strong></td><td>Mixed product. Public marketing and docs need SEO and fast first paint, the app itself is interactive. Route-level choice of SSG/ISR/SSR/streaming is the actual selling point.</td><td>Render servers to run and pay for, a real learning curve on the server/client boundary, and framework lock-in.</td></tr>
+<tr><td><strong>Remix / React Router 7</strong></td><td>Form and mutation heavy, and you want progressive enhancement so the app degrades to working HTML forms without JS.</td><td>Smaller ecosystem, and the web-standards-first model is unfamiliar to most teams.</td></tr>
+<tr><td><strong>Astro</strong></td><td>Content-dominant with islands of interactivity. Docs site with a live demo widget.</td><td>Wrong tool the moment the product is mostly app.</td></tr>
+</table>
+<p>Say the split explicitly, because "hybrid by route" is the answer that survives follow-ups. Marketing and docs static or ISR on a CDN. The authenticated app CSR, because SSR-ing per-user data you can't cache buys paint speed at the cost of a render server on the critical path. And name the honest caveat that <strong>SSR does not fix a slow API</strong>. If the bottleneck is a downstream aggregation service, server rendering just relocates the wait and now your render server is blocked too.</p>
+
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Rendering follows from crawlability and personalization. This product is behind auth, so SEO is off the table and I'd ship a Vite SPA with route-level code splitting. The marketing surface is a separate static build on the CDN. If we later needed a public, personalized, SEO-visible page, that's where I'd introduce streaming SSR with Suspense boundaries around the slow queries, and I'd accept render servers as the cost. What I wouldn't do is SSR an authenticated dashboard, that's paying for a render server and hydration to speed up a paint the user sees once per session."</p></div>
+
+<div class="soundbite" style="background:#fef6e7; border-left-color:#e0a458;"><div class="sb-label" style="color:#a06a12;">Traps</div>
+<p><strong>"I'd use Next.js because it's the standard."</strong> That's the answer that loses the point. Derive it or pick something else. <strong>Claiming SSR improves interactivity.</strong> It improves paint and delays interactivity. <strong>Forgetting the render server is now a scaling and availability problem</strong> that a static CDN deploy never had.</p></div>
+
+<h2 id="sec-deep">Chapter 14: Browser security &amp; auth flows, the deep pass</h2>
+<p>Ch 11 covers XSS, CSRF, token storage, and PII, which is the application layer. This chapter is the two layers you get pushed into after you answer that well. <strong>The browser's own policy mechanisms</strong>, and <strong>the OAuth flow that produced the token in the first place</strong>. Fintech rounds go here reliably.</p>
+
+<h3 id="sec-sop">Start from the same-origin policy</h3>
+<p>Everything below is a controlled exception to one rule. <strong>An origin is scheme + host + port</strong>, and by default code from one origin cannot read responses from another. <code>https://app.plaid.com</code> and <code>https://api.plaid.com</code> are different origins. So is <code>http://</code> versus <code>https://</code> on the same host.</p>
+<p>The thing people get wrong. The browser <strong>sent</strong> the cross-origin request and the server <strong>did</strong> process it. CORS only controls whether your JS is allowed to <em>read the response</em>. That's why CORS is not a defense against CSRF, the damage is already done server-side before the response comes back.</p>
+
+<h3 id="sec-cors">CORS, including the preflight you'll be asked about</h3>
+<p>A <strong>simple request</strong> goes straight out. <code>GET</code>, <code>HEAD</code>, or <code>POST</code>, with only a short allowlist of headers, and a <code>Content-Type</code> of <code>text/plain</code>, <code>multipart/form-data</code>, or <code>application/x-www-form-urlencoded</code>. The browser sends it and then checks <code>Access-Control-Allow-Origin</code> before handing you the body.</p>
+<p>Anything else triggers a <strong>preflight</strong>, which is a separate <code>OPTIONS</code> request asking permission first. The two things that trigger it in practice are <strong><code>Content-Type: application/json</code></strong> and <strong>a custom header like <code>Authorization</code> or <code>X-Request-Id</code></strong>. Which means essentially every real API call preflights.</p>
+<pre><code>OPTIONS /v1/transactions            → Origin: https://app.example.com
+                                      Access-Control-Request-Method: POST
+                                      Access-Control-Request-Headers: content-type, authorization
+
+200                                 ← Access-Control-Allow-Origin: https://app.example.com
+                                      Access-Control-Allow-Methods: POST, GET
+                                      Access-Control-Allow-Headers: content-type, authorization
+                                      Access-Control-Allow-Credentials: true
+                                      Access-Control-Max-Age: 600      ← cache the preflight</code></pre>
+<ul>
+<li><strong>The performance point to volunteer.</strong> A preflight doubles the round trips on every request until <code>Access-Control-Max-Age</code> caches it. Setting that header is the fix, and it's a nice detail because most people never mention it.</li>
+<li><strong>Credentials mode is the trap.</strong> If you send cookies (<code>credentials: 'include'</code>), <code>Access-Control-Allow-Origin: *</code> is rejected by the browser. You must echo the exact origin, and echoing it from a validated allowlist rather than reflecting whatever arrived. Reflecting <code>Origin</code> blindly with credentials enabled is a real vulnerability.</li>
+<li><strong>Preflights bypass service workers' cache</strong> and cannot be avoided by same-site tricks. If it's a genuine problem, the answer is a same-origin proxy path like <code>/api/*</code> on your own domain, which removes CORS entirely. That's a legitimate reason to put a BFF in front (Ch 9).</li>
+</ul>
+
+<h3 id="sec-csp">CSP that actually works</h3>
+<p>Ch 11 says "add a CSP." Here's what a real one looks like and why the naive version is useless. <strong>An allowlist of domains is not a defense</strong> if any allowlisted domain hosts a JSONP endpoint or a bundler, which most CDNs do.</p>
+<pre><code>Content-Security-Policy:
+  default-src 'self';
+  script-src 'nonce-r4nd0m' 'strict-dynamic';   ← per-request nonce, not a domain list
+  style-src 'self';
+  img-src 'self' data: https://cdn.example.com;
+  connect-src 'self' https://api.example.com;   ← where fetch/XHR/WS may go
+  frame-ancestors 'none';                        ← who may iframe YOU (clickjacking)
+  form-action 'self';                            ← where forms may POST
+  object-src 'none'; base-uri 'none';
+  report-uri /csp-violations                     ← ship Report-Only first</code></pre>
+<ul>
+<li><strong>Nonce + <code>strict-dynamic</code></strong> is the modern shape. The server emits a fresh random nonce per response, only tagged scripts run, and <code>strict-dynamic</code> lets those trusted scripts load their own dependencies. This survives an injected <code>&lt;script&gt;</code> because the attacker can't guess the nonce.</li>
+<li><strong>Deploy in <code>Content-Security-Policy-Report-Only</code> first</strong>, collect violations for a week, then enforce. Saying this signals you've actually shipped one, because enforcing a CSP blind breaks production immediately.</li>
+<li><strong><code>frame-ancestors</code> replaces <code>X-Frame-Options</code></strong>. Keep both only for old browsers. This is your clickjacking answer, where an attacker invisibly overlays your page over their own to steal clicks.</li>
+<li><strong>CSP is defense in depth, not a fix.</strong> Say that. It reduces the impact of an XSS you failed to prevent. It does not excuse rendering unsanitized HTML.</li>
+</ul>
+
+<h3 id="sec-cookies">Cookie attributes, precisely</h3>
+<table>
+<tr><th>Attribute</th><th>What it does</th><th>Get it wrong and</th></tr>
+<tr><td><code>HttpOnly</code></td><td>JS cannot read it via <code>document.cookie</code></td><td>An XSS payload exfiltrates the session</td></tr>
+<tr><td><code>Secure</code></td><td>Only sent over HTTPS</td><td>Leaks on any accidental plain-HTTP request</td></tr>
+<tr><td><code>SameSite=Lax</code></td><td>Not sent on cross-site subrequests, but sent on top-level navigation</td><td>Default-ish and safe. CSRF via forms and images is blocked</td></tr>
+<tr><td><code>SameSite=Strict</code></td><td>Never sent cross-site at all</td><td>Following a link from email logs the user out, which is a UX regression, not a bug</td></tr>
+<tr><td><code>SameSite=None</code></td><td>Sent everywhere. <strong>Requires <code>Secure</code></strong></td><td>Mandatory for third-party embeds, and the thing cookie deprecation is killing (Ch 17)</td></tr>
+<tr><td><code>Path</code> / <code>Domain</code></td><td>Scope. <code>Domain</code> widens to subdomains</td><td>A compromised subdomain now reads your session cookie</td></tr>
+<tr><td><code>__Host-</code> prefix</td><td>Browser enforces Secure, no Domain, Path=/</td><td>Cheap hardening most people don't know</td></tr>
+</table>
+
+<h3 id="sec-oauth">The OAuth 2.0 flow, and why PKCE exists</h3>
+<p>You know "exchange a public token for an access token on the backend." That <em>is</em> the authorization-code pattern, so connect it to the standard vocabulary.</p>
+<pre><code>1. Browser → /authorize?client_id&redirect_uri&state&code_challenge=S256(verifier)
+2. User authenticates at the provider (your app never sees the password)
+3. Provider redirects back → /callback?code=abc&state=...
+4. BACKEND → POST /token  { code, client_secret, code_verifier }
+5. Backend receives access_token (short TTL) + refresh_token
+6. Backend sets an httpOnly session cookie. The browser never holds either token.</code></pre>
+<ul>
+<li><strong>Why a code and not the token directly?</strong> The implicit flow put the token in the URL fragment, where it lands in history, logs, and referrers. The code is single-use, short-lived, and useless without the secret. <strong>Implicit flow is deprecated, say so.</strong></li>
+<li><strong>PKCE</strong> exists for clients that can't hold a secret, meaning SPAs and mobile. The client generates a random <code>verifier</code>, sends its SHA-256 as the <code>code_challenge</code>, then proves ownership by presenting the verifier at exchange. So an intercepted code is worthless. PKCE is now recommended for confidential clients too.</li>
+<li><strong><code>state</code></strong> is CSRF protection for the callback itself. Without it an attacker initiates a flow and lands their own code in the victim's session. <strong><code>nonce</code></strong> is the OIDC equivalent, binding the ID token to your request.</li>
+<li><strong>OAuth is authorization, OIDC is authentication.</strong> OIDC adds an <code>id_token</code>, which is a JWT describing who the user is. Using a raw OAuth access token as proof of identity is a known anti-pattern.</li>
+</ul>
+<p><strong>JWT versus opaque tokens</strong>, a common probe. A JWT is self-verifying, so any service can check the signature with no network call, which is what makes it scale. The cost is that <strong>you cannot revoke it</strong>. Once issued it's valid until expiry. So the real-world answer is short-lived access JWTs, roughly 5 to 15 minutes, plus a long-lived opaque refresh token that <em>is</em> revocable because it hits a database. Refresh rotation on top, meaning each refresh issues a new refresh token and invalidates the old one, so a replayed refresh token signals theft and you kill the whole family.</p>
+
+<h3 id="sec-misc">The rest of the pass, one line each</h3>
+<ul>
+<li><strong>Supply chain.</strong> Your bundle is mostly other people's code. Lockfiles committed, <code>npm audit</code> or Dependabot in CI, <code>--ignore-scripts</code> for install-time hooks, and <strong>Subresource Integrity</strong> (<code>integrity="sha384-..."</code>) on any script you load from a CDN so a compromised CDN can't swap it.</li>
+<li><strong>Secrets in the bundle.</strong> Anything prefixed <code>VITE_</code> or <code>NEXT_PUBLIC_</code> ships to the browser in plaintext. Publishable keys are fine there by design, secrets never are. Say this unprompted when you draw the SDK, it's exactly the Plaid public-key versus secret split.</li>
+<li><strong>Enumeration and rate limits.</strong> "Email not found" versus "wrong password" leaks account existence. Return the same message, and rate-limit by IP <em>and</em> by account so an attacker can't rotate IPs.</li>
+<li><strong>Headers you say in one breath.</strong> HSTS with preload, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code> so PII in URLs doesn't leak outbound, and <code>Permissions-Policy</code> to drop camera and geolocation you never use.</li>
+<li><strong>Audit logging.</strong> In fintech, every read of financial data is an event with actor, resource, timestamp, and request ID. It's a compliance requirement, not a nice-to-have, and mentioning it reads as domain maturity.</li>
+</ul>
+
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Auth is authorization-code with PKCE. The browser never holds a token, the backend does the exchange with the secret and sets an httpOnly, Secure, SameSite=Lax session cookie. Access tokens are 15-minute JWTs so services verify without a network hop, refresh tokens are opaque and rotating so they stay revocable. Then CSP with a per-request nonce as defense in depth for the XSS I didn't catch, and frame-ancestors so nobody can clickjack the transfer button."</p></div>
+
+<h2 id="webhooks">Chapter 15: Webhooks &amp; getting pushed data to the browser</h2>
+<p>Ch 8 gave you polling versus SSE versus WebSocket, which is the <strong>last mile</strong> to the browser. This chapter is the mile before it. In a fintech architecture the interesting data does not originate in your system, so the question "how does the UI know something changed" has two halves and most candidates only answer the second.</p>
+
+<h3 id="webhooks-why">Why webhooks exist at all</h3>
+<p>Because you don't own the event. A bank posts a transaction on its own schedule. Your server has no way to know except to ask repeatedly, and polling a third party for every one of a million linked accounts is absurd, expensive, and still stale. So the provider calls <em>you</em>. A webhook is just <strong>an HTTP POST to a URL you registered, sent when something happened</strong>. That's the whole idea. The complexity is entirely in the failure modes.</p>
+<p>Frame it as an inversion. <strong>Polling</strong> means you control timing and the cost scales with your poll rate times your user count. <strong>Webhooks</strong> mean the provider controls timing, the cost scales with actual event volume, and you inherit an endpoint that must be always-on, publicly reachable, and hostile-input-safe.</p>
+
+<h3 id="webhooks-path">The full path, end to end</h3>
+<pre><code>  ┌──────────┐   1. POST /webhooks/plaid       ┌───────────────┐
+  │ Provider │ ──────────────────────────────► │  Webhook      │
+  │  (bank / │      signed, at-least-once      │  receiver     │
+  │   Plaid) │ ◄────────── 200 OK ──────────── │  (thin!)      │
+  └──────────┘      within ~5s, always         └───────┬───────┘
+                                                       │ 2. verify sig
+                                                       │ 3. dedupe on event_id
+                                                       │ 4. enqueue + ACK
+                                                       ▼
+                                               ┌───────────────┐
+                                               │  Queue (SQS / │
+                                               │  Kafka)  ─────┼──► DLQ
+                                               └───────┬───────┘
+                                                       │ 5. worker
+                                                       ▼
+                                        ┌──────────────────────────┐
+                                        │ Worker: FETCH from the   │
+                                        │ provider API, write DB,  │
+                                        │ emit internal event      │
+                                        └──────────┬───────────────┘
+                                                   │ 6. fanout
+                                          ┌────────┴────────┐
+                                          ▼                 ▼
+                                   ┌─────────────┐   ┌─────────────┐
+                                   │ Pub/Sub     │   │ Push / email│
+                                   │ (Redis)     │   └─────────────┘
+                                   └──────┬──────┘
+                                          │ 7. SSE to the right user's tabs
+                                          ▼
+                                   ┌─────────────┐
+                                   │  Browser:   │  8. invalidate query
+                                   │  query cache│     → refetch → re-render
+                                   └─────────────┘</code></pre>
+<p>Walk the whiteboard along that line and you've answered the question completely. The three boxes people forget are <strong>the queue</strong>, <strong>the dedupe check</strong>, and <strong>the DLQ</strong>.</p>
+
+<h3 id="webhooks-thin">Rule 1. The receiver is thin. ACK in milliseconds.</h3>
+<p>Verify the signature, dedupe, write the event to a queue, return <code>200</code>. Nothing else. Do not update the database, do not call the provider's API, do not send an email, in the request handler.</p>
+<p><strong>The reason is a feedback loop worth naming.</strong> Providers time out webhook deliveries in a few seconds and retry on non-2xx. If your handler does real work it gets slow, slow means timeouts, timeouts mean retries, retries mean more load, which makes it slower. You brown out under exactly the traffic spike you most needed to survive. A thin receiver plus a queue turns an availability problem into a backlog you can drain.</p>
+<p>Corollary. <strong>Return 200 even for events you don't care about</strong>, otherwise you're asking to be retried forever. Return a 4xx only for a genuinely malformed or unverifiable request, because that's a signal not to retry.</p>
+
+<h3 id="webhooks-verify">Rule 2. Verify the signature, on the raw bytes</h3>
+<p>Your endpoint is public. Anyone can POST to it claiming a transfer settled. Signature verification is the entire trust model.</p>
+<p><strong>The HMAC shape</strong> (Stripe, GitHub, and most providers). The sender computes <code>HMAC-SHA256(secret, timestamp + "." + rawBody)</code> and sends it as a header. You recompute and compare.</p>
+<pre><code>// Node, Express. NOTE: express.raw(), not express.json()
+app.post('/webhooks', express.raw({ type: 'application/json' }), (req, res) =&gt; {
+  const [ts, sig] = parseHeader(req.get('X-Signature'));
+
+  // (a) replay window — reject anything older than ~5 minutes
+  if (Math.abs(Date.now() / 1000 - Number(ts)) &gt; 300) return res.sendStatus(400);
+
+  // (b) recompute over the EXACT bytes received
+  const expected = crypto
+    .createHmac('sha256', process.env.WEBHOOK_SECRET)
+    .update(`${ts}.${req.body}`)          // req.body is a Buffer here
+    .digest('hex');
+
+  // (c) constant-time compare, never ===
+  const ok = crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  if (!ok) return res.sendStatus(401);
+
+  const event = JSON.parse(req.body);
+  await queue.send(event);                 // then, and only then, enqueue
+  res.sendStatus(200);
+});</code></pre>
+<ul>
+<li><strong>Raw body, not parsed.</strong> The single most common webhook bug. <code>JSON.parse</code> then <code>JSON.stringify</code> reorders keys and changes whitespace, so the bytes you hash are not the bytes that were signed and every signature fails. This is a great detail to volunteer because it's obviously experience rather than theory.</li>
+<li><strong>Constant-time comparison.</strong> <code>===</code> on strings short-circuits at the first differing byte, which leaks the correct prefix through response timing. <code>timingSafeEqual</code> exists for this.</li>
+<li><strong>The timestamp is what stops replay.</strong> A signature alone is valid forever, so a captured request could be resent. Signing <code>timestamp + body</code> and rejecting old timestamps bounds the window.</li>
+<li><strong>Key rotation.</strong> Accept two secrets during a rollover and verify against either, otherwise rotating means dropping events.</li>
+<li><strong>The asymmetric variant.</strong> Some providers, Plaid included, send a signed <strong>JWT</strong> in a verification header instead of an HMAC, which you validate against their published public key (a JWK you fetch and cache) and whose body hash you compare to your raw body. The advantage is that you hold only a public key, so a breach of your side can't forge events. Same three steps, different primitive. Confirm the exact header and algorithm in their docs before the interview rather than guessing on the whiteboard.</li>
+</ul>
+
+<h3 id="webhooks-idem">Rule 3. Assume at-least-once, out-of-order delivery</h3>
+<p>This is where your idempotency knowledge plugs in, and it's the highest-value part of the chapter.</p>
+<p><strong>Duplicates are guaranteed, not hypothetical.</strong> If your <code>200</code> is lost in transit, the provider retries an event it already delivered successfully. So every consumer must be safe to run twice.</p>
+<pre><code>-- the dedupe table. The unique constraint IS the mechanism.
+CREATE TABLE processed_events (
+  event_id     TEXT PRIMARY KEY,          -- provider's id
+  received_at  TIMESTAMPTZ DEFAULT now()
+);
+
+-- in the worker, same transaction as the actual work:
+BEGIN;
+  INSERT INTO processed_events (event_id) VALUES ($1);   -- throws on duplicate
+  ...do the real work...
+COMMIT;                                    -- both land, or neither does</code></pre>
+<p>Doing the insert and the work in <strong>one transaction</strong> is the part that matters. Insert-then-crash-then-retry would otherwise skip the work forever, having recorded it as done.</p>
+<p><strong>Ordering is not guaranteed either</strong>, and this is where the frontend-relevant punchline lives.</p>
+<div class="soundbite" style="background:#eaf7ee; border-left-color:#3f9e5a;"><div class="sb-label" style="color:#2e7440;">The key idea</div>
+<p><strong>Treat the webhook as a signal, not as data.</strong> Don't apply the payload as a delta. Use it as "something about account X changed" and then <em>fetch the current state from the provider's API</em>. An out-of-order or duplicated signal is then harmless, because refetching current truth twice gives the same answer. Applying deltas out of order corrupts a balance permanently.</p></div>
+<p>If you genuinely must apply the payload, you need a monotonic <code>version</code> or sequence per entity and you drop anything older than what you've stored. Say that as the fallback, but lead with signal-not-data. It's the answer that makes the whole system tolerant instead of fragile.</p>
+
+<h3 id="webhooks-fail">Rule 4. Retries, DLQ, and the reconciliation backstop</h3>
+<ul>
+<li><strong>Provider retries</strong> with exponential backoff for hours or days. So a brief outage on your side is survivable, which is a real argument for failing loudly with a 500 rather than swallowing an error and returning 200 on data you didn't persist.</li>
+<li><strong>Your own retries</strong> live in the queue. After N attempts the message goes to a <strong>dead letter queue</strong>. The DLQ is not a formality, it's the thing you alert on. <strong>DLQ depth above zero is a page.</strong></li>
+<li><strong>Poison messages.</strong> One event that always throws would otherwise block a partition forever. DLQ after bounded attempts is what prevents that.</li>
+<li><strong>The backstop nobody mentions.</strong> Webhooks get lost. Providers have outages, your endpoint has a bad deploy, a signature rotation drops an hour of events. So you run a <strong>periodic reconciliation job</strong>, nightly or hourly, that pulls current state for recently-active accounts and repairs drift. Webhooks are the fast path, reconciliation is the correctness guarantee. Saying this is a strong senior signal, because it shows you don't trust the happy path to be the only path.</li>
+</ul>
+
+<h3 id="webhooks-fanout">Rule 5. Getting it to the browser without a stampede</h3>
+<p>Now you're back in Ch 8 territory, but with a specific constraint. The worker knows an event happened, and it needs to reach only the tabs belonging to that one user.</p>
+<ol>
+<li><strong>Worker publishes to Redis pub/sub</strong> on a per-user channel, <code>user:1234:events</code>. Never broadcast to all connections and filter client-side, that leaks other users' activity into a channel their browser can see.</li>
+<li><strong>SSE endpoint per connected client</strong> subscribes to that user's channel. SSE is right here because the flow is server-to-client only. It's plain HTTP, it reconnects automatically, and it gives you <code>Last-Event-ID</code> so a client can resume from where it dropped.</li>
+<li><strong>The message is tiny and carries no data.</strong> <code>{ type: 'transactions.updated', accountId: 'acc_1' }</code>. Same signal-not-data principle, one layer up. It avoids duplicating auth checks in the push path, because the refetch goes through your normal authorized endpoint.</li>
+<li><strong>The client invalidates rather than patches.</strong> <code>queryClient.invalidateQueries(['transactions', accountId])</code>. The query cache then refetches only what's actually mounted on screen, which is the whole reason the cache layer earns its place.</li>
+</ol>
+<p><strong>The scaling problem to raise unprompted.</strong> A bank syncs and fires 500 webhooks for one user in two seconds. Naively that's 500 SSE messages and 500 refetches, and you've DDoSed yourself from the inside. Two fixes, and naming either wins the point. <strong>Coalesce server-side</strong>, debouncing per user so you emit at most one "changed" signal per few seconds. Or <strong>coalesce client-side</strong>, since a query cache already dedupes concurrent invalidations of the same key. Do both. Also add <code>refetchOnWindowFocus</code>, which gets you free freshness precisely when someone is looking.</p>
+<ul>
+<li><strong>Multi-tab.</strong> Five open tabs means five SSE connections against a ~6-per-origin HTTP/1.1 cap, and five refetches of identical data. Elect one leader tab holding the connection and relay to the others over <code>BroadcastChannel</code>, or accept it and note the tradeoff. HTTP/2 multiplexing makes the connection cap much less painful, which is worth mentioning.</li>
+<li><strong>Connection state is the scaling cost.</strong> Long-lived connections mean your gateway holds N sockets and cannot be a stateless autoscaled box in the naive way. This is the honest reason to start with polling and escalate only when the freshness requirement justifies it.</li>
+</ul>
+
+<h3 id="webhooks-ops">Testing and operating it</h3>
+<ul>
+<li><strong>Local development.</strong> Your laptop isn't publicly reachable, so you need a tunnel (ngrok, Cloudflare Tunnel) or the provider's CLI that forwards events to localhost. Mentioning this is a small credibility marker.</li>
+<li><strong>Tests.</strong> Store real captured payloads as fixtures and POST them at your handler. Test the signature failure path, the duplicate path, and the out-of-order path explicitly, because those are the three that break in production.</li>
+<li><strong>Metrics that matter.</strong> Delivery-to-processed <strong>lag</strong> at p99, verification failure rate (a spike means either an attack or a botched key rotation), duplicate rate, DLQ depth, and reconciliation drift count. Drift trending up means your webhook path is quietly broken even though nothing is erroring.</li>
+<li><strong>An admin replay endpoint.</strong> When you fix a consumer bug you need to reprocess yesterday's events, which is only safe because you made consumers idempotent. The two features reinforce each other.</li>
+</ul>
+
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Third-party data arrives by webhook, not polling, because the provider owns the timing. My receiver is deliberately thin. Verify the signature over the raw bytes with a constant-time compare and a timestamp window, dedupe on the provider's event id, enqueue, return 200 in single-digit milliseconds. A worker then treats the event as a <em>signal</em> and fetches current state from the API rather than applying the payload as a delta, which makes duplicates and out-of-order delivery harmless. Then it publishes a tiny notification to that user's Redis channel, SSE carries it to their tabs, and the browser invalidates the affected query key so only mounted views refetch. Coalesced per user, because a bank sync can fire hundreds of events in seconds. And a nightly reconciliation job repairs anything the webhook path lost, because it will lose things."</p></div>
+
+<div class="soundbite" style="background:#fef6e7; border-left-color:#e0a458;"><div class="sb-label" style="color:#a06a12;">Traps</div>
+<p><strong>Doing the work in the handler.</strong> The retry feedback loop above. <strong>Hashing the parsed body.</strong> Every signature fails and you'll never guess why. <strong>Trusting the payload without verifying.</strong> Your endpoint is public. <strong>Assuming exactly-once, in-order delivery.</strong> Neither is true of any real provider. <strong>Having no reconciliation path</strong>, which means silent permanent data loss the first time your endpoint 500s for an hour.</p></div>
+
+<h2 id="httpcache">Chapter 16: HTTP caching, the layer under the query cache</h2>
+<p>You know TanStack Query (Ch 4). That's an <strong>in-memory, per-tab, application-level</strong> cache that dies on refresh. Underneath it sit three more caches you don't control but do configure, and interviewers probe this because it separates people who've shipped from people who've read.</p>
+
+<h3 id="httpcache-layers">The four caches, from closest to furthest</h3>
+<table>
+<tr><th>Cache</th><th>Lives</th><th>Survives reload?</th><th>Configured by</th></tr>
+<tr><td>Query cache (TanStack)</td><td>JS heap, one tab</td><td>No</td><td><code>staleTime</code>, <code>gcTime</code></td></tr>
+<tr><td>Service Worker cache</td><td>Disk, per origin</td><td>Yes, and works offline</td><td>Your own JS</td></tr>
+<tr><td>HTTP cache (browser)</td><td>Disk / memory, per origin</td><td>Yes</td><td>Response headers</td></tr>
+<tr><td>CDN / shared cache</td><td>Edge POPs, all users</td><td>Yes</td><td>Response headers + purge API</td></tr>
+</table>
+<p>The framing to say. <strong>The query cache decides whether to make a request. The HTTP cache decides whether that request touches the network.</strong> They're complementary, and a well-configured pair means a warm navigation costs zero bytes.</p>
+
+<h3 id="httpcache-freshness">Freshness versus validation, the core distinction</h3>
+<p>Every caching header answers one of two questions, and keeping them separate is most of the battle.</p>
+<ul>
+<li><strong>Freshness</strong> means "can I use this without asking?" That's <code>Cache-Control: max-age</code>. A fresh hit is <strong>zero network</strong>. This is the fast path.</li>
+<li><strong>Validation</strong> means "is my copy still good?" That's <code>ETag</code> and <code>Last-Modified</code>. A validation costs a <strong>full round trip</strong> but usually saves the body, returning <code>304 Not Modified</code> with no payload.</li>
+</ul>
+<p>So a 304 is not a cache hit in the sense that matters for latency. It saves bandwidth, not time. On a 200ms RTT mobile connection, a 304 is still 200ms. People conflate these constantly, and drawing the distinction is a cheap way to look precise.</p>
+
+<h3 id="httpcache-directives">The directives, and what each is actually for</h3>
+<pre><code>Cache-Control: max-age=300                 fresh for 5 min in ANY cache
+Cache-Control: private, max-age=60         browser only. CDNs must not store it
+Cache-Control: public, max-age=31536000, immutable
+                                           fingerprinted assets. never revalidate
+Cache-Control: no-cache                    store it, but ALWAYS validate first
+Cache-Control: no-store                    never write to disk at all
+Cache-Control: max-age=60, stale-while-revalidate=600
+                                           serve stale instantly, refresh behind it
+Cache-Control: max-age=0, must-revalidate  no stale serving, ever, even offline
+Vary: Accept-Encoding, Authorization       cache key includes these headers
+ETag: "a1b2c3"                             opaque version id for validation
+Age: 240                                   how long a shared cache has held it</code></pre>
+<ul>
+<li><strong><code>no-cache</code> does not mean don't cache.</strong> It means store it and revalidate every time. <strong><code>no-store</code></strong> is the one that means don't store. This exact confusion is a common interview gotcha, so get it right and you gain credibility for free.</li>
+<li><strong><code>private</code> is a security control, not a performance one.</strong> Any authenticated JSON must be <code>private</code>, otherwise a shared CDN can serve user A's balance to user B. That's the caching bug that ends careers in fintech. Say it when you draw the CDN.</li>
+<li><strong><code>immutable</code> plus a content hash in the filename is the whole static-asset strategy.</strong> <code>app.a1b2c3.js</code> can be cached for a year because a new build produces a new filename. Never version assets with a query string, some intermediaries ignore query strings in the cache key.</li>
+<li><strong><code>stale-while-revalidate</code> is the best directive most people don't know.</strong> The user gets an instant response from a slightly stale copy while the cache refreshes in the background. It converts a latency problem into a freshness tradeoff, and it's the exact same idea TanStack Query implements in JS. Naming that parallel is a strong moment.</li>
+<li><strong><code>Vary</code> is a footgun.</strong> Each varied header multiplies your cache keys. <code>Vary: User-Agent</code> effectively disables caching because there are millions of UA strings. <code>Vary: Accept-Encoding</code> is necessary and fine.</li>
+</ul>
+
+<h3 id="httpcache-strategy">The strategy per resource type</h3>
+<table>
+<tr><th>Resource</th><th>Headers</th><th>Why</th></tr>
+<tr><td>HTML shell / <code>index.html</code></td><td><code>no-cache</code> (or short <code>max-age</code>)</td><td>It contains the hashed asset URLs. Cache it and users are pinned to an old deploy forever</td></tr>
+<tr><td>Hashed JS / CSS</td><td><code>public, max-age=31536000, immutable</code></td><td>Filename changes on change, so it can never be wrong</td></tr>
+<tr><td>Authenticated JSON</td><td><code>private, no-store</code>, or <code>private, max-age=0, must-revalidate</code> + ETag</td><td>Never in a shared cache. ETag still saves bandwidth on polling</td></tr>
+<tr><td>Public reference data (categories, currencies)</td><td><code>public, max-age=3600, stale-while-revalidate=86400</code></td><td>Same for everyone, changes rarely. Should be a CDN hit</td></tr>
+<tr><td>User avatars / uploads</td><td><code>public, max-age=31536000, immutable</code> on a content-addressed URL</td><td>Change the URL on change, not the bytes at a URL</td></tr>
+</table>
+<p><strong>The deploy interaction is worth volunteering.</strong> The reason the HTML shell must not be cached is that a stale shell references chunk filenames that no longer exist on the CDN, so a user mid-session hits a 404 on a lazy-loaded route. Two mitigations. Keep the previous build's chunks around for a release or two rather than purging on deploy. And detect a chunk-load error in the app, then prompt "a new version is available, reload." That's a concrete production war story and it lands well.</p>
+
+<h3 id="httpcache-etag">ETags, and how they interact with concurrency</h3>
+<pre><code>GET /accounts/1        → 200  ETag: "v7"   { balance: 4210 }
+GET /accounts/1        → If-None-Match: "v7"
+                       ← 304 Not Modified   (no body, saves the payload)</code></pre>
+<p>The second use is the one that impresses. The same ETag gives you <strong>optimistic concurrency control</strong> on writes.</p>
+<pre><code>PATCH /accounts/1      → If-Match: "v7"    { nickname: "Rent" }
+                       ← 412 Precondition Failed   if someone else wrote v8 first</code></pre>
+<p>That is the HTTP-native answer to the lost-update problem, and it pairs directly with your optimistic-update UI (Ch 4). A 412 means "your view was stale," so you refetch, show the conflict, and let the user decide. It also composes with idempotency keys, which handle the duplicate-submit problem, whereas <code>If-Match</code> handles the concurrent-edit problem. They solve different failures and knowing which is which is a genuinely senior distinction.</p>
+<p><strong>Strong versus weak ETags.</strong> <code>W/"v7"</code> means semantically equivalent but not byte-identical, which is what you get after gzip or minor serialization changes. Strong ETags are required for range requests and for <code>If-Match</code> to be meaningful.</p>
+
+<h3 id="httpcache-cdn">The shared-cache layer, briefly</h3>
+<ul>
+<li><strong>Cache key.</strong> By default it's method plus URL plus <code>Vary</code> headers. Normalize it deliberately, stripping tracking params like <code>utm_*</code> so a hundred variants of one URL don't fragment your hit rate.</li>
+<li><strong>Invalidation.</strong> Purge by URL is precise but you must know every URL. <strong>Surrogate keys</strong> or cache tags are the better pattern, tagging responses with an entity id and purging by tag when that entity changes. Prefer changing the URL over purging where you can, because an immutable URL never needs invalidating.</li>
+<li><strong><code>s-maxage</code></strong> sets a different TTL for shared caches than for browsers, so you can hold something at the edge for an hour while browsers revalidate every minute.</li>
+<li><strong>Cache stampede.</strong> A popular entry expires and a thousand simultaneous requests all miss and hit the origin. Fixes are request coalescing at the edge, <code>stale-while-revalidate</code>, and jittered TTLs so keys don't expire in lockstep.</li>
+<li><strong>Never cache authenticated responses at the edge</strong> unless the cache key includes the user, which usually means it isn't worth caching. Repeat the <code>private</code> point here. This is the failure mode with the worst blast radius in the whole chapter.</li>
+</ul>
+
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"Caching is layered and I'd configure each layer for what it's good at. Hashed bundles get a year with <code>immutable</code> on the CDN, the HTML shell gets <code>no-cache</code> so a deploy actually reaches people. Authenticated JSON is <code>private</code> so it can never enter a shared cache, with ETags so polling costs a 304 instead of a payload. Public reference data goes <code>public</code> with <code>stale-while-revalidate</code>, which is the CDN version of what my query cache does in memory. And the same ETag doubles as optimistic concurrency control on writes with <code>If-Match</code>, so a concurrent edit returns 412 instead of silently overwriting."</p></div>
+
+<h2 id="embed">Chapter 17: Cross-origin embedding &amp; third-party SDKs</h2>
+<p>Ch 19 walks the Link-shaped widget end to end. This chapter is the platform mechanics underneath it, because "how does an SDK you ship run inside a page you don't control" is the single most Plaid-specific architecture question there is. It's also the area where the browser is actively changing under everyone's feet, which makes it good material for the "under uncertainty" part of the rubric.</p>
+
+<h3 id="embed-problem">The problem statement</h3>
+<p>A merchant puts four lines of your script on their checkout page. A user then types <strong>their bank credentials</strong> into something that appears inside the merchant's page. Two hard requirements fall out immediately.</p>
+<ol>
+<li><strong>The host page must never be able to read those credentials.</strong> Not by reading the DOM, not by patching <code>fetch</code>, not by keylogging the input.</li>
+<li><strong>The host page must not be able to break your UI</strong>, and your UI must not break theirs. Their global CSS reset, their jQuery, their <code>z-index: 999999</code> header.</li>
+</ol>
+<p>Both requirements point at the same answer, and the reasoning is the answer.</p>
+
+<h3 id="embed-iframe">Why an iframe, and not injected DOM</h3>
+<p>The naive approach is a script that injects a modal into the host's DOM. State the two reasons that fails.</p>
+<ul>
+<li><strong>Security.</strong> Injected DOM lives in the host's origin, so the host's JS can read every keystroke with one event listener, walk the DOM for the password field, or monkey-patch <code>XMLHttpRequest</code> before your script even loads. There is no defense, because you're a guest in their execution context.</li>
+<li><strong>Isolation.</strong> Their CSS cascades into your markup. Shadow DOM solves the styling half, and it's worth naming as the right tool for a <em>non-sensitive</em> widget, but it does nothing for the security half because it's the same JS context.</li>
+</ul>
+<p><strong>A cross-origin iframe is a separate origin, and therefore a separate everything.</strong> Separate DOM the host cannot query, separate JS context they cannot patch, separate CSS, separate storage. The same-origin policy does the work for you. That's the sentence to say.</p>
+<p>So the SDK splits into two pieces, and drawing this split is most of the whiteboard answer.</p>
+<pre><code>  MERCHANT PAGE (merchant.com)          YOUR ORIGIN (cdn.you.com)
+  ┌────────────────────────────┐
+  │ <script src="cdn.you.com/  │
+  │            link.js">       │        thin loader, ~10KB:
+  │                            │        - creates the iframe
+  │  ┌──────────────────────┐  │        - postMessage bridge
+  │  │ iframe               │◄─┼─────── - public API (open/exit)
+  │  │  src=cdn.you.com/... │  │        - NO credential logic
+  │  │                      │  │
+  │  │  YOUR full app.      │  │        the real app, your origin:
+  │  │  Host cannot read    │  │        - bank credential UI
+  │  │  the DOM or the JS   │  │        - talks to YOUR api directly
+  │  └──────────────────────┘  │        - host page sees nothing
+  └────────────────────────────┘</code></pre>
+<p><strong>Why the loader must be tiny.</strong> You're on someone else's critical rendering path. Load it <code>async</code>, keep it in the tens of KB, and never block their page. The heavy app only downloads when the user actually opens the flow, inside the iframe, where its cost is yours and not theirs.</p>
+
+<h3 id="embed-postmessage">postMessage, done correctly</h3>
+<p>The iframe and the host need to talk. The host says "open," the iframe says "the user finished, here's a public token." <code>postMessage</code> is the only channel across origins, and it's trivially easy to do insecurely.</p>
+<pre><code>// SENDING — always name the exact target origin, never '*'
+iframe.contentWindow.postMessage({ type: 'link.open', config }, 'https://cdn.you.com');
+
+// RECEIVING — validate in this order, and bail early
+window.addEventListener('message', (e) =&gt; {
+  if (e.origin !== 'https://cdn.you.com') return;      // 1. WHO sent it
+  if (e.source !== iframe.contentWindow) return;       // 2. which frame exactly
+  const msg = e.data;
+  if (!msg || typeof msg.type !== 'string') return;    // 3. shape it like hostile input
+  if (!ALLOWED_TYPES.has(msg.type)) return;            // 4. allowlist, not denylist
+  handle(msg);
+});</code></pre>
+<ul>
+<li><strong><code>'*'</code> as targetOrigin is a data leak.</strong> If the frame you think you're talking to has navigated elsewhere, your message goes to whoever is there now. Name the origin.</li>
+<li><strong>Checking <code>origin</code> is mandatory and not the default.</strong> Every frame on the page, and every popup, can post to your window. Without the check, any of them can drive your state machine.</li>
+<li><strong>String comparison, not <code>startsWith</code>.</strong> <code>origin.startsWith('https://you.com')</code> matches <code>https://you.com.evil.tld</code>. This is a real bug class.</li>
+<li><strong>Treat <code>e.data</code> as hostile.</strong> Validate the shape, allowlist the message types, and never <code>eval</code> or route it into a DOM sink.</li>
+<li><strong>Never send the actual credential or access token across the bridge.</strong> Pass an opaque, short-lived, single-use <strong>public token</strong> that the merchant's <em>backend</em> exchanges for real credentials using their secret. That's exactly your token-exchange knowledge applied, and the reason the design is safe is that the value crossing into the untrusted page is worthless on its own.</li>
+</ul>
+
+<h3 id="embed-sandbox">Hardening the frame both ways</h3>
+<ul>
+<li><strong><code>sandbox</code></strong> on the iframe grants capabilities explicitly. <code>sandbox="allow-scripts allow-forms allow-same-origin"</code>. Note the sharp edge worth naming, <strong><code>allow-scripts</code> plus <code>allow-same-origin</code> together lets the frame remove its own sandbox</strong>, so that combination is only acceptable for content you control, which here you do.</li>
+<li><strong><code>allow</code> / Permissions Policy</strong> to grant only what the flow needs, for example <code>allow="camera"</code> for document capture and nothing else.</li>
+<li><strong><code>referrerpolicy</code></strong> so your iframe URL doesn't leak the merchant's full page URL, which may itself contain PII or a cart id.</li>
+<li><strong>Protect yourself from being embedded by the wrong people.</strong> Your <em>app</em> pages set <code>frame-ancestors 'none'</code>, but the widget URL deliberately can't, so it validates instead. The frame checks its own <code>document.referrer</code> or ancestor origin against the allowlist registered for that publishable key. This is also why the key is scoped to registered domains, and saying that ties the security model to the product's onboarding.</li>
+<li><strong>Clickjacking, the other direction.</strong> A hostile embedder overlays your consent button. Defenses are the ancestor allowlist above, plus requiring a real user gesture, plus not making the destructive action a single click on a page you don't control.</li>
+</ul>
+
+<h3 id="embed-cookies">The live problem, third-party storage partitioning</h3>
+<p>This is the part that makes you sound current, and it's genuinely unsettled, which suits the "clear under uncertainty" criterion.</p>
+<p><strong>What changed.</strong> Browsers have been shutting down cross-site tracking, and embedded SDKs are collateral damage. Safari's ITP and Firefox's ETP block third-party cookies outright, and Chrome has been partitioning storage. The practical effect is that <strong>your iframe's cookies and <code>localStorage</code> are keyed by the pair (your origin, the top-level site)</strong>, not by your origin alone. So a user who authenticated in your iframe on <code>merchant-a.com</code> arrives on <code>merchant-b.com</code> as a total stranger, and even a returning visit can lose state.</p>
+<p><strong>What you do about it, in order of preference.</strong></p>
+<ol>
+<li><strong>Design for statelessness.</strong> Don't depend on cross-site persistence at all. Each session starts from a short-lived token the merchant's backend created. This is the answer that ages well and it's the one to lead with.</li>
+<li><strong>Pass state explicitly</strong> through the bridge or the iframe URL rather than relying on ambient cookies. Signed, short-TTL, single-use.</li>
+<li><strong>The Storage Access API.</strong> <code>document.requestStorageAccess()</code> lets a frame ask for unpartitioned access, but it generally requires a user gesture and prior first-party interaction, and behavior differs across browsers. Name it, and name the caveat.</li>
+<li><strong>CHIPS</strong>, meaning <code>Set-Cookie: ...; SameSite=None; Secure; Partitioned</code>, is the sanctioned way to keep a per-top-level-site cookie. It fixes "remember state on this merchant" and explicitly does <em>not</em> fix "recognize the user across merchants," which is the correct privacy outcome.</li>
+<li><strong>Popup instead of iframe</strong> as the fallback for flows that truly need first-party context, since a popup is a top-level context on your own origin with real first-party storage. The cost is popup blockers and a worse mobile experience, so it's a fallback, not the default.</li>
+</ol>
+<p>Then the honest closing note. <strong>Do not build anything that depends on cross-site identity</strong>, because that's the capability the platform is deliberately removing and any workaround has a shelf life.</p>
+
+<h3 id="embed-api">What the SDK's public API should look like</h3>
+<p>You'll likely be asked to sketch it. Apply Ch 2's props-as-API thinking to a third-party surface, where the constraint is that <strong>you can never make a breaking change</strong>.</p>
+<pre><code>const handler = YourSDK.create({
+  token: 'link-sandbox-abc',        // created server-side, short TTL, single use
+  onSuccess: (publicToken, meta) =&gt; {/* send to THEIR backend to exchange */},
+  onExit:    (err, meta) =&gt; {},     // user bailed, or a real error
+  onEvent:   (name, meta) =&gt; {},    // analytics hook, fire-and-forget
+});
+handler.open();
+handler.destroy();                  // MUST exist: remove listeners + iframe</code></pre>
+<ul>
+<li><strong>Config in, callbacks out.</strong> No DOM knobs. If they can pass a selector or a stylesheet you've made your internals into public API and can never refactor.</li>
+<li><strong><code>destroy()</code> is not optional.</strong> Host pages are SPAs that unmount. Without it you leak an iframe and a <code>message</code> listener on every open.</li>
+<li><strong>Version the URL, not just the package.</strong> <code>cdn.you.com/v2/link.js</code>, because merchants pin scripts and never upgrade. You will support v1 for years, so plan for concurrent versions rather than hoping.</li>
+<li><strong>Every callback fires exactly once and errors are typed.</strong> An <code>error_code</code> the merchant can branch on, plus a human message, plus a request id for support. Silent failure in an embedded flow is unsupportable, because you can't see their console.</li>
+<li><strong>Fail visibly and degrade.</strong> If the iframe can't load, the SDK must tell the merchant through <code>onExit</code> rather than leaving a blank overlay on their checkout.</li>
+</ul>
+
+<div class="soundbite"><div class="sb-label">Decision sentence</div>
+<p>"The SDK is a thin async loader on the merchant's page plus a cross-origin iframe holding the real app. The iframe is the security boundary, and the same-origin policy is what enforces it, so the host page cannot read the credentials the user types or patch my network layer, and their CSS can't reach my UI. The two sides talk over <code>postMessage</code> with an explicit target origin and an origin check plus a message-type allowlist on receive, and the only thing that ever crosses into the untrusted page is a single-use public token their backend exchanges server-side. I'd assume no third-party storage, because it's being partitioned away, so each session is bootstrapped from a short-lived server-created token rather than a cookie. CHIPS or the Storage Access API are the fallbacks if we need per-merchant persistence, and I'd deliberately avoid depending on cross-merchant identity because the platform is removing it."</p></div>
+
+<div class="soundbite" style="background:#fef6e7; border-left-color:#e0a458;"><div class="sb-label" style="color:#a06a12;">Traps</div>
+<p><strong>Injecting a modal into the host DOM</strong> and calling it isolated. <strong><code>postMessage(msg, '*')</code></strong>, or receiving without an origin check. <strong>Sending a real access token across the bridge</strong> instead of a single-use public token. <strong>Assuming third-party cookies work.</strong> <strong>No <code>destroy()</code></strong>, so the widget leaks in every host SPA. <strong>A heavy synchronous loader</strong> that tanks the merchant's LCP, which is how you get uninstalled.</p></div>
+
+<h2 id="ex-dashboard">Chapter 18: Worked example, transactions dashboard from a given API</h2>
 <p><strong>Prompt shape:</strong> "Here's our backend. Design a web dashboard where a user views their accounts and transactions, with search, filters, and category summaries."</p>
 <pre><code>Given boilerplate:
 GET /accounts                          → [{id, name, mask, balance_cents, currency}]
@@ -673,7 +1147,7 @@ API client: auth header, 401 refresh-and-replay, error normalization</code></pre
 <li><strong>Security:</strong> Bearer token in memory + refresh cookie (Ch 11); transaction memos are attacker-controlled strings, rendered escaped, never as HTML; no PII in URLs (account <em>ids</em> are fine, numbers/names are not); mask account numbers in the switcher.</li>
 </ul>
 
-<h2 id="ex-widget">Chapter 14: Worked example, embeddable widget (Link-shaped)</h2>
+<h2 id="ex-widget">Chapter 19: Worked example, embeddable widget (Link-shaped)</h2>
 <p><strong>Prompt shape:</strong> "Design an embeddable widget that third-party sites drop into their page so users can complete a sensitive multi-step flow (e.g. connect a bank account)." This is the home-turf question for a fintech interview, it composes Ch 10 (flows) + Ch 11 (security) + component API design (Ch 2) at the product's core.</p>
 
 <h3>The architecture decision: how does third-party embedding work?</h3>
@@ -708,7 +1182,7 @@ Inside iframe (our origin) — the real app:
 <li><strong>Scale/multi-tenant:</strong> per-host configuration (allowed products, branding) fetched by session token; rate-limit per host; CSP <code>frame-ancestors</code> controls who may embed the iframe at all.</li>
 </ul>
 
-<h2 id="ex-netflix">Chapter 15: Worked example, Netflix-style browse + resumable upload</h2>
+<h2 id="ex-netflix">Chapter 20: Worked example, Netflix-style browse + resumable upload</h2>
 <p><strong>Prompt shape:</strong> "Design the Netflix home/browse experience," sometimes with "and how do creators upload videos?" bolted on. Frontend-leaning version spends most time on the browse surface and the player handoff; Ch 12 carries the media mechanics.</p>
 
 <h3>Browse surface, boxes and arrows</h3>
@@ -728,7 +1202,7 @@ Player route: code-split; manifest + first segments prefetched on card hover/foc
 <li><strong>Upload path (creator side):</strong> exactly Ch 12's resumable pipeline: initiate → presigned multipart chunks → resume by asking which parts landed → complete → async transcode via queue with status polling (<code>uploading → processing → ready</code>, render per-state). Tie-off sentence: "the upload UI is a state machine over the upload record's status field."</li>
 </ul>
 
-<h2 id="quiz">Chapter 16: Self-quiz</h2>
+<h2 id="quiz">Chapter 21: Self-quiz</h2>
 <details class="quiz"><summary>Interviewer hands you three endpoints and a dashboard mock. What are the first five things you extract from the API?</summary><div class="answer">Entities/relationships, pagination style (cursor vs offset), error contract shape, auth mechanics, and what's missing for the UI (batch/summary/search endpoints). Flag gaps aloud and say whether you'd request an endpoint or work around it client-side.</div></details>
 <details class="quiz"><summary>When is fetch-all + in-memory derivation better than server-side pagination, and what kills it?</summary><div class="answer">Bounded per-user dataset (≤ a few thousand rows) and expensive backend computation per page (serving page 2 costs the same as the whole dataset). Then one fetch per session, interactions at memory speed. Killed by: unbounded data, tight freshness needs, or low-memory clients → cursor pagination + server-side search/sort + virtualization, per-surface.</div></details>
 <details class="quiz"><summary>Where do auth tokens live and why?</summary><div class="answer">Access token (~15min) in memory; refresh token in httpOnly Secure SameSite cookie; API client refreshes on 401 and replays. localStorage fails because any XSS reads it; httpOnly cookies reopen CSRF, which SameSite (+ CSRF tokens for cross-site needs) closes. The two halves are one answer.</div></details>
