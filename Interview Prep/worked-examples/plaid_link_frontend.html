@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plaid Link — Frontend Systems Design</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏦</text></svg>">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
 <style>
   :root{
     --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
@@ -41,9 +40,14 @@
   .badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;background:#e0f2fe;color:#0369a1}
   .oneliner{background:var(--chip);border:1px dashed var(--accent);border-radius:6px;padding:8px 12px;margin:10px 0;
     font-style:italic;color:var(--accent);font-weight:600}
-  .mermaid{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;text-align:center}
+  .part{background:#1a1a1a;color:#fff;border-radius:8px;padding:10px 16px;margin:34px 0 6px;
+    font-size:15px;font-weight:700;letter-spacing:.3px}
+  .part span{font-weight:400;opacity:.75;font-size:12.5px}
+  .why{background:#f8fafc;border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:8px 12px;margin:10px 0}
+  .why b{color:var(--accent)}
+  .warn{background:#fff7ed;border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:8px 12px;margin:10px 0}
   svg{max-width:100%;height:auto}
-  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}.part{break-before:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head>
 <body>
@@ -51,6 +55,7 @@
 <h1>Plaid Link — Frontend Systems Design</h1>
 <p class="sub">Embeddable account-linking widget · RADIO · deep dives: security, OAuth redirect, idempotency</p>
 
+<div class="part">PART ONE — the answer you produce <span>· requirements, architecture, credentials, interfaces, recap</span></div>
 <h2>1. Requirements in one line</h2>
 <div class="grid2">
   <div class="card">
@@ -94,25 +99,71 @@
   </div>
 </div>
 
-<pre class="mermaid">
-flowchart TB
-    subgraph Browser["User Browser (one tab)"]
-        Host["Host Page"]-->|includes|SDK["JS SDK"]
-        SDK-->|injects|Iframe["iframe — Widget SPA"]
-        Iframe<-->|"postMessage (origin-checked)"|Host
-    end
-    Iframe-->|HTTPS|PB["Provider Backend"]
-    Host-->|public_token|CB["Customer Backend"]
-    CB-->|server-to-server exchange|PB
-    PB<-->|OAuth|Bank["Bank OAuth Server"]
-    Iframe-.->|full-page redirect|Bank
-    classDef secret fill:#ffe0e0,stroke:#c00;
-    classDef safe fill:#e0f0ff,stroke:#06c;
-    class PB,CB,Bank secret;
-    class Host,SDK,Iframe safe;
-</pre>
+<svg viewBox="0 0 960 450" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Plaid Link architecture and trust boundary</title>
+  <desc>Host page with an injected iframe, provider backend, customer backend, and the bank OAuth server.</desc>
+  <defs>
+    <marker id="lk-k" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#1a1a1a"/></marker>
+    <marker id="lk-b" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#2563eb"/></marker>
+    <marker id="lk-g" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#15803d"/></marker>
+  </defs>
 
-<h2>3. Data model &amp; the token gradient</h2>
+  <rect x="690" y="24" width="210" height="72" rx="9" fill="#fff" stroke="#1a1a1a" stroke-width="1.6"/>
+  <text x="795" y="52" font-size="12" text-anchor="middle" font-family="sans-serif" font-weight="700">Bank OAuth Server</text>
+  <text x="795" y="70" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">credentials live ONLY here</text>
+  <text x="795" y="85" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">frame-ancestors: DENY</text>
+
+  <rect x="24" y="150" width="540" height="126" rx="10" fill="none" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6 4"/>
+  <text x="38" y="170" font-size="11" font-family="sans-serif" font-weight="700" fill="#2563eb">User browser — one tab</text>
+
+  <rect x="44" y="184" width="220" height="72" rx="8" fill="#fff" stroke="#1a1a1a" stroke-width="1.4"/>
+  <text x="154" y="210" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">Customer page + JS SDK</text>
+  <text x="154" y="228" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">receives public_token</text>
+  <text x="154" y="243" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">via onSuccess</text>
+
+  <rect x="322" y="184" width="222" height="72" rx="8" fill="#fff" stroke="#1a1a1a" stroke-width="1.4"/>
+  <text x="433" y="210" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">iframe — Widget SPA</text>
+  <text x="433" y="228" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">our origin, isolation boundary</text>
+  <text x="433" y="243" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">holds link_token</text>
+
+  <rect x="24" y="340" width="212" height="80" rx="9" fill="#fff" stroke="#1a1a1a" stroke-width="1.6"/>
+  <text x="130" y="368" font-size="12" text-anchor="middle" font-family="sans-serif" font-weight="700">Customer Backend</text>
+  <text x="130" y="386" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">holds client_id + secret</text>
+  <text x="130" y="401" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">ends up with access_token</text>
+
+  <rect x="420" y="340" width="240" height="80" rx="9" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="540" y="368" font-size="12" text-anchor="middle" font-family="sans-serif" font-weight="700">Provider Backend</text>
+  <text x="540" y="386" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">owns FlowState, nonce table</text>
+  <text x="540" y="401" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">holds bank client_secret</text>
+
+  <path d="M238,356 L416,356" stroke="#15803d" stroke-width="1.8" marker-end="url(#lk-g)"/>
+  <text x="246" y="336" font-size="9.5" font-family="sans-serif" fill="#15803d">1. POST /link/token/create</text>
+  <text x="246" y="348" font-size="9" font-family="sans-serif" fill="#15803d">client_id + secret</text>
+
+  <path d="M266,208 L318,208" stroke="#2563eb" stroke-width="1.3" marker-end="url(#lk-b)"/>
+  <text x="252" y="176" font-size="9" font-family="sans-serif" fill="#2563eb">2. injects + postMessage</text>
+
+  <path d="M520,182 L698,102" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#lk-k)"/>
+  <text x="556" y="140" font-size="9.5" font-family="sans-serif" fill="#5b6470">3. full-page redirect</text>
+  <text x="556" y="152" font-size="9" font-family="sans-serif" fill="#5b6470">+ oauth_state, always a GET back</text>
+
+  <path d="M400,258 L448,338" stroke="#1a1a1a" stroke-width="1.3" marker-end="url(#lk-k)"/>
+  <text x="286" y="304" font-size="9.5" font-family="sans-serif" fill="#5b6470">4. HTTPS + link_token</text>
+
+  <path d="M112,258 L112,338" stroke="#2563eb" stroke-width="1.6" marker-end="url(#lk-b)"/>
+  <text x="18" y="304" font-size="9.5" font-family="sans-serif" fill="#2563eb">5. public_token</text>
+
+  <path d="M238,404 L416,404" stroke="#15803d" stroke-width="1.8" marker-end="url(#lk-g)"/>
+  <text x="248" y="420" font-size="9.5" font-family="sans-serif" fill="#15803d">6. exchange, server to server</text>
+
+  <path d="M646,338 L744,100" stroke="#b91c1c" stroke-width="1.5" marker-end="url(#lk-k)"/>
+  <text x="666" y="240" font-size="9.5" font-family="sans-serif" fill="#b91c1c">7. code exchange with</text>
+  <text x="666" y="252" font-size="9.5" font-family="sans-serif" fill="#b91c1c">OUR client_secret</text>
+
+  <text x="24" y="442" font-size="10" font-family="sans-serif" fill="#5b6470">Blue = browser-safe values. Green = customer-backend hops requiring their secret. Red = the exchange that mints the access_token, server only.</text>
+</svg>
+
+<h2>3. Data model and credentials</h2>
 <div class="grid2">
   <div class="card">
     <h3><code>LinkSession</code> — server owns it</h3>
@@ -125,17 +176,29 @@ flowchart TB
       <li><span class="nonce">oauth_state_id</span> — server-generated single-use nonce for the current OAuth leg; burned on use</li>
     </ul>
   </div>
-  <div class="card">
-    <h3>Token gradient <span class="tag-a">weaker toward the browser</span></h3>
-    <table>
-      <tr><th>Token</th><th>Role / lifetime</th><th>Lives</th></tr>
-      <tr><td><code>link_token</code></td><td>Entry ticket · min–hr</td><td>Browser (scoped, expiring)</td></tr>
-      <tr><td><code>public_token</code></td><td>Claim check, inert · ~30m</td><td>Browser → cust. backend</td></tr>
-      <tr><td><code>access_token</code></td><td>Pulls data · long-lived</td><td><b>Server only. Never browser.</b></td></tr>
-    </table>
-    <p class="a">Every step that mints a stronger token happens on a server holding a secret.</p>
-  </div>
 </div>
+
+<h3>Credentials — two kinds, keep them apart</h3>
+<p><b>Secrets are long-lived, server-only, and identify a party. Tokens are short-lived, scoped, and identify a thing in flight.</b></p>
+
+<table>
+<tr><th style="width:26%">Secret <span class="a">no TTL, rotated not expired</span></th><th style="width:22%">Held by</th><th>Answers</th></tr>
+<tr><td><code>client_id</code> + <code>secret</code></td><td class="tag-r">Customer backend</td><td>"Is this really customer X." Buys a <code>link_token</code>, and later exchanges the <code>public_token</code>.</td></tr>
+<tr><td><code>our client_secret at the bank</code></td><td class="tag-r">Provider backend</td><td>"Is this really the platform you registered." <b>This, not the nonce, is what buys the bank token.</b></td></tr>
+</table>
+
+<table>
+<tr><th style="width:22%">Token</th><th style="width:16%">Lives</th><th style="width:18%">TTL</th><th>Authorizes</th></tr>
+<tr><td><code>link_token</code></td><td>browser</td><td class="key">minutes to hours</td><td>Read and advance <b>one</b> LinkSession.</td></tr>
+<tr><td><span class="nonce">oauth_state_id</span></td><td>URLs + our DB</td><td class="key">single use</td><td>Nothing at the bank. <b>Purely our own gate.</b> Says which session a callback belongs to.</td></tr>
+<tr><td><code>authorization code</code></td><td>one URL hop</td><td class="key">seconds, single use</td><td>Being exchanged once, by a server holding our client secret.</td></tr>
+<tr><td><code>public_token</code></td><td>browser → cust. backend</td><td class="key">~30 min, single use</td><td>Nothing on its own. <b>Inert claim check</b>, worthless without the customer's secret.</td></tr>
+<tr><td><code>access_token</code></td><td class="tag-r">customer backend</td><td>long-lived</td><td>Pulling account data. <b>Never a browser.</b></td></tr>
+</table>
+
+<div class="why"><b>There are two separate chains and merging them is the classic mistake.</b> <b>Chain A</b> is the bank OAuth chain, authorization code exchanged with <i>our</i> client secret for a bank token that never leaves our servers. <b>Chain B</b> is the customer-facing chain, <code>link_token</code> then <code>public_token</code> then <code>access_token</code>. <span class="a">Nothing in chain B ever "becomes" the bank token. The Plaid <code>access_token</code> is our own handle to the Item, so even the customer never touches a bank credential.</span></div>
+
+<p class="a">Every step that mints a stronger credential happens on a server holding a secret. <b>Chain B is three tokens long only because a credential has to reach a third party through an untrusted channel.</b></p>
 
 <h2>4. Interfaces</h2>
 <div class="grid2">
@@ -166,35 +229,65 @@ handler.open() / handler.exit()</pre>
   </div>
 </div>
 
-<h2>5. Deep dives — answers to have ready</h2>
-
-<p class="q tag-a">OAuth redirect &amp; rehydration <span class="badge">CORE PROBLEM</span></p>
-<p class="a">The SPA reloads from scratch (amnesia). Question on return: <b>which session is this browser?</b> Two independent recovery paths: (1) <b>sessionStorage breadcrumb</b> = <code>link_token</code>, works same-tab; (2) <span class="nonce">oauth_state_id</span> in the callback URL, server looks up the session, works new-tab with empty storage. <b>The client is a courier, not a judge</b> — a client "state I sent vs got back" check proves nothing; the server generated + stored the state and does the only comparison that counts. Client just forwards <code>state</code>+<code>code</code>, then <code>GET /link/session/:id</code> and renders whatever step the server reports.</p>
-
-<p class="q tag-a">Why a guarded POST <i>and</i> a safe GET</p>
-<p class="a">Different questions. GET = "where am I, what do I render" — read-only, refresh five times, nothing breaks. POST <code>/oauth/callback</code> = "finalize this grant exactly once" — validates state (CSRF), checks single-use (replay), exchanges the code, burns the state, advances the step. <b>Burning a nonce is a side effect, so it can't live on a GET</b> (a refresh/prefetch would blow up the session).</p>
-
-<p class="q tag-a">Idempotency &amp; no optimistic advance</p>
-<p class="a">UI shows a step only after the server confirms it — model illegal transitions as rejected so a stale message or duplicated redirect can't jump forward. First callback wins and burns the state; the second is rejected or deduped. OAuth retry mints a fresh <span class="nonce">oauth_state_id</span>, invalidating the old one for free. Invariant: <b>at most one link created</b>.</p>
-
-<p class="q tag-a">Security — three separate boundaries</p>
-<p class="a"><b>(1) iframe isolation</b> — same-origin policy blocks the customer page from reading widget JS/DOM. <b>(2) postMessage channel</b> — pin the exact target origin on send, check <code>event.origin</code> against the allowlist on receive (exact string match, never <code>includes</code> — <code>evil-customer.com.attacker.com</code> passes a naive substring check). <b>(3) CSRF state</b> — server-generated, session-bound, single-use <span class="nonce">oauth_state_id</span> on the redirect; forged callbacks fail the match, replays fail single-use.</p>
-
-<p class="q tag-a">The trust rule, stated precisely</p>
-<p class="a">The client only ever holds values that are <b>safe to leak</b>: <code>link_token</code> (expires fast), <span class="nonce">oauth_state_id</span> (useless once burned), <code>public_token</code> (inert without the secret). Server-only: customer secret creds, <code>access_token</code>, and the <i>authority</i> to validate/burn a nonce. A client-generated nonce is worthless for CSRF.</p>
-
-<p class="q tag-a">Edge cases &amp; abuse</p>
-<p class="a">Every FlowState has an <code>ERROR</code> edge (bank down, state mismatch, expired). Cancel/ESC → <code>EXIT</code>, session marked abandoned. <code>expires_at</code> (~4h) rejects late transitions. Rate-limit session creates / OAuth attempts per link_token / IP / customer; monitor nonce-failure spikes (forged-callback probing). Back button is safe: GET re-fires freely, the finalize POST is protected by the burned nonce + Idempotency-Key.</p>
-
-<h2>6. 30-second recap script</h2>
+<h2>5. 30-second recap script</h2>
 <div class="card a">
   Host page loads our SDK, which injects an iframe widget from our origin — the iframe is the isolation boundary, credentials only ever pass between the browser and the bank. Server mints a <code>LinkSession</code> and owns the authoritative FlowState; the client holds only a short-lived <code>link_token</code> and renders whatever step the server reports. At OAuth we redirect out to the bank with a single-use <span class="nonce">oauth_state_id</span>; on return the SPA has amnesia, so it recovers the session (sessionStorage or the state in the URL), fires one guarded POST to finalize exactly once, then a safe GET to render. Idempotency-Keys and the single-use nonce guarantee at most one link. The <code>public_token</code> goes up to the customer's backend, which exchanges it server-to-server for the <code>access_token</code> — which never touches the browser.
 </div>
 
+
+<div class="part">PART TWO — deep dives <span>· pull these out when probed</span></div>
+<h2>6. OAuth redirect and rehydration <span class="badge">CORE PROBLEM</span></h2>
+<p class="a">The SPA reloads from scratch (amnesia). Question on return: <b>which session is this browser?</b> Two independent recovery paths: (1) <b>sessionStorage breadcrumb</b> = <code>link_token</code>, works same-tab; (2) <span class="nonce">oauth_state_id</span> in the callback URL, server looks up the session, works new-tab with empty storage. <b>The client is a courier, not a judge</b> — a client "state I sent vs got back" check proves nothing; the server generated + stored the state and does the only comparison that counts. Client just forwards <code>state</code>+<code>code</code>, then <code>GET /link/session/:id</code> and renders whatever step the server reports.</p>
+
+<h3>Why a guarded POST and a safe GET</h3>
+<p class="a">Different questions. GET = "where am I, what do I render" — read-only, refresh five times, nothing breaks. POST <code>/oauth/callback</code> = "finalize this grant exactly once" — validates state (CSRF), checks single-use (replay), exchanges the code, burns the state, advances the step. It is a write, so it wants to be a POST.</p>
+<div class="warn"><b>Do not overstate this, because an interviewer may catch it.</b> The bank's redirect back is <b>always a GET</b> — that is the OAuth spec plus browser behaviour on a 302, and you do not get to choose the method. So a perfectly standard design points <code>redirect_uri</code> straight at a backend endpoint that handles the GET, burns the nonce inline, exchanges the code, then <code>303</code>s to a clean URL with no query string. Reload then re-requests the clean page, not the callback. <b>The nonce is precisely what makes that unavoidable GET safe.</b></div>
+
+<h2>7. Why the <code>public_token</code> rides the browser</h2>
+
+<p>Natural interviewer question. Why not just have our backend push it to the customer's backend? Four reasons, and the best one is not the obvious one.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>What the browser hop buys</h3>
+    <ul>
+      <li><b>User identity for free.</b> When their frontend POSTs the token to their own backend, that request rides their own session cookie. They know exactly which of their users just linked, from their own auth system. A server push would force them to correlate on some <code>client_user_id</code> we echoed back, which means trusting a field we sent rather than their own login state.</li>
+      <li><b>No webhook endpoint required.</b> Many integrations are small teams. Demanding a publicly reachable, signature-verifying endpoint just to complete the <i>basic</i> flow is a brutal onboarding barrier.</li>
+      <li><b>The exchange becomes their deliberate act.</b> They call exchange with their secret, and that is when they take ownership of the Item and start being billed. <b>Pull beats push when the receiving side incurs an obligation.</b></li>
+      <li><b>Latency.</b> The user is sitting there. You need a browser signal regardless, so the only question is whether the token rides along or arrives separately, and separate is strictly more plumbing.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Why it is safe, and what it costs</h3>
+    <p><b>Safe only because of what the token is.</b> Short-lived, single-use, and completely inert without the customer's secret. If it were not inert this design would be wrong and you would be forced to the server path.</p>
+    <p><b>The cost, and name it before they ask.</b> The handoff can drop. User succeeds, the widget emits the token, they close the tab before the POST lands. The Item now exists on our side and the customer never learned about it. That is an orphaned link and a support ticket.</p>
+    <p class="a">Which is why the browser path is not the only path. Webhooks cover what the browser cannot — OAuth completing in a context the original page did not survive, item errors, re-auth prompts. <b>The browser hop is the happy path and the webhook is the safety net</b>, not an either-or.</p>
+  </div>
+</div>
+
+<div class="why"><b>The rule that generalises, and it is worth saying.</b> The delivery mechanism follows from <b>whether the answer exists while the user is still present</b>. In Link it does, so you hand it through the browser and gain identity, latency, and a simpler integration. In a payments widget the outcome arrives days after the tab closed, so a browser handoff is impossible and webhooks are forced, along with the outbox and the cursor endpoint. <span class="a">Same choice, different constraint.</span></div>
+
+<h2>8. Exactly-once, and the nonce</h2>
+<p class="a">UI shows a step only after the server confirms it — model illegal transitions as rejected so a stale message or duplicated redirect can't jump forward. First callback wins and burns the state, the second is rejected. OAuth retry mints a fresh <span class="nonce">oauth_state_id</span>, invalidating the old one for free. Invariant: <b>at most one link created</b>.</p>
+
+<h3>Burn it atomically, and burn it first</h3>
+<pre>UPDATE oauth_state SET used_at = now()
+ WHERE state = $1 AND used_at IS NULL AND expires_at &gt; now();
+-- assert rows_affected == 1, else reject
+
+token = exchangeWithBank(code);   <span class="a">-- only AFTER the claim</span></pre>
+<p class="a">A <code>SELECT</code> then <code>UPDATE</code> is a race. Two concurrent callbacks from a double-click or a prefetch both read <code>used_at IS NULL</code> and both exchange, and the window is as wide as a network call to a bank. <b>Claim first, then do the slow thing.</b> If the exchange fails afterwards the nonce stays burned and the user retries with a fresh one, which is correct.</p>
+
+<h2>9. Security — three separate boundaries</h2>
+<p class="a"><b>(1) iframe isolation</b> — same-origin policy blocks the customer page from reading widget JS/DOM. <b>(2) postMessage channel</b> — pin the exact target origin on send, check <code>event.origin</code> against the allowlist on receive (exact string match, never <code>includes</code> — <code>evil-customer.com.attacker.com</code> passes a naive substring check). <b>(3) CSRF state</b> — server-generated, session-bound, single-use <span class="nonce">oauth_state_id</span> on the redirect; forged callbacks fail the match, replays fail single-use.</p>
+
+<h3>The trust rule, stated precisely</h3>
+<p class="a">The client only ever holds values that are <b>safe to leak</b>: <code>link_token</code> (expires fast), <span class="nonce">oauth_state_id</span> (useless once burned), <code>public_token</code> (inert without the secret). Server-only: customer secret creds, <code>access_token</code>, and the <i>authority</i> to validate/burn a nonce. A client-generated nonce is worthless for CSRF.</p>
+
+<h2>10. Edge cases and abuse</h2>
+<p class="a">Every FlowState has an <code>ERROR</code> edge (bank down, state mismatch, expired). Cancel/ESC → <code>EXIT</code>, session marked abandoned. <code>expires_at</code> (~4h) rejects late transitions. Rate-limit session creates / OAuth attempts per link_token / IP / customer; monitor nonce-failure spikes (forged-callback probing). Back button is safe: GET re-fires freely, the finalize POST is protected by the burned nonce + Idempotency-Key.</p>
+
 <div class="oneliner" style="margin-top:16px">"The server owns the flow state, the client only renders it." · "The client only holds values safe to leak." · "GET is the safe read that survives refresh; POST is the guarded write that fires once."</div>
 
-<script>
-  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
-</script>
 </body>
 </html>
