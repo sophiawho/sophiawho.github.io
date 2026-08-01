@@ -80,6 +80,7 @@
       <li><b>Exactly-once money movement.</b> Refresh, double-click, back button, duplicated redirects, retried webhooks.</li>
       <li><b>Merchant page survival.</b> Losing a live checkout mid-flow is a product failure.</li>
       <li><b>Honest async UI.</b> The rail answers on its own schedule.</li>
+      <li class="a">Accessibility and i18n, covered in section 19.</li>
     </ul>
     <h4>Rail and risk, decided up front</h4>
     <p>ACH, and <b class="tag-g">we underwrite the return risk.</b> Once we say <code>succeeded</code> that is terminal for the merchant.</p>
@@ -117,8 +118,6 @@ Payment                         <span class="a">-- ours, internal. merchant neve
 <tr><td><code>IdempotencyKey</code></td><td>Make merchant retries safe. Stores key, request hash, and the response to replay.</td></tr>
 <tr><td><code>WebhookOutbox</code></td><td>Make delivery safe. Written in the same transaction as the state change, drained by a worker.</td></tr>
 </table>
-
-
 
 <h2>3. Credentials</h2>
 
@@ -166,17 +165,30 @@ Payment                         <span class="a">-- ours, internal. merchant neve
 
 <h2>4. Interfaces</h2>
 
-<p>Split by <b>who holds what credential</b>, not by resource. The merchant touches exactly two surfaces. Everything under <code>/v1/widget/*</code> is called by our own SPA inside the iframe, and the merchant never sees it.</p>
+<p>Split by <b>who holds what credential</b>, not by resource. The merchant touches only the first two surfaces below. The <code>/v1/widget/*</code> endpoints are called by our own SPA and the merchant never sees them, but they are where the nonce burn and the money movement happen.</p>
 
 <h3>Merchant backend — REST, <code>merchant_api_secret</code></h3>
 <table>
 <tr><th style="width:38%">Endpoint</th><th>Purpose</th></tr>
-<tr><td><code>POST /v1/payment_sessions</code></td><td><b>Create the session, mint the token.</b> The one call that fixes the amount. Requires <code>Idempotency-Key</code>.</td></tr>
+<tr><td><code>POST /v1/payment_sessions</code></td><td><b>Create the session, mint the token.</b> The one call that fixes the amount. Requires <code>Idempotency-Key</code>. <span class="a"><code>return_url</code> is checked against the merchant's registered origins <b>here, at creation</b> — accept an arbitrary one and you have shipped an open redirect on a payments domain, which is a phishing kit.</span></td></tr>
 <tr><td><code>GET /v1/payment_sessions/{id}</code></td><td><b>Authoritative read.</b> This, not the webhook, is the record.</td></tr>
 <tr><td><code>GET /v1/events?after={cursor}</code></td><td><b>Pull-based recovery</b> for missed webhooks. Exists because a push-only integration is never complete.</td></tr>
 <tr><td class="a"><code>POST /v1/payment_sessions/{id}/cancel</code></td><td class="a">Merchant voids the order before submission. Mention, do not dwell.</td></tr>
 </table>
 
+
+<h3>Widget to us — <code>session_token</code>, called by our own SPA</h3>
+<table>
+<tr><th style="width:38%">Endpoint</th><th>Purpose</th></tr>
+<tr><td><code>GET /v1/widget/session</code> <span class="tag-g">safe</span></td><td><b>"Where am I, what do I render."</b> Read-only and repeatable, which is what makes refresh, back, and the redirect return all safe.</td></tr>
+<tr><td><code>GET /v1/widget/institutions?q=</code> <span class="tag-g">safe</span></td><td>Typeahead. Identical for every user, so cache it at the CDN.</td></tr>
+<tr><td><code>POST /v1/widget/session/institution</code></td><td>Record the bank the user picked. Client proposes, server persists.</td></tr>
+<tr><td><code>POST /v1/widget/session/authorize</code></td><td><b>Mint a fresh nonce</b> and return the bank URL with it embedded. Calling it again invalidates the previous nonce, so retry is safe for free.</td></tr>
+<tr><td><code>POST /v1/oauth/callback</code> <span class="tag-r">guarded</span></td><td><b>Finalize the grant, exactly once.</b> Burns the nonce atomically, then exchanges the code with our client secret, then advances to <code>authorized</code>. <span class="a">Called by the popup page, not the iframe.</span></td></tr>
+<tr><td><code>POST /v1/widget/session/confirm</code> <span class="tag-r">guarded</span></td><td><b>The Pay button.</b> Empty body. Balance check, risk score, guarded insert of the <code>Payment</code> row, submit to the rail. Returns <code>payment_submitted</code>, never <code>succeeded</code>.</td></tr>
+<tr><td><code>GET /v1/widget/session/events</code></td><td>SSE stream of state changes. One-directional server push, so SSE beats a WebSocket here. <code>/status</code> polling as the fallback.</td></tr>
+</table>
+<p class="a"><b>No <code>:id</code> in these paths.</b> The token resolves the session server-side, which deletes an entire bug class because there is no identifier in a URL to tamper with. And there is no <code>/success</code> endpoint — the client reports that it came back from a redirect, the server decides what that means.</p>
 
 <h3>Merchant frontend — our JS SDK</h3>
 <pre>const handler = PayByBank.create({
@@ -189,18 +201,12 @@ Payment                         <span class="a">-- ours, internal. merchant neve
 handler.open();  handler.destroy();</pre>
 <p class="a">Deliberately small. Every option that could change what gets charged is absent, because the amount lives on the session.</p>
 
-
-
-
-
 <h3>Webhooks — us to the merchant</h3>
 <pre>payment_session.succeeded          <span class="tag-g">seconds after Pay · terminal · may ship</span>
 payment_session.failed             <span class="a">risk declined, or the bank said no</span>
 payment_session.canceled
 payment_session.expired</pre>
 <p class="a">No <code>payment_session.returned</code>, because we underwrite. No <code>payment_session.completed</code>, because it would arrive three seconds before something actionable and <b>every event is a permanent API commitment.</b></p>
-
-<div class="why"><b>One object, one namespace.</b> The merchant sees exactly one thing from creation to settlement, so every event carries the same <code>payment_session.</code> prefix. Our internal per-attempt <code>Payment</code> rows keep their own name and never surface. <span class="a">A purist would object that a session cannot succeed, only money can. That is linguistics, not engineering. <b>A consistent public namespace beats a semantically pure one</b>, and mixed prefixes would tell merchants there are two objects when there is only one.</span></div>
 
 <h4>The merchant's total obligation</h4>
 <p><b>Two callbacks</b> they must implement, <code>onSuccess</code> and <code>onExit</code>. <b>Two endpoints</b>, one they call and one they host. The hosted webhook handler is most of the work and it is the only thing that mutates their order. <b>They could not observe a bank credential if they tried.</b></p><h2>5. The payment state machine</h2>
@@ -408,7 +414,7 @@ payment_session.expired</pre>
     <div class="why"><b>The pattern.</b> Push the invariant down to the layer that can enforce it. If-statements are hope, constraints are guarantees.</div>
   </div>
 </div><h3>On credentials we chose not to have</h3>
-<div class="warn"><b>Deliberately absent, and say why.</b> No refresh token, because a browser refresh flow is attack surface whose only payoff is extending a session we want to expire. No publishable key, because sessions already originate from the merchant's backend and the <code>session_token</code> carries merchant identity. <span class="a">Stripe has one for client-side card tokenization. We have no equivalent need.</span></div>
+
 <h3>Why REST at the merchant edge</h3>
 <p>REST rather than gRPC because <b>we do not control the client.</b> Merchants are on PHP 7, Ruby, Java 8. gRPC belongs behind our own API layer, where we control both ends. The two-tier answer is the good one. <b>REST at the edge because I do not control the client, gRPC internally because I do.</b> GraphQL loses here, because a small fixed set of auditable idempotent mutations gets nothing from a query planner and pays for it in rate limiting and audit clarity.</p>
 <p class="a"><b>And action endpoints beat a generic PATCH.</b> <code>POST /payment_sessions/{id}/cancel</code> is not strictly RESTful, but <code>PATCH</code> with <code>{state}</code> implies the client may set arbitrary states. You would need a transition whitelist immediately, which is the action endpoints again with a bigger blast radius. Stripe has <code>/cancel</code> and <code>/confirm</code> for this reason.</p>
@@ -635,7 +641,7 @@ done pg  → BroadcastChannel, then close()</pre>
     <h3>Why BroadcastChannel over window.opener</h3>
     <p><code>BroadcastChannel</code> is same-origin pub/sub. Both the popup and the iframe are on our origin, so they can talk without holding a reference to each other, and without any cross-origin <code>postMessage</code> risk at all.</p>
     <p><code>window.opener.postMessage</code> is the fallback, but <code>opener</code> is frequently <code>null</code> under <code>Cross-Origin-Opener-Policy</code> headers, which you want for other reasons. Do not make it the only path.</p>
-    <p class="a">Third fallback, and worth mentioning: the iframe can just poll <code>GET /widget/session</code> or hold an SSE stream open. Since the server is the source of truth anyway, the browser channel is a latency optimization, not a correctness requirement. <b>That is a nice thing to notice out loud.</b></p>
+    <p class="a">Third fallback, and worth mentioning: the iframe can just poll <code>GET /widget/session</code> or hold an SSE stream open. Since the server is the source of truth anyway, the browser channel is a latency optimization, not a correctness requirement.</p>
   </div>
   <div class="card">
     <h3>What changes on mobile</h3>
@@ -723,7 +729,7 @@ COMMIT;
 
 -- only now, outside the transaction, call the rail with a
 -- deterministic idempotency reference derived from payment_id.</pre>
-<div class="warn"><b>The honest caveat, and volunteer it.</b> The gap between <code>COMMIT</code> and the rail call is not transactional. If you crash there, you have a <code>submitting</code> row and no idea whether the rail got it. There is no way to close this with a database. You close it with a <b>reconciliation job</b> that queries the rail by your deterministic reference for anything stuck in <code>submitting</code> past a threshold. Every real payments system has this job. Saying "here is the hole and here is the sweeper" is much stronger than pretending the transaction covers it.</div>
+<div class="warn"><b>The honest caveat, and volunteer it.</b> The gap between <code>COMMIT</code> and the rail call is not transactional. If you crash there, you have a <code>submitting</code> row and no idea whether the rail got it. There is no way to close this with a database. You close it with a <b>reconciliation job</b> that queries the rail by your deterministic reference for anything stuck in <code>submitting</code> past a threshold. Every real payments system has this job.</div>
 
 <h2>12. How the bank gets data to our backend</h2>
 
@@ -779,7 +785,7 @@ payment_session.failed       <span class="a">risk declined, or bank said no</spa
 payment_session.canceled
 payment_session.expired</pre>
     <p>The rule is <b>every server-confirmed transition a merchant could act on</b>. Ship the goods, send the receipt, release the cart.</p>
-    <div class="warn"><b>There is deliberately no <code>payment_session.completed</code>.</b> It would mean "the user finished the widget" and would arrive perhaps three seconds before <code>payment_session.succeeded</code> tells them something actionable. It buys nothing, and every event is a permanent API commitment. <span class="a">The one case for adding it back is a degraded path where the risk decision is not instant, such as a manual review queue or the balance API being down.</span></div>
+    
     <p class="a">Also no <code>payment_session.returned</code>, by the same logic as the state machine. We underwrite, so a return is our problem and the merchant never hears about it.</p>
   </div>
   <div class="card">
@@ -893,7 +899,6 @@ Merchant verifies:
   </div>
 </div>
 
-
 <h3>The postMessage frames, in full</h3>
 <table>
 <tr><th style="width:16%">Frame</th><th style="width:14%">Direction</th><th>Payload and why</th></tr>
@@ -996,6 +1001,37 @@ Merchant verifies:
   <b>Depth calibration for 60 minutes.</b> Go deep on exactly three things. Recommended: (a) the token model, (b) exactly-once at the OAuth callback, (c) settlement and webhooks. Everything else gets one sentence and an offer. "Institution search is a typeahead over a few thousand rows, cached at the edge, I'd rather spend the time on settlement unless you want it." That sentence is worth more than actually designing the typeahead.
 </div>
 
+
+<h2>19. Accessibility and i18n</h2>
+
+<p>Rarely the main event, but on a <b>frontend</b> round an embeddable modal invites these questions, and having a real answer separates you from candidates who only did the backend.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Accessibility</h3>
+    <ul>
+      <li><b>Focus trap while open.</b> Tab and Shift-Tab cycle inside the widget and never reach the merchant page behind it.</li>
+      <li><b>Focus returns to the trigger on close.</b> Store the element that opened it, restore on <code>destroy()</code>. Otherwise focus resets to the top of the document and a keyboard user is lost.</li>
+      <li><b>ESC exits</b> and fires <code>onExit</code>, same as the close button.</li>
+      <li><b>ARIA live region for state changes.</b> <span class="tag-a">This is the one that is specific to this design.</span> The popup closes and the widget advances <b>without any user action</b>, so a screen reader user gets no announcement at all unless you push one. Same again when settlement flips the UI. <code>aria-live="polite"</code> on the status region.</li>
+      <li><b><code>role="dialog"</code> with <code>aria-modal="true"</code></b> and a labelled heading, so assistive tech announces what opened.</li>
+      <li>Errors announced, not just coloured. <code>aria-describedby</code> on the failing control.</li>
+    </ul>
+    <div class="why"><b>The iframe complicates the focus trap.</b> The trapping code lives in the host SDK, but the focusable elements live inside a cross-document iframe the host cannot enumerate. So the widget manages focus internally and the SDK traps only at the iframe boundary. Worth naming, because it is a real consequence of the isolation choice.</div>
+  </div>
+  <div class="card">
+    <h3>i18n</h3>
+    <ul>
+      <li><b>Currency formatting is not string concatenation.</b> <code>Intl.NumberFormat(locale, {style:'currency', currency})</code> over <code>amount_minor / 100</code>. Symbol position, decimal separator, and grouping all differ by locale, and <code>$1,234.56</code> is <code>1.234,56 €</code> elsewhere.</li>
+      <li><b>Locale comes from the session</b>, set by the merchant at creation, not sniffed from the browser. The merchant knows their customer better than <code>navigator.language</code> does.</li>
+      <li><b>Institution names are not translated.</b> Chase is Chase. Translate chrome and instructions, never proper nouns.</li>
+      <li><b>RTL</b> needs logical CSS properties and <code>dir="rtl"</code> on the widget document, and the iframe means you set it independently of the host page.</li>
+      <li>Error copy comes from the server as a <b>machine-readable <code>failure_code</code></b> plus a localised string, so the widget never builds sentences from fragments.</li>
+    </ul>
+  </div>
+</div>
+
+<p class="a"><b>If asked to prioritise.</b> Focus trap and focus restoration first, because a keyboard user simply cannot complete the flow without them. The live region second, because of the silent async advance. Everything else is polish.</p>
 
 </body>
 </html>
