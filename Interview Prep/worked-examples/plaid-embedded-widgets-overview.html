@@ -144,7 +144,7 @@
 <p>This is the sharpest one and the one most people miss.</p>
 <ul>
   <li><b>Link's terminal event is a token handoff.</b> <code>public_token</code> goes to the browser, up to the customer's backend, then a server-to-server exchange for the <code>access_token</code>. The entire three-step gradient exists <b>because a credential has to reach a third party through an untrusted channel.</b></li>
-  <li><b>Pay-by-bank has no <code>public_token</code> equivalent.</b> Nothing is handed to the merchant at all. They get a signed webhook and a <code>GET</code> endpoint. Their integration surface is dramatically smaller.</li>
+  <li><b>Pay-by-bank has no <code>public_token</code> equivalent.</b> No credential is handed to the merchant at all. They get a signed webhook and a <code>GET</code> endpoint. Their integration surface is dramatically smaller. <span class="a">The bank OAuth exchange still happens, it just stays entirely inside our backend.</span></li>
 </ul>
 <p><b>Also cascades into.</b> An <b>amount</b> exists, which is entirely new attack surface. Idempotency now matters at the money layer, not just at session creation. Risk scoring and underwriting become central rather than absent.</p>
 
@@ -154,71 +154,96 @@
 
 <h2>4. The token gradients, side by side</h2>
 
-<svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img">
-  <title>Token gradients compared</title>
-  <desc>Plaid Link uses three tokens because a credential must be handed to a third party. Pay-by-bank uses two because nothing is handed over.</desc>
+<svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Two separate token chains</title>
+  <desc>The bank OAuth chain is identical in both systems. The customer-facing chain is where Link and pay-by-bank differ.</desc>
   <defs>
     <marker id="tg-arw" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto">
       <path d="M0,0 L9,3.2 L0,6.4 z" fill="#1a1a1a"/>
     </marker>
+    <marker id="tg-arw-g" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto">
+      <path d="M0,0 L9,3.2 L0,6.4 z" fill="#15803d"/>
+    </marker>
   </defs>
 
-  <text x="20" y="26" font-size="13" font-family="sans-serif" font-weight="700" fill="#2563eb">Plaid Link — three tokens</text>
+  <text x="20" y="22" font-size="12.5" font-family="sans-serif" font-weight="700" fill="#15803d">CHAIN A — the bank OAuth chain. Identical in both. Provider-internal, never customer-facing.</text>
 
-  <rect x="20" y="42" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="110" y="63" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">link_token</text>
-  <text x="110" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">entry ticket · browser</text>
+  <rect x="20" y="40" width="200" height="54" rx="8" fill="#fff7ed" stroke="#b45309" stroke-width="1.5"/>
+  <text x="120" y="62" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b45309">authorization code</text>
+  <text x="120" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b45309">seconds · single use · in a URL</text>
 
-  <rect x="270" y="42" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="360" y="63" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">public_token</text>
-  <text x="360" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">inert claim check · browser</text>
+  <rect x="440" y="40" width="230" height="54" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.8"/>
+  <text x="555" y="62" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b91c1c">bank access token</text>
+  <text x="555" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b91c1c">SERVER ONLY · provider holds it</text>
 
-  <rect x="520" y="42" width="180" height="52" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.8"/>
-  <text x="610" y="63" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b91c1c">access_token</text>
-  <text x="610" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b91c1c">SERVER ONLY · long-lived</text>
+  <path d="M222,67 L436,67" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
+  <text x="329" y="53" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">exchanged with OUR client_secret</text>
+  <text x="329" y="86" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">server to server</text>
 
-  <path d="M202,68 L266,68" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
-  <path d="M452,68 L516,68" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
-  <text x="234" y="36" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">on success</text>
-  <text x="484" y="30" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">customer backend</text>
-  <text x="484" y="40" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">exchanges, s2s</text>
+  <text x="690" y="58" font-size="9.5" font-family="sans-serif" fill="#5b6470">The nonce gates this exchange</text>
+  <text x="690" y="72" font-size="9.5" font-family="sans-serif" fill="#5b6470">but is not part of it, and is</text>
+  <text x="690" y="86" font-size="9.5" font-family="sans-serif" fill="#5b6470">never sent to the bank.</text>
 
-  <text x="722" y="60" font-size="10" font-family="sans-serif" fill="#2563eb" font-weight="600">A credential must reach</text>
-  <text x="722" y="74" font-size="10" font-family="sans-serif" fill="#2563eb" font-weight="600">a third party. Hence the</text>
-  <text x="722" y="88" font-size="10" font-family="sans-serif" fill="#2563eb" font-weight="600">middle step.</text>
+  <line x1="20" y1="118" x2="940" y2="118" stroke="#d9dee5" stroke-width="1.5"/>
+  <text x="20" y="142" font-size="12.5" font-family="sans-serif" font-weight="700" fill="#2563eb">CHAIN B — the customer-facing chain. This is where the two systems actually differ.</text>
 
-  <text x="20" y="150" font-size="13" font-family="sans-serif" font-weight="700" fill="#15803d">Pay-by-bank — two tokens</text>
+  <text x="20" y="172" font-size="11.5" font-family="sans-serif" font-weight="700" fill="#2563eb">Plaid Link — three tokens</text>
 
-  <rect x="20" y="166" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="110" y="187" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">session_token</text>
-  <text x="110" y="203" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">one session, one amount</text>
+  <rect x="20" y="184" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="110" y="205" font-size="11" text-anchor="middle" font-family="sans-serif" font-weight="600">link_token</text>
+  <text x="110" y="221" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">entry ticket · browser</text>
 
-  <rect x="270" y="166" width="180" height="52" rx="8" fill="#fff" stroke="#5b6470" stroke-width="1.3" stroke-dasharray="5 4"/>
-  <text x="360" y="188" font-size="10.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">nothing handed over</text>
-  <text x="360" y="204" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">merchant gets a webhook</text>
+  <rect x="270" y="184" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="360" y="205" font-size="11" text-anchor="middle" font-family="sans-serif" font-weight="600">public_token</text>
+  <text x="360" y="221" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">inert claim check · browser</text>
 
-  <rect x="520" y="166" width="180" height="52" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.8"/>
-  <text x="610" y="187" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b91c1c">access_token</text>
-  <text x="610" y="203" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b91c1c">SERVER ONLY · dies with payment</text>
+  <rect x="520" y="184" width="200" height="52" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.8"/>
+  <text x="620" y="205" font-size="11" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b91c1c">Plaid access_token</text>
+  <text x="620" y="221" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b91c1c">customer's server · a handle</text>
 
-  <path d="M202,192 L516,192" stroke="#15803d" stroke-width="1.6" marker-end="url(#tg-arw)"/>
-  <text x="722" y="184" font-size="10" font-family="sans-serif" fill="#15803d" font-weight="600">No third party receives</text>
-  <text x="722" y="198" font-size="10" font-family="sans-serif" fill="#15803d" font-weight="600">a credential, so no</text>
-  <text x="722" y="212" font-size="10" font-family="sans-serif" fill="#15803d" font-weight="600">middle token exists.</text>
+  <path d="M202,210 L266,210" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
+  <path d="M452,210 L516,210" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
+  <text x="234" y="178" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">on success</text>
+  <text x="484" y="172" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">customer backend</text>
+  <text x="484" y="181" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">exchanges, s2s</text>
 
-  <line x1="20" y1="248" x2="940" y2="248" stroke="#d9dee5" stroke-width="1"/>
-  <text x="20" y="270" font-size="10.5" font-family="sans-serif" fill="#5b6470">Blue = safe to leak into a browser, because of what it cannot do. Red = server only, always, in both systems.</text>
-  <text x="20" y="286" font-size="10.5" font-family="sans-serif" fill="#5b6470">Shared rule: every step that mints a stronger credential happens on a server holding a secret.</text>
+  <text x="740" y="200" font-size="9.5" font-family="sans-serif" fill="#2563eb" font-weight="600">A credential must reach a</text>
+  <text x="740" y="214" font-size="9.5" font-family="sans-serif" fill="#2563eb" font-weight="600">third party, so a middle</text>
+  <text x="740" y="228" font-size="9.5" font-family="sans-serif" fill="#2563eb" font-weight="600">token has to exist.</text>
+
+  <text x="20" y="286" font-size="11.5" font-family="sans-serif" font-weight="700" fill="#15803d">Pay-by-bank — one token</text>
+
+  <rect x="20" y="298" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="110" y="319" font-size="11" text-anchor="middle" font-family="sans-serif" font-weight="600">session_token</text>
+  <text x="110" y="335" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">one session, one amount</text>
+
+  <rect x="270" y="298" width="450" height="52" rx="8" fill="#fff" stroke="#5b6470" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="495" y="319" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#5b6470">no credential is ever handed to the merchant</text>
+  <text x="495" y="335" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">they get a signed webhook and a GET endpoint instead</text>
+
+  <path d="M202,324 L266,324" stroke="#15803d" stroke-width="1.5" marker-end="url(#tg-arw-g)"/>
+
+  <text x="740" y="314" font-size="9.5" font-family="sans-serif" fill="#15803d" font-weight="600">No third party receives a</text>
+  <text x="740" y="328" font-size="9.5" font-family="sans-serif" fill="#15803d" font-weight="600">credential, so chain B</text>
+  <text x="740" y="342" font-size="9.5" font-family="sans-serif" fill="#15803d" font-weight="600">simply stops.</text>
+
+  <line x1="20" y1="372" x2="940" y2="372" stroke="#d9dee5" stroke-width="1"/>
+  <text x="20" y="392" font-size="10" font-family="sans-serif" fill="#5b6470">Blue = safe in a browser, because of what it cannot do. Red = server only. Amber = single-use, seconds long.</text>
+  <text x="20" y="408" font-size="10" font-family="sans-serif" fill="#5b6470">Chain A is where the bank token comes from, in both systems. Chain B is what the customer receives, and only chain B differs.</text>
 </svg>
 
-<div class="why"><b>Why this is the difference to lead with.</b> The token count is not trivia. It tells you the shape of the whole back half of the design. Three tokens means there is a handoff, so you need an exchange endpoint, a customer-side integration step, and a story about what happens if the middle token leaks. Two tokens means the answer is delivered asynchronously instead, so you need webhooks, an outbox, and a reconciliation path. <b>Naming the token count tells the interviewer you know which system you are in.</b></div>
+<div class="warn"><b>Keep the two chains apart, because merging them is the easiest mistake to make here.</b> Both systems run chain A. The bank issues an authorization code, and the provider exchanges it with its own <code>client_secret</code> for a bank token that never leaves the provider's servers. Nothing in chain B ever "becomes" that token. <span class="a">The nonce gates the exchange but is not an input to it.</span></div>
+
+<div class="why"><b>Why chain B is the difference to lead with.</b> Its length tells you the shape of the whole back half of the design. <b>Three</b> means there is a handoff, so you need an exchange endpoint, a customer-side integration step, and a story about what happens if the middle token leaks. <b>One</b> means the answer is delivered asynchronously instead, so you need webhooks, an outbox, and a reconciliation path.</div>
+
+<p class="a"><b>One more distinction worth having ready.</b> In Link, the thing the customer ends up holding is <b>Plaid's own</b> <code>access_token</code>, a handle to the Item. The bank's OAuth token stays inside Plaid. So even in the three-token case, the customer never touches a bank credential. <b>That invariant holds in both systems, and it is the cleanest way to state the trust model.</b></p>
 
 <h2>5. Everything that falls out</h2>
 
 <table>
 <tr><th style="width:24%">Dimension</th><th style="width:38%">Plaid Link</th><th>Pay-by-bank</th></tr>
 <tr><td><b>Terminal deliverable</b></td><td><code>public_token</code> handed to the customer backend</td><td>An async state, delivered by signed webhook</td></tr>
-<tr><td><b>Tokens in the gradient</b></td><td>3</td><td>2</td></tr>
+<tr><td><b>Customer-facing tokens</b></td><td>3 (<code>link_token</code>, <code>public_token</code>, <code>access_token</code>)</td><td>1 (<code>session_token</code>). The bank token is never customer-facing</td></tr>
 <tr><td><b>Is there an amount</b></td><td>No</td><td>Yes, and it must be <b>server-asserted</b></td></tr>
 <tr><td><b>Flow completes in</b></td><td>Seconds, synchronously, user watching</td><td class="tag-a">1 to 3 days, asynchronously, user long gone</td></tr>
 <tr><td><b>Webhooks to the customer</b></td><td>Optional. Mostly item lifecycle and re-auth prompts</td><td class="tag-r"><b>Load-bearing.</b> The integration does not function without them</td></tr>
