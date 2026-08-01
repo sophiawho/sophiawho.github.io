@@ -137,13 +137,18 @@ BankConsent                          -- what the bank gave us. single-use in thi
 
 Payment                              -- the ledger row. one per session, at most.
   payment_id          uuid pk
-  session_id          uuid unique    -- &lt;-- this unique constraint IS the double-charge defense
+  session_id          uuid           -- several attempts allowed per session (retry a
+                                     -- failed bank), so NOT a plain unique. see below.
   amount_minor        bigint
   rail                enum           -- ACH
   rail_reference      text null      -- trace number from the bank partner
   state               enum
   submitted_at        timestamptz
   settled_at          timestamptz null
+
+  -- &lt;-- THIS is the double-charge defense: at most one LIVE payment per session
+  CREATE UNIQUE INDEX one_live_payment ON payment (session_id)
+    WHERE state NOT IN ('failed', 'canceled');
 
 OAuthState                           -- exists only to make the callback safe
   state               text pk        -- 32 bytes from a CSPRNG
@@ -177,7 +182,8 @@ WebhookOutbox                        -- exists only to make delivery safe
   <div class="card">
     <h3>Two schema details worth defending</h3>
     <p><b><code>amount_minor</code> as an integer.</b> Floating point money is a real bug, not a style preference. <code>0.1 + 0.2 != 0.3</code>, and a cent of drift on a reconciliation report is an audit finding.</p>
-    <p><b><code>unique (session_id)</code> on Payment.</b> This is doing more work than it looks. It is a database-enforced invariant that one session can produce at most one debit, and it holds even if your application logic has a race, even across app servers, even during a deploy. Application-level checks fail under concurrency. A unique index does not.</p>
+    <p><b>The partial unique index on Payment.</b> It enforces <b>at most one <i>live</i> payment per session</b>, and it holds even if your application logic races, across app servers, during a deploy. Application-level checks fail under concurrency, a unique index does not.</p>
+    <p class="a">Why partial and not plain. The user picks Chase, gets insufficient funds, then picks Wells Fargo. That should be one session with two attempts, because the merchant has one order and wants one reference. A plain <code>unique(session_id)</code> would forbid the retry. <b>Volunteering that a constraint had to loosen when a requirement changed reads much better than leaving a stale invariant in the design.</b></p>
     <div class="why"><b>The pattern.</b> Push the invariant down to the layer that can enforce it. If-statements are hope, constraints are guarantees.</div>
   </div>
 </div>
@@ -379,7 +385,7 @@ WebhookOutbox                        -- exists only to make delivery safe
 
   <rect x="722" y="60" width="108" height="46" rx="7" fill="#f0fdf4" stroke="#15803d" stroke-width="1.8"/>
   <text x="776" y="80" font-size="11" text-anchor="middle" font-family="sans-serif" font-weight="700" fill="#15803d">succeeded</text>
-  <text x="776" y="95" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#15803d">TERMINAL</text>
+  <text x="776" y="95" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#15803d">TERMINAL to merchant</text>
 
   <path d="M118,83 L146,83" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#sm-arw)"/>
   <path d="M256,83 L284,83" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#sm-arw)"/>
@@ -389,7 +395,8 @@ WebhookOutbox                        -- exists only to make delivery safe
 
   <text x="418" y="52" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">callback</text>
   <text x="556" y="52" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">user hits Pay</text>
-  <text x="706" y="52" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#15803d">rail confirms</text>
+  <text x="706" y="46" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#15803d">rail ACCEPTS</text>
+  <text x="706" y="56" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#15803d">(seconds)</text>
 
   <rect x="286" y="176" width="118" height="40" rx="7" fill="#fff7ed" stroke="#b45309" stroke-width="1.4"/>
   <text x="345" y="193" font-size="11" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b45309">requires_action</text>
@@ -414,7 +421,8 @@ WebhookOutbox                        -- exists only to make delivery safe
   <path d="M64,106 L790,174" stroke="#b91c1c" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#sm-arw-r)"/>
 
   <text x="358" y="145" font-size="9" font-family="sans-serif" fill="#b45309">step-up, returns to auth</text>
-  <text x="30" y="240" font-size="10" font-family="sans-serif" fill="#5b6470">Dashed red = reachable from any pre-terminal state. Solid = specific transition. Green box is terminal by policy, because we underwrite returns.</text>
+  <text x="30" y="236" font-size="10" font-family="sans-serif" fill="#5b6470">Dashed red = reachable from any pre-terminal state. Solid = specific transition. Everything shown happens within seconds of the Pay click.</text>
+  <text x="30" y="250" font-size="10" font-family="sans-serif" fill="#b45309">Settlement 1 to 3 days later moves an INTERNAL ledger state only. Because we underwrite, succeeded is terminal for the merchant and a later return is our loss.</text>
 </svg>
 
 <div class="grid2">
@@ -427,6 +435,7 @@ WebhookOutbox                        -- exists only to make delivery safe
     <h3>Why <code>succeeded</code> is terminal here</h3>
     <p>On raw ACH it would not be. A debit can return for insufficient funds within two business days, and a consumer can claim it was unauthorized for <b>sixty calendar days</b>.</p>
     <p>We made it terminal by a <b>business decision</b>, not a technical one. We absorb returns. That is exactly what a platform like this sells, converting a slow reversible rail into something a merchant can treat as good funds.</p>
+    <div class="why"><b>And this is what lets <code>succeeded</code> fire in seconds.</b> If we waited for settlement, the merchant would still sit on their hands for three days and our underwriting would have bought them certainty but no speed. Because we are taking the loss anyway, the honest moment to promise is right after the risk check passes and the rail accepts. <b>Underwriting is what converts a three-day answer into a three-second one.</b></div>
     <div class="warn"><b>Be honest about the consequence.</b> Terminal for the merchant does not mean terminal for us. Internally the <code>Payment</code> row still gets a <code>returned</code> outcome and feeds our loss ledger. We are hiding the reversal, not eliminating it. Say this, because "succeeded is terminal" without the caveat sounds like you do not know ACH returns exist.</div>
   </div>
 </div>
@@ -646,9 +655,9 @@ WebhookOutbox                        -- exists only to make delivery safe
 </tr>
 <tr>
   <td>18</td><td>us, internally, one transaction</td>
-  <td><code>INSERT INTO payment … ON CONFLICT (session_id) DO NOTHING</code> + outbox row + state change</td>
+  <td><code>INSERT INTO payment … ON CONFLICT DO NOTHING</code> + outbox row + status change</td>
   <td class="tag-g">mints <code>payment_id</code></td>
-  <td class="tag-r"><code>unique(session_id)</code>. <b>This constraint is the actual double-charge defense.</b></td>
+  <td class="tag-r">the partial unique index. <b>This constraint is the actual double-charge defense.</b></td>
 </tr>
 <tr>
   <td>19</td><td>us → bank partner (ODFI)</td>
@@ -656,20 +665,25 @@ WebhookOutbox                        -- exists only to make delivery safe
   <td class="tag-a">the irreversible step. Everything before it was cheap.</td>
 </tr>
 <tr>
-  <td>20</td><td>us → iframe</td>
-  <td>SSE <code>payment_submitted</code></td><td>—</td>
-  <td>widget shows processing. <b>Never returns <code>succeeded</code> here.</b></td>
+  <td>20</td><td class="tag-g">partner → us, <b>seconds</b></td>
+  <td><b>accepted for processing</b> ack</td><td>—</td>
+  <td>the rail has the instruction. <b>Not settled. Just accepted.</b></td>
 </tr>
 <tr>
-  <td>21</td><td class="tag-a">1 to 3 days later, partner → us</td>
-  <td>settlement or return code</td><td>—</td>
-  <td>state → <code class="tag-g">succeeded</code>. User is long gone.</td>
-</tr>
-<tr>
-  <td>22</td><td>us → merchant backend</td>
-  <td>signed webhook <code>payment.succeeded</code>, from the outbox</td>
+  <td>21</td><td>us → merchant backend</td>
+  <td>signed webhook <code class="tag-g">payment.succeeded</code>, from the outbox</td>
   <td>HMAC with the <code>webhook_signing_secret</code></td>
-  <td>merchant checks timestamp freshness · constant-time HMAC · <code>event_id</code> dedupe</td>
+  <td class="tag-g"><b>Fires HERE, seconds after Pay, not in three days.</b> Risk passed and the rail accepted, so we make the promise. Merchant may ship.</td>
+</tr>
+<tr>
+  <td>22</td><td>us → iframe</td>
+  <td>SSE <code>succeeded</code></td><td>—</td>
+  <td>widget shows a real confirmation, because we already committed to it</td>
+</tr>
+<tr>
+  <td>23</td><td class="tag-a">1 to 3 days later, partner → us</td>
+  <td>settled, or returned with a code like <code>R01</code></td><td>—</td>
+  <td class="tag-a"><b>Internal only.</b> Updates our ledger. <b>No webhook. The merchant never learns.</b> This is what underwriting buys them.</td>
 </tr>
 </table>
 
@@ -826,7 +840,7 @@ token = exchangeWithBank(code);   <span class="a">after the claim</span></pre>
 <h3>Place 3 — the debit is submitted twice</h3>
 <p>The most expensive one. Two app servers both process a confirm, or a retry fires after a timeout where you never learned whether the rail accepted it.</p>
 <pre>BEGIN;
-  -- unique (session_id) on payment makes this the whole defense
+  -- the partial unique index on payment makes this the whole defense
   INSERT INTO payment (payment_id, session_id, amount_minor, state)
   VALUES ($1, $2, $3, 'submitting')
   ON CONFLICT (session_id) DO NOTHING;
@@ -889,12 +903,13 @@ COMMIT;
 <div class="grid2">
   <div class="card">
     <h3 class="tag-g">Send these</h3>
-<pre>payment_session.completed
-payment.succeeded          <span class="a">terminal, merchant may ship</span>
-payment.failed
+<pre>payment.succeeded    <span class="a">seconds after Pay · terminal · may ship</span>
+payment.failed       <span class="a">risk declined, or bank said no</span>
 payment_session.canceled
 payment_session.expired</pre>
     <p>The rule is <b>every server-confirmed transition a merchant could act on</b>. Ship the goods, send the receipt, release the cart.</p>
+    <div class="warn"><b>There is deliberately no <code>payment_session.completed</code>.</b> It would mean "the user finished the widget" and would arrive perhaps three seconds before <code>payment.succeeded</code> tells them something actionable. It buys nothing, and every event is a permanent API commitment. <span class="a">The one case for adding it back is a degraded path where the risk decision is not instant, such as a manual review queue or the balance API being down.</span></div>
+    <p class="a">Also no <code>payment.returned</code>, by the same logic as the state machine. We underwrite, so a return is our problem and the merchant never hears about it.</p>
   </div>
   <div class="card">
     <h3 class="tag-r">Do not send these</h3>
@@ -946,6 +961,47 @@ Merchant verifies:
 <p class="a">Sign over the <b>raw body bytes</b>, not the parsed and re-serialized JSON. Key ordering and whitespace differ between serializers and the signature will not match. This is the single most common webhook integration bug.</p>
 <p><b>The alternative worth naming.</b> Asymmetric signing, where we hold a private key and publish the public key at a JWKS URL, removes the shared-secret-leak problem and scales better across thousands of merchants. Cost is more integration work on their side. The industry mostly chose HMAC for that reason. Knowing both exist and why the simpler one won is the good answer.</p>
 
+<h3>What the merchant does with it</h3>
+
+<p>Worth walking through, because it is what motivates three fields that otherwise look arbitrary. Their schema is essentially one column.</p>
+
+<pre>orders (
+  order_id             pk,
+  status,                    -- pending_payment | paid | payment_failed
+  payment_session_id         -- our id, stored when they created the session
+)</pre>
+
+<pre>POST /webhooks/paybybank            <span class="a">their endpoint, our delivery worker calls it</span>
+
+1. verify the RAW body against the HMAC, check timestamp freshness
+2. dedupe
+     INSERT INTO processed_events (event_id) ON CONFLICT DO NOTHING
+     if 0 rows -> return 200 immediately, already handled
+3. find the order
+     SELECT * FROM orders WHERE payment_session_id = $1
+4. apply, guarded so it cannot move backwards
+     UPDATE orders SET status = 'paid'
+      WHERE order_id = $1 AND status = 'pending_payment'
+5. return 200 FAST
+6. enqueue fulfillment and the receipt email as async jobs</pre>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Each step maps to something we designed</h3>
+    <ul>
+      <li><b>Step 3 joins on <code>merchant_reference</code> or <code>session_id</code>.</b> That is the entire reason <code>merchant_reference</code> exists in our schema. It is their foreign key, carried through our system so the webhook can find its way home.</li>
+      <li><b>Step 2 is why we send <code>event_id</code>.</b> We deliver at-least-once, so the same event will arrive twice eventually. Without this they ship twice.</li>
+      <li><b>Step 4's <code>AND status = 'pending_payment'</code> is why we do not promise ordering.</b> A retried stale event cannot drag a paid order back to pending. The guard fails and the update is a harmless no-op.</li>
+      <li><b>Step 5 before step 6 is why we time out at five seconds.</b> Fulfillment inline means our worker blocks, they hit our timeout, we retry, and they fulfill twice.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>The line to say out loud</h3>
+    <p><b>The browser's <code>onSuccess</code> callback must never write to their database.</b> It is a UI hint so they can render a confirmation screen. The webhook is the only thing that mutates order state, and <code>GET /v1/payment_sessions/{id}</code> is the tiebreaker if they ever doubt it.</p>
+    <div class="why"><b>Ownership, stated precisely.</b> The <code>Order</code> is theirs and we never see it. The <code>PaymentSession</code> is <b>ours</b>, and they can read it but only mutate it through our API. The <code>Payment</code> rows are ours and internal, and they never see those at all. <span class="a">Ownership is about who can write. Visibility is about who can read. Those are separate questions and it is worth answering them separately.</span></div>
+  </div>
+</div>
+
 <h2>13. Isolation and the three security boundaries</h2>
 
 <p>They are separate mechanisms solving separate problems. Do not blur them.</p>
@@ -978,7 +1034,7 @@ Merchant verifies:
 <p class="a">Nothing happens, which is the point of the design. The session stays in <code>bank_auth_pending</code>, the nonce expires in 10 minutes, the session expires in 30. The iframe can detect the closed popup by polling <code>popup.closed</code> and offer a retry, which mints a fresh nonce and invalidates the old one. No cleanup needed because nothing was committed.</p>
 
 <p class="q tag-a">Two tabs, same order, both open the widget.</p>
-<p class="a">The <code>unique (merchant_id, merchant_reference)</code> constraint means the merchant's second create either returns the same session through the idempotency key or fails. If they somehow get two sessions, <code>unique (session_id)</code> on <code>payment</code> still limits each to one debit, but the merchant could be charged twice for one order. <b>That is a real gap in my design and the merchant_reference uniqueness is what closes it.</b> Worth volunteering rather than waiting to be asked.</p>
+<p class="a">The <code>unique (merchant_id, merchant_reference)</code> constraint means the merchant's second create either returns the same session through the idempotency key or fails. If they somehow get two sessions, the partial unique index still limits <b>each session</b> to one live debit, but the merchant could be charged twice for one order. <b>That is a real gap and the merchant_reference uniqueness is the only thing that closes it, which means it depends on the merchant passing a stable reference.</b> Volunteer this rather than waiting to be asked.</p>
 
 <p class="q tag-a">A webhook is delivered but the merchant returns 500 forever.</p>
 <p class="a">We retry for 24 hours, then stop and alert. Their order hangs, which is why <code>GET /v1/events?after={cursor}</code> exists as a pull-based recovery path. <b>The deeper point is that a push-only integration is never complete.</b> Any system whose correctness depends on the other party's uptime needs a pull path.</p>
