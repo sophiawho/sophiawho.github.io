@@ -30,6 +30,8 @@ cp "$PROJECTS/Leetcode/systems-design/worked-examples/ticketmaster_cheatsheet.ht
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/transactions_table_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/financial_dashboard_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/dog_sitting_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
+cp "$PROJECTS/Leetcode/systems-design/worked-examples/pay_by_bank_widget.html" "$REPO/Interview Prep/worked-examples/"
+cp "$PROJECTS/Leetcode/systems-design/worked-examples/plaid-embedded-widgets-overview.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Trip-Planning/korea-october.html"         "$REPO/Trip-Planning/"
 cp "$PROJECTS/Trip-Planning/montreal-worlds-2026.html"  "$REPO/Trip-Planning/"
 cp "$PROJECTS/Cycling Training/DiabloTrainingPlanV3.html" "$REPO/Cycling Training/"

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embedded Bank Widgets — Link vs Pay-by-Bank</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔀</text></svg>">
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b6470; --line:#d9dee5; --bg:#fff;
+    --accent:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+    --purple:#db2777; --chip:#eef2f7; --code:#f4f6f9;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+    max-width:1000px;margin:0 auto;padding:32px 28px;line-height:1.5;font-size:14px;background:var(--bg)}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:17px;margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+  h3{font-size:14px;margin:14px 0 4px;color:var(--accent)}
+  h4{font-size:13px;margin:12px 0 4px;color:var(--purple)}
+  p{margin:6px 0}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  pre{background:var(--code);padding:10px 12px;border-radius:6px;overflow:auto;font-size:12.5px;line-height:1.45}
+  ul{margin:6px 0;padding-left:18px}
+  li{margin:3px 0}
+  table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--chip);font-weight:600}
+  .chip{display:inline-block;background:var(--chip);border-radius:20px;padding:2px 10px;font-size:12px;margin:2px 2px}
+  .tag-g{color:var(--green);font-weight:600}
+  .tag-r{color:var(--red);font-weight:600}
+  .tag-a{color:var(--amber);font-weight:600}
+  .q{font-weight:600;margin-top:10px}
+  .a{color:var(--muted)}
+  .why{background:#f8fafc;border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:8px 12px;margin:10px 0}
+  .why b{color:var(--accent)}
+  .warn{background:#fff7ed;border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:8px 12px;margin:10px 0}
+  .same{background:#f0fdf4;border-left:3px solid var(--green);border-radius:0 6px 6px 0;padding:8px 12px;margin:10px 0}
+  .oneliner{background:var(--chip);border:1px dashed var(--accent);border-radius:6px;padding:8px 12px;margin:10px 0;
+    font-style:italic;color:var(--accent);font-weight:600}
+  .key{background:#fef3c7;color:#b45309;padding:1px 5px;border-radius:4px;font-weight:600}
+  svg{max-width:100%;height:auto}
+  @media print{body{padding:0;font-size:11.5px}h2{margin-top:16px}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>Embedded Bank Widgets — Link vs Pay-by-Bank</h1>
+<p class="sub">One prep for two interview questions · companion to <code>plaid_link_frontend.html</code> and <code>pay_by_bank_widget.html</code></p>
+
+<div class="oneliner">Roughly 70% of either answer is the same design. Learn the shared spine cold, then learn three root differences and let everything else cascade from them. Do not study these as two problems.</div>
+
+<h2>1. How to use this document</h2>
+
+<p>There are two files in this folder that each design one system end to end. This one exists for the failure mode where you have studied both separately and then freeze in the room because you cannot remember which detail belongs to which.</p>
+
+<p>The structure to hold in your head is short.</p>
+<ul>
+  <li><b>A shared spine.</b> Embedding, isolation, OAuth, the nonce, who owns flow state. Identical in both, and it is most of the answer.</li>
+  <li><b>Three root differences.</b> Everything that diverges traces back to one of them. If you can name the root, you can derive the consequence live instead of memorizing it.</li>
+  <li><b>A disambiguation script.</b> Four questions in the first three minutes that tell you which problem you are actually in.</li>
+</ul>
+
+<div class="warn"><b>The trap.</b> Because the front halves are near-identical, it is easy to spend twenty minutes on the shared part and run out of clock before reaching whatever actually distinguishes the problem you were given. Get through the spine briskly and confidently, then spend your depth on the delta.</div>
+
+<h2>2. The shared spine</h2>
+
+<p>Every row here is true of both systems, with the same reasoning and often the same words. This is what you should be able to say without thinking.</p>
+
+<table>
+<tr><th style="width:22%">Concern</th><th>How both do it, and why</th></tr>
+<tr>
+  <td><b>Embedding</b></td>
+  <td>A small JS SDK on the host page injects an <b>iframe served from the provider's origin</b>. Same-origin policy is the isolation boundary, and it works in both directions. The host cannot read the widget's DOM or its token, and the widget cannot read the host's page.</td>
+</tr>
+<tr>
+  <td><b>Host channel</b></td>
+  <td><code>postMessage</code> for lifecycle events. Pin the exact target origin on send, check <code>event.origin</code> against an allowlist on receive, with <b>exact string equality</b>. <span class="tag-r">Never <code>includes</code>, because <code>host.com.attacker.io</code> passes that.</span></td>
+</tr>
+<tr>
+  <td><b>Who owns flow state</b></td>
+  <td>The <b>server</b>. The client renders whatever step the server reports and never asserts a step itself. Illegal transitions are rejected, not ignored. No optimistic advance.</td>
+</tr>
+<tr>
+  <td><b>Creation</b></td>
+  <td>The customer's <b>backend</b> creates the session using a server-held API secret. The browser can never create one. This is identical in both, and Link's version is easy to forget because most diagrams omit the arrow.</td>
+</tr>
+<tr>
+  <td><b>Browser credential</b></td>
+  <td>One short-lived, narrowly scoped bearer token handed down to the iframe. <code>link_token</code> or <code>session_token</code>. Safe in a browser because of <b>what it cannot do</b>, not because it is hidden.</td>
+</tr>
+<tr>
+  <td><b>Bank leg</b></td>
+  <td>OAuth. The bank <b>cannot be framed</b>, since every real bank sends <code>X-Frame-Options: DENY</code> or <code>frame-ancestors 'self'</code>, and credential entry in a third-party iframe is the phishing pattern anyway. So the bank must occupy a top-level browsing context.</td>
+</tr>
+<tr>
+  <td><b>Redirect method</b></td>
+  <td class="tag-a">The redirect back from the bank is <b>always a GET</b>. That is the OAuth spec plus browser behavior on a 302. You do not choose the method, so your callback design has to accommodate it.</td>
+</tr>
+<tr>
+  <td><b>CSRF</b></td>
+  <td>A <b>server-generated, session-bound, single-use nonce</b> on the redirect. Burned with one atomic conditional <code>UPDATE … WHERE used_at IS NULL</code>, asserting one row affected, <b>before</b> the code exchange. A client-generated nonce is worthless.</td>
+</tr>
+<tr>
+  <td><b>Code exchange</b></td>
+  <td>The provider's <b>client secret</b> at the bank buys the access token, server to server. <span class="a">The nonce plays no part in this and is never sent to the token endpoint.</span></td>
+</tr>
+<tr>
+  <td><b>Access token</b></td>
+  <td>Never touches a browser, in either system. Envelope-encrypted under a KMS on the provider's backend.</td>
+</tr>
+<tr>
+  <td><b>Rehydration</b></td>
+  <td>A full redirect destroys the SPA. Two independent recovery paths, a <code>sessionStorage</code> breadcrumb for the same-tab case and the <b>nonce in the URL</b> for the empty-storage or new-tab case. Both systems need this, because both need a mobile path.</td>
+</tr>
+<tr>
+  <td><b>Institution search</b></td>
+  <td>Typeahead over a few thousand rows, identical for every user, cacheable at the CDN. The only genuinely read-heavy endpoint, and in both systems it is the least interesting part. Say so and move on.</td>
+</tr>
+<tr>
+  <td><b>Mobile</b></td>
+  <td>Popups unreliable, app-to-app deep links into the bank's native app, return via universal link. Which is why recovery should key off the <b>server-side nonce lookup</b> rather than client storage.</td>
+</tr>
+<tr>
+  <td><b>Edge cases</b></td>
+  <td>Every state has an error edge. Bank down, nonce mismatch, session expired, user cancels. Rate-limit session creation and OAuth attempts per token, per IP, per customer. Monitor nonce-failure spikes as forged-callback probing.</td>
+</tr>
+</table>
+
+<div class="same"><b>The line that covers half the security questions in either interview.</b> Credentials live only between the user's browser and the bank. Neither we nor the customer ever see them. Say it early and unprompted.</div>
+
+<h2>3. The three root differences</h2>
+
+<p>Everything that diverges traces to one of these. Learn the roots, derive the rest.</p>
+
+<h3>Root 1 — Money moves, so the flow does not end when the user leaves</h3>
+<p>Link's deliverable is ready in seconds, while the user is still watching. Pay-by-bank's real answer arrives <b>one to three days later</b>, long after the tab is closed.</p>
+<p><b>Cascades into.</b> An async state machine with a real gap between <code>authorized</code> and <code>succeeded</code> · settlement webhooks as a load-bearing integration · transactional outbox · at-least-once delivery with retry ladders · a cursor endpoint for missed events · a reconciliation sweeper · a ledger · ACH return codes and who eats them.</p>
+
+<h3>Root 2 — The deliverable is a state, not a credential</h3>
+<p>This is the sharpest one and the one most people miss.</p>
+<ul>
+  <li><b>Link's terminal event is a token handoff.</b> <code>public_token</code> goes to the browser, up to the customer's backend, then a server-to-server exchange for the <code>access_token</code>. The entire three-step gradient exists <b>because a credential has to reach a third party through an untrusted channel.</b></li>
+  <li><b>Pay-by-bank has no <code>public_token</code> equivalent.</b> Nothing is handed to the merchant at all. They get a signed webhook and a <code>GET</code> endpoint. Their integration surface is dramatically smaller.</li>
+</ul>
+<p><b>Also cascades into.</b> An <b>amount</b> exists, which is entirely new attack surface. Idempotency now matters at the money layer, not just at session creation. Risk scoring and underwriting become central rather than absent.</p>
+
+<h3>Root 3 — The context is a live checkout</h3>
+<p>Destroying the host page costs a cart, a half-filled address form, a promo code, and all the merchant's JS state. On an onboarding or settings screen that is annoying. At checkout it is a conversion disaster.</p>
+<div class="warn"><b>Be precise about what kind of difference this is.</b> It is a <b>UX and conversion cost, not a security difference.</b> Both are equally secure, because the bank ends up top-level either way. And you still build the full-redirect rehydration path for mobile, so you do not get to delete Link's hardest deep dive. You are choosing a default, not removing work.</div>
+
+<h2>4. The token gradients, side by side</h2>
+
+<svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Token gradients compared</title>
+  <desc>Plaid Link uses three tokens because a credential must be handed to a third party. Pay-by-bank uses two because nothing is handed over.</desc>
+  <defs>
+    <marker id="tg-arw" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto">
+      <path d="M0,0 L9,3.2 L0,6.4 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <text x="20" y="26" font-size="13" font-family="sans-serif" font-weight="700" fill="#2563eb">Plaid Link — three tokens</text>
+
+  <rect x="20" y="42" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="110" y="63" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">link_token</text>
+  <text x="110" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">entry ticket · browser</text>
+
+  <rect x="270" y="42" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="360" y="63" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">public_token</text>
+  <text x="360" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">inert claim check · browser</text>
+
+  <rect x="520" y="42" width="180" height="52" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.8"/>
+  <text x="610" y="63" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b91c1c">access_token</text>
+  <text x="610" y="79" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b91c1c">SERVER ONLY · long-lived</text>
+
+  <path d="M202,68 L266,68" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
+  <path d="M452,68 L516,68" stroke="#1a1a1a" stroke-width="1.4" marker-end="url(#tg-arw)"/>
+  <text x="234" y="36" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">on success</text>
+  <text x="484" y="30" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">customer backend</text>
+  <text x="484" y="40" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#5b6470">exchanges, s2s</text>
+
+  <text x="722" y="60" font-size="10" font-family="sans-serif" fill="#2563eb" font-weight="600">A credential must reach</text>
+  <text x="722" y="74" font-size="10" font-family="sans-serif" fill="#2563eb" font-weight="600">a third party. Hence the</text>
+  <text x="722" y="88" font-size="10" font-family="sans-serif" fill="#2563eb" font-weight="600">middle step.</text>
+
+  <text x="20" y="150" font-size="13" font-family="sans-serif" font-weight="700" fill="#15803d">Pay-by-bank — two tokens</text>
+
+  <rect x="20" y="166" width="180" height="52" rx="8" fill="#eef2f7" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="110" y="187" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600">session_token</text>
+  <text x="110" y="203" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">one session, one amount</text>
+
+  <rect x="270" y="166" width="180" height="52" rx="8" fill="#fff" stroke="#5b6470" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="360" y="188" font-size="10.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">nothing handed over</text>
+  <text x="360" y="204" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#5b6470">merchant gets a webhook</text>
+
+  <rect x="520" y="166" width="180" height="52" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="1.8"/>
+  <text x="610" y="187" font-size="11.5" text-anchor="middle" font-family="sans-serif" font-weight="600" fill="#b91c1c">access_token</text>
+  <text x="610" y="203" font-size="9.5" text-anchor="middle" font-family="sans-serif" fill="#b91c1c">SERVER ONLY · dies with payment</text>
+
+  <path d="M202,192 L516,192" stroke="#15803d" stroke-width="1.6" marker-end="url(#tg-arw)"/>
+  <text x="722" y="184" font-size="10" font-family="sans-serif" fill="#15803d" font-weight="600">No third party receives</text>
+  <text x="722" y="198" font-size="10" font-family="sans-serif" fill="#15803d" font-weight="600">a credential, so no</text>
+  <text x="722" y="212" font-size="10" font-family="sans-serif" fill="#15803d" font-weight="600">middle token exists.</text>
+
+  <line x1="20" y1="248" x2="940" y2="248" stroke="#d9dee5" stroke-width="1"/>
+  <text x="20" y="270" font-size="10.5" font-family="sans-serif" fill="#5b6470">Blue = safe to leak into a browser, because of what it cannot do. Red = server only, always, in both systems.</text>
+  <text x="20" y="286" font-size="10.5" font-family="sans-serif" fill="#5b6470">Shared rule: every step that mints a stronger credential happens on a server holding a secret.</text>
+</svg>
+
+<div class="why"><b>Why this is the difference to lead with.</b> The token count is not trivia. It tells you the shape of the whole back half of the design. Three tokens means there is a handoff, so you need an exchange endpoint, a customer-side integration step, and a story about what happens if the middle token leaks. Two tokens means the answer is delivered asynchronously instead, so you need webhooks, an outbox, and a reconciliation path. <b>Naming the token count tells the interviewer you know which system you are in.</b></div>
+
+<h2>5. Everything that falls out</h2>
+
+<table>
+<tr><th style="width:24%">Dimension</th><th style="width:38%">Plaid Link</th><th>Pay-by-bank</th></tr>
+<tr><td><b>Terminal deliverable</b></td><td><code>public_token</code> handed to the customer backend</td><td>An async state, delivered by signed webhook</td></tr>
+<tr><td><b>Tokens in the gradient</b></td><td>3</td><td>2</td></tr>
+<tr><td><b>Is there an amount</b></td><td>No</td><td>Yes, and it must be <b>server-asserted</b></td></tr>
+<tr><td><b>Flow completes in</b></td><td>Seconds, synchronously, user watching</td><td class="tag-a">1 to 3 days, asynchronously, user long gone</td></tr>
+<tr><td><b>Webhooks to the customer</b></td><td>Optional. Mostly item lifecycle and re-auth prompts</td><td class="tag-r"><b>Load-bearing.</b> The integration does not function without them</td></tr>
+<tr><td><b>Exactly-once needed at</b></td><td>The nonce burn</td><td>The nonce burn <b>and</b> the debit insert. Two independent mechanisms</td></tr>
+<tr><td><b>The invariant that saves you</b></td><td>Single-use nonce · at most one link</td><td>Single-use nonce · <code>unique(session_id)</code> on <code>payment</code> · at most one debit</td></tr>
+<tr><td><b>Risk and underwriting</b></td><td>Not really present</td><td>Central. Balance check, scoring, loss ledger, fee pricing</td></tr>
+<tr><td><b>Redirect default</b></td><td>Full redirect and rehydrate</td><td>Popup on desktop, full redirect on mobile</td></tr>
+<tr><td><b>Customer integration work</b></td><td>Host a redirect page, re-init the widget, exchange the token</td><td>Create a session, verify a webhook. That is all</td></tr>
+<tr><td><b>Reconciliation job</b></td><td>Not required</td><td class="tag-r">Mandatory. The gap between commit and the rail is not transactional</td></tr>
+<tr><td><b>Access token TTL</b></td><td>Long, often 90 to 180 days with SCA re-auth</td><td>Minutes to hours, dies with the payment</td></tr>
+<tr><td><b>Hardest deep dive</b></td><td>Redirect rehydration and the token gradient</td><td>Settlement, exactly-once at the debit, webhook delivery</td></tr>
+</table>
+
+<h2>6. Two corrections worth internalizing</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Access token TTL follows scope, not product type</h3>
+    <p>It is tempting to say "Link's token is long-lived and pay-by-bank's is short." True in the table above, but it is a <b>consequence of a scope decision, not a property of the product.</b></p>
+    <p>The real axis is <b>does the product need access after the user leaves.</b></p>
+    <ul>
+      <li>Link exists for ongoing account access, so long TTL.</li>
+      <li>Our pay-by-bank token is short <b>only because we scoped out repeat payments.</b> Add stored mandates and it becomes long-lived, and you inherit a <code>PaymentMethod</code> object and merchant-initiated debits with no widget in the flow at all.</li>
+    </ul>
+    <p class="a">State it as the axis, not the fact. The axis survives a follow-up question. The fact does not.</p>
+  </div>
+  <div class="card">
+    <h3>There are two redirect URIs, and people conflate them</h3>
+    <p><b>The bank-facing one must belong to the provider.</b> Not a style choice. It is registered once with each bank, and if every customer registered their own, onboarding one merchant would mean thousands of bank registrations. One provider URI scales, per-customer does not.</p>
+    <p><b>The customer-facing one is the hop home</b> after a full redirect blew away the host page. Link has you host a page and re-initialize with the received URI. Our pay-by-bank design uses a pre-validated <code>return_url</code> stored on the session.</p>
+    <div class="same"><b>The good line.</b> "The bank-facing redirect URI has to be mine, one registration per bank. Whether there is a second hop back to the customer depends entirely on whether I destroyed their page, which is why the popup removes an entire integration step for them."</div>
+  </div>
+</div>
+
+<h2>7. API shape, which applies to both</h2>
+
+<p>Both systems expose a customer-backend-to-provider API authenticated with a server secret. The question of what protocol comes up in either interview.</p>
+
+<div class="why"><b>The axis is not "is it server to server."</b> That tells you nothing. The axis is <b>do you control the client.</b> You do not. Your callers are on PHP 7, Ruby, a Shopify app, Java 8, and someone's Node script.</div>
+
+<h3>REST at the customer edge</h3>
+<table>
+<tr><th style="width:26%">Concern</th><th>Why REST wins here</th></tr>
+<tr><td>Client diversity</td><td>HTTP and JSON work in every language with zero tooling. gRPC needs codegen, distributed proto files, and HTTP/2 on the caller's side</td></tr>
+<tr><td>Debuggability</td><td><code>curl</code>, Postman, request logs. These integrations get debugged at 2am by a customer's developer you will never meet. gRPC is binary</td></tr>
+<tr><td>Network reality</td><td>Corporate proxies, WAFs, and older load balancers speak HTTP/1.1 natively. gRPC through enterprise networks is a real support burden</td></tr>
+<tr><td>Convention fit</td><td><code>Idempotency-Key</code>, HMAC-signed webhooks, and cursor pagination are all HTTP-native conventions the industry already converged on</td></tr>
+<tr><td>Familiarity</td><td>Stripe, Adyen, Plaid, Square are all REST. Novelty is a cost your customers pay</td></tr>
+</table>
+
+<h3>gRPC behind your own API layer</h3>
+<p>The call from your API service to the ledger, the risk scorer, or the bank-partner adapter. You control both ends, volume is high, latency matters, and strong typing earns its keep.</p>
+<div class="oneliner">The two-tier answer is the good one. REST at the edge because I do not control the client, gRPC internally because I do.</div>
+
+<h3>GraphQL, no</h3>
+<p>These are a small fixed set of resources with mutations that must be idempotent, auditable, and individually rate-limited. GraphQL's value is flexible client-driven queries over a rich graph, which you do not have. You would pay for a query planner, harder rate limiting, murkier idempotency semantics, and a worse audit trail, and get nothing back.</p>
+
+<h3>Action endpoints beat a generic PATCH</h3>
+<p><code>POST /payment_sessions/{id}/cancel</code> is not strictly RESTful. A purist wants <code>PATCH</code> with <code>{ state: "canceled" }</code>. <b>The action endpoint is correct and the purist version is wrong here.</b></p>
+<p>A <code>PATCH</code> on <code>state</code> implies the client may set arbitrary states. You would immediately need a whitelist of permitted transitions, which is the action endpoints again with extra steps and a bigger blast radius if the whitelist is wrong.</p>
+<p class="a">Same principle as everywhere else in both designs. <b>The client names an intent, the server decides what it means.</b> Stripe has <code>/cancel</code>, <code>/capture</code>, <code>/confirm</code> for exactly this reason.</p>
+
+<h4>What customers actually use</h4>
+<p>Ship official SDKs wrapping the REST API. Typed methods, retries with backoff, idempotency key generation, webhook signature verification. <b>The SDK gives ergonomics, REST underneath gives universality</b>, and anyone in a language you do not support can still <code>curl</code> it. Worth noting that webhooks are also plain HTTP POST, so the customer needs exactly one protocol in both directions.</p>
+
+<h2>8. The first three minutes — which problem am I in</h2>
+
+<p>The two designs are near-identical until the OAuth leg completes, then they diverge hard. Ask these before you commit, because getting it wrong costs you the back half of the interview.</p>
+
+<table>
+<tr><th style="width:44%">Ask</th><th>What the answer decides</th></tr>
+<tr>
+  <td><b>"Does money actually move, or am I returning a credential the customer uses later?"</b></td>
+  <td>Root 1 and Root 2 both hinge on this. It is the single highest-information question in either interview.</td>
+</tr>
+<tr>
+  <td><b>"Is there an amount, and who asserts it?"</b></td>
+  <td>Whether the customer's server secret is load-bearing for correctness or just for auth. Whether you need money-layer idempotency.</td>
+</tr>
+<tr>
+  <td><b>"What is the customer's terminal event, a token or a notification?"</b></td>
+  <td>Two-token or three-token gradient. Whether webhooks are optional or the whole integration.</td>
+</tr>
+<tr>
+  <td><b>"One-shot, or does the user come back?"</b></td>
+  <td>Access token TTL, and whether a mandate or item store exists at all. Scope this out loud early or it ambushes you at minute 50.</td>
+</tr>
+<tr>
+  <td><b>If pay-by-bank: "Which rail, and do we underwrite the return risk?"</b></td>
+  <td>Whether <code>succeeded</code> is terminal, whether you need a risk-hold state, and whether the rail is pull-based (ACH) or push-only (RTP, FedNow), which changes the state machine entirely.</td>
+</tr>
+</table>
+
+<h2>9. Where to spend your depth</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h3>If it is Link</h3>
+    <ul>
+      <li><b>Redirect rehydration.</b> The SPA has amnesia. Two independent recovery paths. This is the core problem of that design.</li>
+      <li><b>The three-token gradient</b> and why the middle token can safely sit in a browser.</li>
+      <li><b>The nonce.</b> Server-generated, single-use, atomic burn, and why a client-side compare proves nothing.</li>
+      <li><b>Guarded POST versus safe GET</b> and why refresh, back, and double-click are all safe.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>If it is pay-by-bank</h3>
+    <ul>
+      <li><b>Settlement.</b> The gap between the user leaving and the rail answering. This is what the question is actually testing.</li>
+      <li><b>Exactly-once at the debit.</b> The guarded insert, the transactional outbox, and the honest admission that the commit-to-rail gap needs a sweeper.</li>
+      <li><b>Webhook delivery.</b> At-least-once, deliberately unordered, signed, with a pull-based recovery path.</li>
+      <li><b>The popup</b>, and why it is a conversion decision rather than a security one.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>10. Recap script for either</h2>
+
+<div class="card a">
+  <p><b>The shared opening, valid for both.</b> "The customer's backend creates a session with a server secret, which is what keeps the browser from asserting anything that matters. That returns a short-lived scoped token, safe to hand to the browser because of what it cannot do. Their page loads our SDK, which injects an iframe from our origin, and that iframe is the isolation boundary in both directions. The bank cannot be framed, so the OAuth leg has to occupy a top-level context. We send a server-generated single-use nonce out with the redirect, and on the way back we burn it with one atomic conditional update before exchanging the code, so a double-click or a prefetch cannot exchange twice. The server owns the flow state throughout and the client only renders it."</p>
+  <p><b>Then Link continues.</b> "On success the widget emits a <code>public_token</code>, which is inert on its own. The customer's backend exchanges it server-to-server for the <code>access_token</code>, which never touches a browser. The whole middle token exists because a credential has to cross an untrusted channel to reach a third party."</p>
+  <p><b>Or pay-by-bank continues.</b> "Coming back from the bank means consent, not payment. We check balance, score risk, then insert a payment row whose unique constraint on session id is the real double-charge defense, writing the outbox event in the same transaction. The rail answers in days, so the merchant learns the outcome from a signed, at-least-once, deliberately unordered webhook, backed by a cursor endpoint because a push-only integration is never complete. Nothing is ever handed to the merchant, which is why there is no third token here."</p>
+</div>
+
+<p class="sub" style="margin-top:22px">Four lines that carry both designs. <b>The server owns the flow state, the client only renders it.</b> · <b>The client is a courier, not a judge.</b> · <b>Every credential the browser holds is safe to leak.</b> · <b>Push the invariant down to the layer that can enforce it.</b></p>
+
+</body>
+</html>
