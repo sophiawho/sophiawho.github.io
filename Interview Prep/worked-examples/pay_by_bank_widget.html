@@ -553,7 +553,7 @@ WebhookOutbox                        -- exists only to make delivery safe
   <td><code>POST /v1/payment_sessions</code><br>
       <code>{ amount_minor: 4732,<br>&nbsp;&nbsp;currency: "USD",<br>&nbsp;&nbsp;merchant_reference: "ord_991",<br>&nbsp;&nbsp;return_url: "…" }</code><br>
       <span class="a">This is the <b>only</b> moment the amount enters the system, and it arrives over a secret-authenticated channel.</span></td>
-  <td class="tag-g">mints <code>session_id</code> + <code>session_token</code> (30 min)</td>
+  <td class="tag-g">mints <code>session_id</code> + <code>session_token</code> (30 min)<br>row is written with <code>session.status = created</code></td>
   <td><code>merchant_api_secret</code> valid · <code>Idempotency-Key</code> unseen or same hash · <code>return_url</code> on the origin allowlist · <code>unique(merchant_id, merchant_reference)</code></td>
 </tr>
 <tr>
@@ -577,7 +577,7 @@ WebhookOutbox                        -- exists only to make delivery safe
 <tr>
   <td>4</td><td>iframe → us</td>
   <td><code>POST /widget/session/institution</code><br><code>{ institution_id: "chase" }</code></td><td>—</td>
-  <td>state is <code>created</code>. <b>Client proposes, server persists.</b> → <code>widget_opened</code></td>
+  <td><code>session.status == created</code>, then transition to <code>widget_opened</code>. <b>Client proposes, server persists.</b> <span class="a">Nothing is created here, the status already existed from step 0.</span></td>
 </tr>
 
 <tr><td colspan="5" style="background:var(--chip)"><b>OAuth — where the nonce lives</b></td></tr>
@@ -590,7 +590,7 @@ WebhookOutbox                        -- exists only to make delivery safe
   <td>6</td><td>iframe → us</td>
   <td><code>POST /widget/session/authorize</code></td>
   <td class="tag-g">mints <code>oauth_state</code>, 10 min, <code>used_at = NULL</code>. Returns the bank URL with it embedded.</td>
-  <td>state is <code>widget_opened</code> · any previous nonce for this session is invalidated</td>
+  <td><code>session.status == widget_opened</code> · any previous nonce for this session is invalidated. <b>Minted here and not at step 0 on purpose, see below.</b></td>
 </tr>
 <tr>
   <td>7</td><td>iframe, locally</td>
@@ -687,6 +687,7 @@ WebhookOutbox                        -- exists only to make delivery safe
     <p><b>The merchant is absent from steps 2 through 21.</b> They create a session and they receive a webhook. That total absence from the OAuth leg is the product.</p>
     <p><b><code>window.close()</code> is the last thing, not the first.</b> The popup is the only browsing context holding the nonce, so it has to stay alive long enough to hand it over. Closing on the bank's redirect would strand the flow.</p>
     <p><b>Every credential upgrade happens on a server.</b> Step 0 turns a secret into a scoped token, step 12 turns a code into an access token. Neither could happen in a browser. That is the gradient in motion.</p>
+    <div class="warn"><b>Naming collision, and it will bite you live.</b> The OAuth spec forces the nonce to be called <code>state</code> in the URL. If your session table also has a <code>state</code> column you will say the word twice meaning two things and confuse yourself mid-sentence. <b>Name the session column <code>status</code></b>, as Stripe does, and reserve <code>state</code> for the nonce. Cheap fix, real payoff under pressure.</div>
   </div>
   <div class="card">
     <h3>Where the nonce has physically been</h3>
@@ -700,6 +701,9 @@ WebhookOutbox                        -- exists only to make delivery safe
       <tr><td>POST body, then burned</td><td>11</td></tr>
     </table>
     <p class="a">Never in <code>localStorage</code>. Never in the merchant page. <b>The browser is the transport, and the nonce exists precisely because that transport is an untrusted courier.</b></p>
+    <h4>Why step 6 and not step 0</h4>
+    <p>The nonce is scoped to <b>one OAuth attempt</b>, not one session. A 30-minute session can produce several attempts. User picks Chase, bails, picks Wells Fargo. Bank times out, they retry.</p>
+    <p>Minting at step 0 breaks two things. The nonce would have to survive the full 30 minutes, stretching a deliberately 10-minute window. And a retry would reuse an already-burned nonce, so you would either fail the retry or weaken single-use, which is the property protecting you. <b>Fresh per attempt gives you retry safety for free, and the new nonce invalidates the old one so an abandoned OAuth URL cannot be resumed by anyone who captured it.</b></p>
   </div>
 </div>
 
