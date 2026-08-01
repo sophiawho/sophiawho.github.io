@@ -376,8 +376,14 @@ payment_session.expired</pre>
   <text x="120" y="150" font-size="9.5" font-family="sans-serif" fill="#2563eb">8. BroadcastChannel, same-origin,</text>
   <text x="120" y="163" font-size="9.5" font-family="sans-serif" fill="#2563eb">then window.close()</text>
 
-  <path d="M380,304 L380,408" stroke="#1a1a1a" stroke-width="1.3" marker-end="url(#a-k)"/>
-  <text x="248" y="360" font-size="9.5" font-family="sans-serif" fill="#5b6470">9. session_token calls + SSE</text>
+  <path d="M452,304 L452,408" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#a-k)"/>
+  <text x="286" y="344" font-size="9.5" font-family="sans-serif" fill="#5b6470">9. POST /confirm</text>
+  <text x="286" y="356" font-size="9" font-family="sans-serif" fill="#5b6470">balance, risk, guarded insert</text>
+  <text x="286" y="368" font-size="9" font-family="sans-serif" fill="#5b6470">(earlier widget calls ride here too)</text>
+
+  <path d="M528,408 L528,306" stroke="#2563eb" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#a-b)"/>
+  <text x="540" y="352" font-size="9.5" font-family="sans-serif" fill="#2563eb">SSE state stream</text>
+  <text x="540" y="364" font-size="9" font-family="sans-serif" fill="#5b6470">open from widget boot</text>
 
   <path d="M632,428 L758,428" stroke="#b45309" stroke-width="1.6" marker-end="url(#a-a)"/>
   <text x="654" y="422" font-size="9.5" font-family="sans-serif" fill="#b45309">10. debit</text>
@@ -413,8 +419,7 @@ payment_session.expired</pre>
     <p><b>The partial unique index.</b> User tries Chase, insufficient funds, tries Wells Fargo. One session, two attempts, one order, one reference. A plain <code>unique(session_id)</code> would forbid the retry.</p>
     <div class="why"><b>The pattern.</b> Push the invariant down to the layer that can enforce it. If-statements are hope, constraints are guarantees.</div>
   </div>
-</div><h3>On credentials we chose not to have</h3>
-
+</div>
 <h3>Why REST at the merchant edge</h3>
 <p>REST rather than gRPC because <b>we do not control the client.</b> Merchants are on PHP 7, Ruby, Java 8. gRPC belongs behind our own API layer, where we control both ends. The two-tier answer is the good one. <b>REST at the edge because I do not control the client, gRPC internally because I do.</b> GraphQL loses here, because a small fixed set of auditable idempotent mutations gets nothing from a query planner and pays for it in rate limiting and audit clarity.</p>
 <p class="a"><b>And action endpoints beat a generic PATCH.</b> <code>POST /payment_sessions/{id}/cancel</code> is not strictly RESTful, but <code>PATCH</code> with <code>{state}</code> implies the client may set arbitrary states. You would need a transition whitelist immediately, which is the action endpoints again with a bigger blast radius. Stripe has <code>/cancel</code> and <code>/confirm</code> for this reason.</p>
