@@ -194,13 +194,13 @@ handler.open();  handler.destroy();</pre>
 
 
 <h3>Webhooks — us to the merchant</h3>
-<pre>payment.succeeded          <span class="tag-g">seconds after Pay · terminal · may ship</span>
-payment.failed             <span class="a">risk declined, or the bank said no</span>
+<pre>payment_session.succeeded          <span class="tag-g">seconds after Pay · terminal · may ship</span>
+payment_session.failed             <span class="a">risk declined, or the bank said no</span>
 payment_session.canceled
 payment_session.expired</pre>
-<p class="a">No <code>payment.returned</code>, because we underwrite. No <code>payment_session.completed</code>, because it would arrive three seconds before something actionable and <b>every event is a permanent API commitment.</b></p>
+<p class="a">No <code>payment_session.returned</code>, because we underwrite. No <code>payment_session.completed</code>, because it would arrive three seconds before something actionable and <b>every event is a permanent API commitment.</b></p>
 
-<div class="why"><b>Naming rule.</b> Name the event after the object whose state changed, with a verb that fits that object. <b>Sessions complete, expire, or cancel. Payments succeed, fail, or return.</b> <code>payment_session.succeeded</code> should not exist, because a session cannot move money.</div>
+<div class="why"><b>One object, one namespace.</b> The merchant sees exactly one thing from creation to settlement, so every event carries the same <code>payment_session.</code> prefix. Our internal per-attempt <code>Payment</code> rows keep their own name and never surface. <span class="a">A purist would object that a session cannot succeed, only money can. That is linguistics, not engineering. <b>A consistent public namespace beats a semantically pure one</b>, and mixed prefixes would tell merchants there are two objects when there is only one.</span></div>
 
 <h4>The merchant's total obligation</h4>
 <p><b>Two callbacks</b> they must implement, <code>onSuccess</code> and <code>onExit</code>. <b>Two endpoints</b>, one they call and one they host. The hosted webhook handler is most of the work and it is the only thing that mutates their order. <b>They could not observe a bank credential if they tried.</b></p><h2>5. The payment state machine</h2>
@@ -542,7 +542,7 @@ payment_session.expired</pre>
 </tr>
 <tr>
   <td>21</td><td>us → merchant backend</td>
-  <td>signed webhook <code class="tag-g">payment.succeeded</code>, from the outbox</td>
+  <td>signed webhook <code class="tag-g">payment_session.succeeded</code>, from the outbox</td>
   <td>HMAC with the <code>webhook_signing_secret</code></td>
   <td class="tag-g"><b>Fires HERE, seconds after Pay, not in three days.</b> Risk passed and the rail accepted, so we make the promise. Merchant may ship.</td>
 </tr>
@@ -774,13 +774,13 @@ COMMIT;
 <div class="grid2">
   <div class="card">
     <h3 class="tag-g">Send these</h3>
-<pre>payment.succeeded    <span class="a">seconds after Pay · terminal · may ship</span>
-payment.failed       <span class="a">risk declined, or bank said no</span>
+<pre>payment_session.succeeded    <span class="a">seconds after Pay · terminal · may ship</span>
+payment_session.failed       <span class="a">risk declined, or bank said no</span>
 payment_session.canceled
 payment_session.expired</pre>
     <p>The rule is <b>every server-confirmed transition a merchant could act on</b>. Ship the goods, send the receipt, release the cart.</p>
-    <div class="warn"><b>There is deliberately no <code>payment_session.completed</code>.</b> It would mean "the user finished the widget" and would arrive perhaps three seconds before <code>payment.succeeded</code> tells them something actionable. It buys nothing, and every event is a permanent API commitment. <span class="a">The one case for adding it back is a degraded path where the risk decision is not instant, such as a manual review queue or the balance API being down.</span></div>
-    <p class="a">Also no <code>payment.returned</code>, by the same logic as the state machine. We underwrite, so a return is our problem and the merchant never hears about it.</p>
+    <div class="warn"><b>There is deliberately no <code>payment_session.completed</code>.</b> It would mean "the user finished the widget" and would arrive perhaps three seconds before <code>payment_session.succeeded</code> tells them something actionable. It buys nothing, and every event is a permanent API commitment. <span class="a">The one case for adding it back is a degraded path where the risk decision is not instant, such as a manual review queue or the balance API being down.</span></div>
+    <p class="a">Also no <code>payment_session.returned</code>, by the same logic as the state machine. We underwrite, so a return is our problem and the merchant never hears about it.</p>
   </div>
   <div class="card">
     <h3 class="tag-r">Do not send these</h3>
@@ -788,7 +788,7 @@ payment_session.expired</pre>
 institution.selected
 bank_auth.started</pre>
     <p>That is telemetry, not integration. Sending it trains merchants to ignore your events, and every event you send is an event you must keep sending forever. <b>A webhook is a permanent API commitment.</b></p>
-    <p class="a">Note what is missing given our scope. There is <b>no <code>payment.returned</code></b> to the merchant, because we decided <code>succeeded</code> is terminal and we eat returns. Internally we still record it.</p>
+    <p class="a">Note what is missing given our scope. There is <b>no <code>payment_session.returned</code></b> to the merchant, because we decided <code>succeeded</code> is terminal and we eat returns. Internally we still record it.</p>
   </div>
 </div>
 
