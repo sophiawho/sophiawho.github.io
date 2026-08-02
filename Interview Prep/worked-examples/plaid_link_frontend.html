@@ -179,38 +179,41 @@
 </svg>
 
 <h2>3. Data model and credentials</h2>
-<div class="grid2">
-  <div class="card">
-    <h3><code>LinkSession</code> — server owns it</h3>
-    <p class="a">One row the server owns; must survive the OAuth redirect. Client holds only the <code>link_token</code> breadcrumb that resolves to it.</p>
-    <ul>
-      <li><code>session_id</code> — internal PK (~4h lifetime), never rides a bank redirect URL</li>
-      <li><code>link_token</code> — client-facing bearer credential, short-lived</li>
-      <li><code>current_step</code> — <span class="key">authoritative FlowState</span>, client renders, never asserts</li>
-      <li><code>institution_id</code>, <code>selected_accounts</code> — client proposes, server persists</li>
-      <li><span class="nonce">oauth_state_id</span> — <b>not a column, a FK to the current <code>OauthState</code> row.</b> A session can have several OAuth attempts (cancel, retry, bank step-up), so one overwritable column loses the audit trail and cannot tell a replayed nonce from a forged one</li>
-    </ul>
-    <p class="a"><b>Everything above is ephemeral.</b> It exists to get one browser through one flow and is garbage after ~4h. The entities below are what the system actually keeps.</p>
-  </div>
 
-  <div class="card">
-    <h3>Durable entities — what outlives the session</h3>
-    <ul>
-      <li><code>Item</code> — the permanent record of <b>one user's link to one institution</b>. Owns the account list and the customer binding. This is the only entity both chains touch, and the thing <code>public_token</code> and the customer's <code>access_token</code> are handles <i>to</i>.</li>
-      <li><code>BankAccessToken</code> — the live credential for acting on an Item, keyed by <code>item_id</code>, ciphertext plus KMS key reference. <b>Split from <code>Item</code> deliberately</b>, so ordinary Item reads never pull a bank credential into memory, and so re-auth and key rotation are row inserts rather than schema changes. One current row per Item, many over the Item's life.</li>
-      <li><code>PublicToken</code> — a row, not a column, because single use means it needs a <code>used_at</code> to burn. Same discipline as the nonce.</li>
-    </ul>
-  </div>
+<p><b>Two tables carry the design, and they have opposite lifetimes.</b> <code>LinkSession</code> is scaffolding that exists to get one browser through one flow. <code>Item</code> is the thing the whole system is actually for. Five more exist only to make retries and credentials safe, and those need a name and a sentence, not a column list.</p>
 
-  <div class="card">
-    <h3>Control tables — the ones that make retries safe</h3>
-    <ul>
-      <li><span class="nonce">OauthState</span> — one row per OAuth attempt, holding <code>used_at</code> and <code>expires_at</code>. <b>The callback's only route from <code>state</code> to <code>session_id</code></b>, and the row is claimed and read in a single conditional <code>UPDATE … RETURNING</code>.</li>
-      <li><code>IdempotencyKey</code> — key, scope, request fingerprint, stored response. Without it, "Idempotency-Key on mutating POSTs" is a claim with nowhere to live.</li>
-      <li><code>WebhookOutbox</code> — written in the same transaction as the state change, delivered by a separate worker. The safety net for every flow that finishes in a context the original page did not survive.</li>
-    </ul>
-  </div>
-</div>
+<pre>LinkSession                     <span class="a">-- EPHEMERAL. garbage after ~4h.</span>
+  session_id                    <span class="a">-- internal PK. NEVER rides a bank redirect URL.</span>
+  customer_id, link_token       <span class="a">-- link_token = the client's only breadcrumb</span>
+  current_step    enum          <span class="a">-- authoritative FlowState. client renders, never asserts.</span>
+  institution_id                <span class="a">-- client proposes, server persists</span>
+  selected_accounts
+  item_id                       <span class="a">-- NULL on a first link. SET for update mode, section 10.</span>
+  expires_at                    <span class="a">-- created_at + ~4h</span>
+  <span class="tag-r">-- no oauth_state column. it is a FK to OauthState, one row per ATTEMPT.</span>
+  <span class="tag-r">-- cancel + retry + bank step-up all make several. an overwritable column</span>
+  <span class="tag-r">-- loses the audit trail and cannot tell a replay from a forgery.</span>
+
+Item                            <span class="a">-- DURABLE. the only entity both token chains touch.</span>
+  item_id, customer_id          <span class="a">-- what public_token and access_token are handles TO</span>
+  institution_id, accounts
+  status          enum          <span class="a">-- GOOD | LOGIN_REQUIRED | PENDING_EXPIRATION | REVOKED</span>
+  created_by_session_id
+  created_at
+
+  CREATE UNIQUE INDEX one_item_per_session ON item (created_by_session_id);
+  <span class="tag-r">-- at most one Item per LinkSession. this IS the duplicate-link defense,</span>
+  <span class="tag-r">-- and it is a PLAIN unique, not partial: a failed OAuth attempt never</span>
+  <span class="tag-r">-- creates an Item at all, so there is nothing to retry around.</span></pre>
+
+<table>
+<tr><th style="width:24%">Support table</th><th>Exists only to</th></tr>
+<tr><td><code>BankAccessToken</code></td><td>Hold the live bank credential, KMS-encrypted, keyed by <code>item_id</code>. <b>Split from <code>Item</code> deliberately</b>, so ordinary Item reads never pull a credential into memory and re-auth is a row insert. One current row per Item, many over its life.</td></tr>
+<tr><td><span class="nonce">OauthState</span></td><td>Make the OAuth callback safe. One row per attempt, single-use, short TTL. <b>The callback's only route from <code>state</code> to <code>session_id</code></b>, claimed and read in one conditional <code>UPDATE … RETURNING</code>.</td></tr>
+<tr><td><code>PublicToken</code></td><td>Be burnable. A row rather than a column, because single use needs a <code>used_at</code>. Same discipline as the nonce.</td></tr>
+<tr><td><code>IdempotencyKey</code></td><td>Make customer retries safe. Stores key, request hash, and the response to replay.</td></tr>
+<tr><td><code>WebhookOutbox</code></td><td>Make delivery safe. Written in the same transaction as the state change, drained by a worker. The safety net for every flow that ends in a context the original page did not survive.</td></tr>
+</table>
 
 <div class="why"><b>A bank token expiring does not end an Item.</b> The credential and the relationship have different lifetimes. When the bank token expires or the bank invalidates it, the Item moves to a degraded status like <code>LOGIN_REQUIRED</code> and a re-auth mints a fresh <code>BankAccessToken</code> against the <i>same</i> <code>item_id</code>. <span class="a">This is the whole point of splitting them. If the Item died with its token, every routine re-auth would force the customer to store a new <code>access_token</code> and re-map their own user records, and no integration would survive contact with a password change.</span> The one thing that <b>does</b> terminate an Item is the user or the bank revoking consent, which is a decision upstream of you rather than a credential going stale.</div>
 
