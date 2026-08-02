@@ -418,7 +418,96 @@ payment_session.expired</pre>
 
 <p class="sub" style="margin-top:22px">Three lines to keep in your head. <b>The server owns the money state, the client only renders it.</b> · <b>The client is a courier, not a judge.</b> · <b>Push the invariant down to the layer that can enforce it.</b></p>
 
-<div class="part">PART TWO — deep dives <span>· sorted by how likely you are to be asked · lead with 8, 9, 10</span></div><h2>8. The happy path, hop by hop</h2>
+<div class="part">PART TWO — deep dives <span>· sorted by how likely you are to be asked · lead with 8, 9, 10</span></div><h2>8. Isolation and the three security boundaries</h2>
+
+<p>They are separate mechanisms solving separate problems. Do not blur them.</p>
+<div class="grid2">
+  <div class="card">
+    <h3>1. The iframe</h3>
+    <p>Same-origin policy is what stops the merchant page from reading the widget's DOM, JS, or the <code>session_token</code> in its memory. It also stops the widget from reading their page. It is a two-way wall and both directions matter for a merchant's own security review.</p>
+    <h3>2. postMessage</h3>
+    <p>Pin the exact target origin on send. On receive, <b>three checks and a schema</b>, in this order.</p>
+    <ul>
+      <li><code>e.origin</code> — <b>exact string equality</b> against the bound origin</li>
+      <li><code>e.source === window.parent</code> — origin says <i>where from</i>, source says <i>which window</i>. Different questions.</li>
+      <li><code>msg.sessionId</code> — discards a stale widget instance</li>
+      <li>Then parse against a <b>schema</b>. A frame is untrusted input like any request body. Unknown types dropped, nothing spread into state.</li>
+    </ul>
+    <p class="tag-r">Never <code>origin.includes('merchant.com')</code>. <code>merchant.com.attacker.io</code> passes that check.</p>
+  </div>
+  <div class="card">
+    <h3>3. The CSRF nonce</h3>
+    <p>Covered in section 10. Server-generated, session-bound, single-use, burned atomically.</p>
+    <h3>Plus: the origin allowlist</h3>
+    <p>Each merchant registers their domains. The widget refuses to boot if the embedding origin is not on the list, enforced with a <code>frame-ancestors</code> CSP on the widget document itself.</p>
+    <p class="a">Without this, any site that gets hold of a live <code>session_token</code> could embed your widget and run a convincing branded phishing page against a real session. This is a real attack and it is easy to forget, and it is the reason a browser-scoped token is not sufficient on its own.</p>
+    <p class="a"><b>Exact origins, never <code>https://*.merchant.com</code>.</b> A wildcard means one forgotten marketing subdomain on someone else's CMS, taken over, becomes a live embed of your payment widget. Let them register five exact origins instead.</p>
+  </div>
+</div>
+
+<h3>Bootstrapping the channel — the chicken-and-egg <span class="tag-g">the part most people skip</span></h3>
+<p>To validate an incoming <code>postMessage</code> the widget needs the allowlist. To fetch the allowlist it needs the <code>session_token</code>. <b>So how does the token reach the widget?</b> Not by <code>postMessage</code>, because that is precisely the message it cannot yet validate.</p>
+
+<div class="why"><b>Note the asymmetry, it explains where all the work lives.</b> The host SDK has it easy — it is our code, it set the iframe <code>src</code>, so the widget origin is a build-time constant it can check from the first message. <span class="key">The widget has no equivalent. It does not inherently know who framed it.</span> Every piece of bootstrapping complexity is on the widget side.</div>
+
+<p><b>Token rides the URL <i>fragment</i>, not a query param.</b> That distinction is the whole reason for the choice. A query param is sent in the request line, so it lands in our access logs, the CDN's logs, and any <code>Referer</code> header. Everything after the <code>#</code> is never transmitted, so the token exists only in the browser — and we strip it immediately so it is not left in history either.</p>
+<p class="a">The alternative is a server-templated widget document, where the URL carries an opaque per-session id and the server injects config into the HTML. Fewer round trips, same trust model. Having considered both is better than picking one silently.</p>
+
+<pre>// widget boot — before anything renders or sends
+const token = new URLSearchParams(location.hash.slice(1)).get('t');
+history.replaceState(null, '', location.pathname);       <span class="a">// strip it</span>
+
+const cfg = await fetch('/v1/widget/session/config', {
+  headers: { Authorization: `Bearer ${token}` }
+}).then(r =&gt; r.json());
+
+<span class="tag-g">// 1. BIND ONCE.</span> One value for this widget's life, never a list.
+const PARENT = cfg.allowed_parent_origin;
+
+<span class="tag-g">// 2. VERIFY THE EMBEDDER</span> where the browser will tell us.
+const actual = location.ancestorOrigins?.[0];
+if (actual &amp;&amp; actual !== PARENT) teardown('EMBED_ORIGIN_MISMATCH');
+
+<span class="tag-g">// 3. PIN ON SEND.</span>
+const send = (type, payload) =&gt;
+  window.parent.postMessage({ type, sessionId: cfg.session_id, ...payload }, PARENT);
+
+<span class="tag-g">// 4. GATE ON RECEIVE.</span>
+window.addEventListener('message', e =&gt; {
+  if (e.origin !== PARENT) return;
+  if (e.source !== window.parent) return;
+  const msg = parseFrame(e.data);                        <span class="a">// schema validated</span>
+  if (!msg || msg.sessionId !== cfg.session_id) return;
+  handle(msg);
+});
+
+<span class="tag-g">// 5. ONLY NOW open the channel.</span>
+send('READY');</pre>
+
+<p><b>The ordering is the point.</b> Nothing is sent and nothing is accepted until the origin is bound, which makes <code>READY</code> mean "the handshake completed" rather than "the DOM loaded".</p>
+<p class="a"><b>Bind once, singular.</b> <code>cfg</code> may list several registered domains for that merchant, but we resolve to the one that matched at boot and freeze it. A session is one page load. Keeping a live list means a second frame could talk to us later.</p>
+
+<div class="warn"><b>CSP is the belt, JS is the suspenders.</b> <code>frame-ancestors</code> is served on the widget document, generated per session from that merchant's registered domains. The browser enforces it <b>before a line of our JS runs</b>, and it validates the <b>entire ancestor chain</b> — which is what stops <code>evil.com</code> framing <code>merchant.com</code> framing us. <span class="tag-r">The JS check does not stop that</span>, because <code>ancestorOrigins[0]</code> is only the immediate parent and it passes. JS is there for when a proxy strips the header or an old build never set it, and to give a clean error state instead of a silently blank frame. <span class="a">Firefox does not implement <code>ancestorOrigins</code> at all, so JS could never be the primary defence here.</span></div>
+
+<p class="a"><b>Report the mismatch.</b> A failed origin check is either a merchant who added a checkout domain and forgot to register it, or someone running our widget where they should not. The widget behaves identically in both cases and renders nothing, but firing telemetry turns the first into a five-minute support fix instead of an outage, and the second into a signal worth alerting on.</p>
+
+<h3>The postMessage frames, in full</h3>
+<table>
+<tr><th style="width:16%">Frame</th><th style="width:14%">Direction</th><th>Payload and why</th></tr>
+<tr><td><code>READY</code></td><td>widget → host</td><td><code>{sessionId}</code>. Booted, stop the spinner.</td></tr>
+<tr><td><code>RESIZE</code></td><td>widget → host</td><td><code>{sessionId, height}</code>. The parent sets the iframe height and cannot know our content height. Fires on every step change. <b>Easy to forget, very visible when missing.</b></td></tr>
+<tr><td><code>EVENT</code></td><td>widget → host</td><td><code>{sessionId, name}</code>. Telemetry for their funnel analytics.</td></tr>
+<tr><td><code>SUCCESS</code></td><td>widget → host</td><td><code>{sessionId, status, amountMinor, currency, institutionName, accountLast4}</code>. <b class="tag-r">Display data only. No credential.</b></td></tr>
+<tr><td><code>EXIT</code></td><td>widget → host</td><td><code>{sessionId, status, errorCode?}</code>. Closed, expired, or failed.</td></tr>
+<tr><td><code>OPEN</code> / <code>CLOSE</code></td><td>host → widget</td><td><code>{}</code>. Merchant's own button or dismiss control.</td></tr>
+</table>
+<p class="a">Every frame carries <code>sessionId</code> so a message from a stale widget instance is discarded rather than applied.</p>
+
+<div class="warn"><b>Two things to say about <code>SUCCESS</code>.</b> It carries no credential, unlike Link's <code>SUCCESS</code> which carries a <code>public_token</code>, because nothing is handed to the merchant here. And <b><code>onSuccess</code> is permission to render a confirmation screen, not permission to ship.</b> Their backend acts on the webhook, never on this callback.</div>
+
+<div class="why"><b>What the merchant never sees.</b> The entire OAuth leg. The popup opening, the bank redirect, the callback, the state coming home on our SSE stream. That conversation is between our iframe and our popup, both on our origin. From the merchant page's view the widget goes quiet for ninety seconds and then emits <code>SUCCESS</code>.</div>
+
+<h2>9. The happy path, hop by hop</h2>
 
 <p>Everything above is structure. This is the thing to be able to narrate without notes, because an interviewer will ask you to walk the flow and every gap shows up here. Three columns matter at every step. <b>Who is calling, what credential gets minted or spent, and what gets checked.</b></p>
 
@@ -612,7 +701,7 @@ done pg  → close()   <span class="a">iframe already learned via SSE</span></pr
 </div>
 <p class="a"><b>How to answer if asked which.</b> Take B for the simplicity and lean on the nonce. Reach for A if you need the callback to work while the exchange is slow enough to want a spinner. Knowing that the bank's redirect is always a GET, and that you therefore do not get to choose the method, is the underlying point.</p>
 
-<h2>9. Exactly-once, in three places</h2>
+<h2>10. Exactly-once, in three places</h2>
 
 <p>Money systems fail by doing things twice. There are exactly three places that can double here, and each needs a different mechanism. Learn them as a set, because interviewers will pick one and push.</p>
 
@@ -686,42 +775,6 @@ COMMIT;
 -- only now, outside the transaction, call the rail with a
 -- deterministic idempotency reference derived from payment_id.</pre>
 <div class="warn"><b>The honest caveat, and volunteer it.</b> The gap between <code>COMMIT</code> and the rail call is not transactional. If you crash there, you have a <code>submitting</code> row and no idea whether the rail got it. There is no way to close this with a database. You close it with a <b>reconciliation job</b> that queries the rail by your deterministic reference for anything stuck in <code>submitting</code> past a threshold. Every real payments system has this job.</div>
-
-<h2>10. Isolation and the three security boundaries</h2>
-
-<p>They are separate mechanisms solving separate problems. Do not blur them.</p>
-<div class="grid2">
-  <div class="card">
-    <h3>1. The iframe</h3>
-    <p>Same-origin policy is what stops the merchant page from reading the widget's DOM, JS, or the <code>session_token</code> in its memory. It also stops the widget from reading their page. It is a two-way wall and both directions matter for a merchant's own security review.</p>
-    <h3>2. postMessage</h3>
-    <p>Pin the exact target origin on send. Check <code>event.origin</code> against an allowlist on receive, with <b>exact string equality</b>.</p>
-    <p class="tag-r">Never <code>origin.includes('merchant.com')</code>. <code>merchant.com.attacker.io</code> passes that check.</p>
-  </div>
-  <div class="card">
-    <h3>3. The CSRF nonce</h3>
-    <p>Covered in section 9. Server-generated, session-bound, single-use, burned atomically.</p>
-    <h3>Plus: the origin allowlist</h3>
-    <p>Each merchant registers their domains. The widget refuses to boot if the embedding origin is not on the list, enforced with a <code>frame-ancestors</code> CSP on the widget document itself.</p>
-    <p class="a">Without this, any site that gets hold of a live <code>session_token</code> could embed your widget and run a convincing branded phishing page against a real session. This is a real attack and it is easy to forget, and it is the reason a browser-scoped token is not sufficient on its own.</p>
-  </div>
-</div>
-
-<h3>The postMessage frames, in full</h3>
-<table>
-<tr><th style="width:16%">Frame</th><th style="width:14%">Direction</th><th>Payload and why</th></tr>
-<tr><td><code>READY</code></td><td>widget → host</td><td><code>{sessionId}</code>. Booted, stop the spinner.</td></tr>
-<tr><td><code>RESIZE</code></td><td>widget → host</td><td><code>{sessionId, height}</code>. The parent sets the iframe height and cannot know our content height. Fires on every step change. <b>Easy to forget, very visible when missing.</b></td></tr>
-<tr><td><code>EVENT</code></td><td>widget → host</td><td><code>{sessionId, name}</code>. Telemetry for their funnel analytics.</td></tr>
-<tr><td><code>SUCCESS</code></td><td>widget → host</td><td><code>{sessionId, status, amountMinor, currency, institutionName, accountLast4}</code>. <b class="tag-r">Display data only. No credential.</b></td></tr>
-<tr><td><code>EXIT</code></td><td>widget → host</td><td><code>{sessionId, status, errorCode?}</code>. Closed, expired, or failed.</td></tr>
-<tr><td><code>OPEN</code> / <code>CLOSE</code></td><td>host → widget</td><td><code>{}</code>. Merchant's own button or dismiss control.</td></tr>
-</table>
-<p class="a">Every frame carries <code>sessionId</code> so a message from a stale widget instance is discarded rather than applied.</p>
-
-<div class="warn"><b>Two things to say about <code>SUCCESS</code>.</b> It carries no credential, unlike Link's <code>SUCCESS</code> which carries a <code>public_token</code>, because nothing is handed to the merchant here. And <b><code>onSuccess</code> is permission to render a confirmation screen, not permission to ship.</b> Their backend acts on the webhook, never on this callback.</div>
-
-<div class="why"><b>What the merchant never sees.</b> The entire OAuth leg. The popup opening, the bank redirect, the callback, the state coming home on our SSE stream. That conversation is between our iframe and our popup, both on our origin. From the merchant page's view the widget goes quiet for ninety seconds and then emits <code>SUCCESS</code>.</div>
 
 <h2>11. Webhook delivery and the merchant handler</h2>
 
@@ -951,7 +1004,7 @@ Merchant verifies:
     <h3>Channel 3 is push or pull, and it depends</h3>
     <p><b>Push.</b> The bank partner POSTs to a signed endpoint we expose, or drops a NACHA return file into an SFTP bucket that triggers a processing job. Low latency, but you must handle duplicates and out-of-order delivery.</p>
     <p><b>Pull.</b> We poll the partner's status API on a schedule. Simpler and easier to reason about, and honestly fine here because ACH settles in days. Latency of a five-minute poll is noise next to a two-day settlement.</p>
-    <div class="why"><b>Do both, and say why.</b> Push for latency, poll as a safety net so a missed webhook does not strand a payment forever. The reconciliation job from section 9 is the same job. On a slow rail, <b>polling is the source of truth and push is the optimization</b>, which is the inverse of how it works for the merchant-facing webhooks.</div>
+    <div class="why"><b>Do both, and say why.</b> Push for latency, poll as a safety net so a missed webhook does not strand a payment forever. The reconciliation job from section 10 is the same job. On a slow rail, <b>polling is the source of truth and push is the optimization</b>, which is the inverse of how it works for the merchant-facing webhooks.</div>
   </div>
 </div>
 
