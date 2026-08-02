@@ -188,10 +188,31 @@
       <li><code>link_token</code> — client-facing bearer credential, short-lived</li>
       <li><code>current_step</code> — <span class="key">authoritative FlowState</span>, client renders, never asserts</li>
       <li><code>institution_id</code>, <code>selected_accounts</code> — client proposes, server persists</li>
-      <li><span class="nonce">oauth_state_id</span> — server-generated single-use nonce for the current OAuth leg; burned on use</li>
+      <li><span class="nonce">oauth_state_id</span> — <b>not a column, a FK to the current <code>OauthState</code> row.</b> A session can have several OAuth attempts (cancel, retry, bank step-up), so one overwritable column loses the audit trail and cannot tell a replayed nonce from a forged one</li>
+    </ul>
+    <p class="a"><b>Everything above is ephemeral.</b> It exists to get one browser through one flow and is garbage after ~4h. The entities below are what the system actually keeps.</p>
+  </div>
+
+  <div class="card">
+    <h3>Durable entities — what outlives the session</h3>
+    <ul>
+      <li><code>Item</code> — the permanent record of <b>one user's link to one institution</b>. Owns the account list and the customer binding. This is the only entity both chains touch, and the thing <code>public_token</code> and the customer's <code>access_token</code> are handles <i>to</i>.</li>
+      <li><code>BankAccessToken</code> — the live credential for acting on an Item, keyed by <code>item_id</code>, ciphertext plus KMS key reference. <b>Split from <code>Item</code> deliberately</b>, so ordinary Item reads never pull a bank credential into memory, and so re-auth and key rotation are row inserts rather than schema changes. One current row per Item, many over the Item's life.</li>
+      <li><code>PublicToken</code> — a row, not a column, because single use means it needs a <code>used_at</code> to burn. Same discipline as the nonce.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Control tables — the ones that make retries safe</h3>
+    <ul>
+      <li><span class="nonce">OauthState</span> — one row per OAuth attempt, holding <code>used_at</code> and <code>expires_at</code>. <b>The callback's only route from <code>state</code> to <code>session_id</code></b>, and the row is claimed and read in a single conditional <code>UPDATE … RETURNING</code>.</li>
+      <li><code>IdempotencyKey</code> — key, scope, request fingerprint, stored response. Without it, "Idempotency-Key on mutating POSTs" is a claim with nowhere to live.</li>
+      <li><code>WebhookOutbox</code> — written in the same transaction as the state change, delivered by a separate worker. The safety net for every flow that finishes in a context the original page did not survive.</li>
     </ul>
   </div>
 </div>
+
+<div class="why"><b>A bank token expiring does not end an Item.</b> The credential and the relationship have different lifetimes. When the bank token expires or the bank invalidates it, the Item moves to a degraded status like <code>LOGIN_REQUIRED</code> and a re-auth mints a fresh <code>BankAccessToken</code> against the <i>same</i> <code>item_id</code>. <span class="a">This is the whole point of splitting them. If the Item died with its token, every routine re-auth would force the customer to store a new <code>access_token</code> and re-map their own user records, and no integration would survive contact with a password change.</span> The one thing that <b>does</b> terminate an Item is the user or the bank revoking consent, which is a decision upstream of you rather than a credential going stale.</div>
 
 <h3>Credentials — two kinds, keep them apart</h3>
 <p><b>Secrets are long-lived, server-only, and identify a party. Tokens are short-lived, scoped, and identify a thing in flight.</b></p>
@@ -258,6 +279,20 @@ handler.open() / handler.exit()</pre>
 <p class="a">Different questions. GET = "where am I, what do I render" — read-only, refresh five times, nothing breaks. POST <code>/oauth/callback</code> = "finalize this grant exactly once" — validates state (CSRF), checks single-use (replay), exchanges the code, burns the state, advances the step. It is a write, so it wants to be a POST.</p>
 <div class="warn"><b>Do not overstate this, because an interviewer may catch it.</b> The bank's redirect back is <b>always a GET</b> — that is the OAuth spec plus browser behaviour on a 302, and you do not get to choose the method. So a perfectly standard design points <code>redirect_uri</code> straight at a backend endpoint that handles the GET, burns the nonce inline, exchanges the code, then <code>303</code>s to a clean URL with no query string. Reload then re-requests the clean page, not the callback. <b>The nonce is precisely what makes that unavoidable GET safe.</b></div>
 
+<h3>What the recovered page is actually holding</h3>
+<p class="a">Path (2) has a gap that is easy to miss, and an interviewer who has built this will look for it. <b>sessionStorage is scoped per origin <i>per tab</i></b>, so a new tab gets an empty bucket even on our own origin. That page arrives holding exactly one thing, the <span class="nonce">state</span> in the URL — and our first act is to burn it. One step after recovery succeeds, the page has <b>no credential at all</b>, so the <code>GET /link/session/:id</code> we just told it to make has nothing to authenticate with.</p>
+<p><b>So the finalize response re-issues a fresh <code>link_token</code> bound to that session</b>, and the page stores it before it renders anything. The nonce is what makes this legal: <span class="key">a nonce is a single-shot credential that authorizes exactly one transition</span>, and that one transition is allowed to mint a longer-lived one.</p>
+<table>
+<tr><th style="width:22%">Step</th><th>What the page has</th></tr>
+<tr><td>lands on <code>redirect_uri</code></td><td><span class="nonce">state</span> + <code>code</code> in the query string. Nothing else. sessionStorage empty.</td></tr>
+<tr><td><code>POST /link/oauth/callback</code></td><td>Authenticated <b>by the nonce itself</b>. Server burns it <code>RETURNING session_id</code>, exchanges the code, creates the Item, and mints a fresh <code>link_token</code>.</td></tr>
+<tr><td>response lands</td><td><code>link_token</code> written to sessionStorage <b>synchronously</b>, then <code>history.replaceState</code> strips <code>state</code> and <code>code</code> from the URL.</td></tr>
+<tr><td><code>GET /link/session/:id</code></td><td>Bearer <code>link_token</code>. Safe to repeat forever.</td></tr>
+</table>
+<p class="a"><b>Strip the URL even though the nonce is dead.</b> Burned or not, a credential-shaped value should not sit in the address bar, in browser history, or leak through a <code>Referer</code> header to anything third-party the page loads.</p>
+<div class="warn"><b>The window you cannot close, and name it before they do.</b> If the user refreshes between the burn and the write, they hold a dead nonce and no token, and they start the flow over. <span class="tag-r">Do not rescue this by replaying the token to a burned nonce</span> — that hands a live <code>link_token</code> to anyone who later finds that URL in a history export or a proxy log. Accept a few milliseconds of exposure to a restart, and say that you chose it.</div>
+<p class="a"><b>Same-tab still sends the nonce.</b> It already has a <code>link_token</code>, but the two answer different questions. The <code>link_token</code> says <i>which session</i>; the nonce says <i>this callback really came from the redirect we started</i>. Neither substitutes for the other.</p>
+
 <h2>7. Why the <code>public_token</code> rides the browser</h2>
 
 <p>Natural interviewer question. Why not just have our backend push it to the customer's backend? Four reasons, and the best one is not the obvious one.</p>
@@ -292,14 +327,35 @@ handler.open() / handler.exit()</pre>
 
 token = exchangeWithBank(code);   <span class="a">-- only AFTER the claim</span></pre>
 <p class="a">A <code>SELECT</code> then <code>UPDATE</code> is a race. Two concurrent callbacks from a double-click or a prefetch both read <code>used_at IS NULL</code> and both exchange, and the window is as wide as a network call to a bank. <b>Claim first, then do the slow thing.</b> If the exchange fails afterwards the nonce stays burned and the user retries with a fresh one, which is correct.</p>
+<p class="a"><b>And the stakes are higher than "advance a step."</b> Per §6 this same handler also mints the replacement <code>link_token</code> for the new-tab case, so a second execution would issue a second live credential, not just a duplicate write.</p>
 
-<h2>9. Security — three separate boundaries</h2>
+<h2>9. Re-auth and update mode</h2>
+<p class="a">Every Item eventually breaks. Passwords change, banks invalidate grants, open-banking consent lapses on a schedule. <b>This is a lifecycle, not an edge case</b>, and the recovery splits cleanly by whether the user has to be present.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Silent — refresh token still valid</h3>
+    <p class="a">Pure back channel. <code>POST /token</code> with <code>grant_type=refresh_token</code> and our <code>client_secret</code>, no user, no browser. A job runs it ahead of expiry and writes a new <code>BankAccessToken</code> row against the same <code>item_id</code>.</p>
+    <p class="a">This is the common path, because bank access tokens live for minutes while refresh tokens live for weeks.</p>
+  </div>
+  <div class="card">
+    <h3>Loud — the bank needs to see the user</h3>
+    <p class="a">Refresh rejected, MFA required, consent revoked. <b>No server-to-server call can fix this</b>, so the user has to come back through a browser and redo the OAuth leg.</p>
+    <p class="a">That is Link again in <b>update mode</b>, and the <span class="key">only structural difference is the seed</span>: the <code>link_token</code> is minted referencing an <b>existing</b> <code>item_id</code> instead of nothing. New <code>LinkSession</code>, new nonce, same redirect, same guarded finalize. The resulting token attaches to the same Item.</p>
+  </div>
+</div>
+
+<p><b>Why the seed is the whole trick.</b> Because <code>item_id</code> survives, the customer's <code>access_token</code> keeps working and their own user-to-Item mapping never moves. A re-auth is invisible in their database. <span class="a">If re-auth minted a new Item instead, every password change would force the customer to re-store a token and re-key their records, and no integration would last a year.</span></p>
+
+<div class="why"><b>This is the concrete case that makes "webhooks are the safety net" real.</b> The browser is long gone when an Item breaks, so there is no callback to fire. The customer learns from <code>ITEM_LOGIN_REQUIRED</code> on the webhook, or from an API call returning it, and then prompts their own user. <span class="a">Open-banking consent expiry is <b>scheduled</b> rather than failure-driven, so you emit a pending-expiration warning in advance and re-auth before anything actually breaks.</span></div>
+
+<h2>10. Security — three separate boundaries</h2>
 <p class="a"><b>(1) iframe isolation</b> — same-origin policy blocks the customer page from reading widget JS/DOM. <b>(2) postMessage channel</b> — pin the exact target origin on send, check <code>event.origin</code> against the allowlist on receive (exact string match, never <code>includes</code> — <code>evil-customer.com.attacker.com</code> passes a naive substring check). <b>(3) CSRF state</b> — server-generated, session-bound, single-use <span class="nonce">oauth_state_id</span> on the redirect; forged callbacks fail the match, replays fail single-use.</p>
 
 <h3>The trust rule, stated precisely</h3>
 <p class="a">The client only ever holds values that are <b>safe to leak</b>: <code>link_token</code> (expires fast), <span class="nonce">oauth_state_id</span> (useless once burned), <code>public_token</code> (inert without the secret). Server-only: customer secret creds, <code>access_token</code>, and the <i>authority</i> to validate/burn a nonce. A client-generated nonce is worthless for CSRF.</p>
 
-<h2>10. Edge cases and abuse</h2>
+<h2>11. Edge cases and abuse</h2>
 <p class="a">Every FlowState has an <code>ERROR</code> edge (bank down, state mismatch, expired). Cancel/ESC → <code>EXIT</code>, session marked abandoned. <code>expires_at</code> (~4h) rejects late transitions. Rate-limit session creates / OAuth attempts per link_token / IP / customer; monitor nonce-failure spikes (forged-callback probing). Back button is safe: GET re-fires freely, the finalize POST is protected by the burned nonce + Idempotency-Key.</p>
 
 <div class="oneliner" style="margin-top:16px">"The server owns the flow state, the client only renders it." · "The client only holds values safe to leak." · "GET is the safe read that survives refresh; POST is the guarded write that fires once."</div>
