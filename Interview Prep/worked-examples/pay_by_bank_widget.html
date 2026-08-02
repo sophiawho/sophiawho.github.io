@@ -294,7 +294,7 @@ payment_session.expired</pre>
 
 <svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" role="img">
   <title>Pay-by-bank widget architecture</title>
-  <desc>Merchant tab with an iframe widget, a same-origin popup carrying the bank OAuth flow, the provider backend as source of truth, and the ACH rail.</desc>
+  <desc>Merchant tab with an iframe widget, a same-origin popup carrying the bank OAuth flow, the provider backend as source of truth, a back-channel code-for-token exchange between the provider backend and the bank, and the ACH rail.</desc>
   <defs>
     <marker id="a-k" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto">
       <path d="M0,0 L9,3.2 L0,6.4 z" fill="#1a1a1a"/>
@@ -307,6 +307,9 @@ payment_session.expired</pre>
     </marker>
     <marker id="a-a" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto">
       <path d="M0,0 L9,3.2 L0,6.4 z" fill="#b45309"/>
+    </marker>
+    <marker id="a-r" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto">
+      <path d="M0,0 L9,3.2 L0,6.4 z" fill="#b91c1c"/>
     </marker>
   </defs>
 
@@ -370,7 +373,14 @@ payment_session.expired</pre>
   <text x="574" y="93" font-size="9.5" font-family="sans-serif" fill="#5b6470">6. 302 back, code + state</text>
 
   <path d="M540,94 L672,150 L672,408" fill="none" stroke="#1a1a1a" stroke-width="1.3" marker-end="url(#a-k)"/>
-  <text x="680" y="280" font-size="9.5" font-family="sans-serif" fill="#5b6470">7. POST /oauth/callback</text>
+  <text x="562" y="180" font-size="9.5" font-family="sans-serif" fill="#5b6470">7a. POST /oauth/callback</text>
+
+  <path d="M610,408 L610,388 L730,388 L730,94" fill="none" stroke="#b91c1c" stroke-width="1.6" marker-end="url(#a-r)"/>
+  <text x="738" y="244" font-size="9.5" font-family="sans-serif" font-weight="600" fill="#b91c1c">7b. back-channel token exchange</text>
+  <text x="738" y="257" font-size="9" font-family="sans-serif" fill="#b91c1c">POST /token, code + client_secret</text>
+  <text x="738" y="270" font-size="9" font-family="sans-serif" fill="#b91c1c">+ PKCE verifier &#8594; access_token</text>
+  <text x="738" y="283" font-size="9" font-family="sans-serif" fill="#5b6470">server to server, never in a browser</text>
+  <text x="738" y="296" font-size="9" font-family="sans-serif" fill="#5b6470">nonce already burned, so this runs once</text>
 
   <path d="M400,94 L418,226" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#a-b)"/>
   <text x="120" y="150" font-size="9.5" font-family="sans-serif" fill="#2563eb">8. BroadcastChannel, same-origin,</text>
@@ -386,7 +396,7 @@ payment_session.expired</pre>
   <text x="540" y="364" font-size="9" font-family="sans-serif" fill="#5b6470">open from widget boot</text>
 
   <path d="M632,428 L758,428" stroke="#b45309" stroke-width="1.6" marker-end="url(#a-a)"/>
-  <text x="654" y="422" font-size="9.5" font-family="sans-serif" fill="#b45309">10. debit</text>
+  <text x="654" y="444" font-size="9.5" font-family="sans-serif" fill="#b45309">10. debit</text>
 
   <path d="M758,462 L634,462" stroke="#b45309" stroke-width="1.6" marker-end="url(#a-a)"/>
   <text x="648" y="476" font-size="9.5" font-family="sans-serif" fill="#b45309">11. settle / return</text>
@@ -395,7 +405,7 @@ payment_session.expired</pre>
   <text x="250" y="486" font-size="9.5" font-family="sans-serif" fill="#15803d">12. signed webhook</text>
 </svg>
 
-<p class="a"><b>Two paths, one picture.</b> The blue path is the browser dance whose only job is to get consent without the bank ever being framed and without the merchant page unloading. The green and amber path is the money, which is entirely server-to-server and finishes minutes to days after the user has closed the tab.</p>
+<p class="a"><b>Two paths, one picture.</b> The blue path is the browser dance whose only job is to get consent without the bank ever being framed and without the merchant page unloading. The green and amber path is the money, which is entirely server-to-server and finishes minutes to days after the user has closed the tab. The red arrow is the one interviewers listen for. The browser only ever carries a one-time <code>code</code>, and our backend redeems it directly against the bank with our <code>client_secret</code> and PKCE verifier, so an <code>access_token</code> never exists anywhere a merchant or a user could see it. Draw it or the whole front-channel story is unfalsifiable.</p>
 
 <h2>7. 30-second recap script</h2>
 <div class="card a">
