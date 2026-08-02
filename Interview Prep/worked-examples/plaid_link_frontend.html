@@ -99,13 +99,15 @@
   </div>
 </div>
 
-<svg viewBox="0 0 960 450" xmlns="http://www.w3.org/2000/svg" role="img">
+<svg viewBox="0 0 960 462" xmlns="http://www.w3.org/2000/svg" role="img">
   <title>Plaid Link architecture and trust boundary</title>
-  <desc>Host page with an injected iframe, provider backend, customer backend, and the bank OAuth server.</desc>
+  <desc>Host page with an injected iframe, provider backend, customer backend, and the bank OAuth server. Two chains are kept apart, the customer-facing link_token chain and the bank OAuth chain that ends in a server-only back-channel code exchange.</desc>
   <defs>
     <marker id="lk-k" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#1a1a1a"/></marker>
     <marker id="lk-b" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#2563eb"/></marker>
     <marker id="lk-g" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#15803d"/></marker>
+    <marker id="lk-r" markerWidth="10" markerHeight="10" refX="9" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 z" fill="#b91c1c"/></marker>
+    <marker id="lk-k-s" markerWidth="10" markerHeight="10" refX="1" refY="3.2" orient="auto"><path d="M9,0 L0,3.2 L9,6.4 z" fill="#1a1a1a"/></marker>
   </defs>
 
   <rect x="690" y="24" width="210" height="72" rx="9" fill="#fff" stroke="#1a1a1a" stroke-width="1.6"/>
@@ -140,27 +142,40 @@
   <text x="246" y="336" font-size="9.5" font-family="sans-serif" fill="#15803d">1. POST /link/token/create</text>
   <text x="246" y="348" font-size="9" font-family="sans-serif" fill="#15803d">client_id + secret</text>
 
-  <path d="M266,208 L318,208" stroke="#2563eb" stroke-width="1.3" marker-end="url(#lk-b)"/>
-  <text x="252" y="176" font-size="9" font-family="sans-serif" fill="#2563eb">2. injects + postMessage</text>
+  <path d="M266,204 L318,204" stroke="#2563eb" stroke-width="1.3" marker-end="url(#lk-b)"/>
+  <path d="M318,232 L268,232" stroke="#2563eb" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#lk-b)"/>
+  <text x="252" y="164" font-size="9" font-family="sans-serif" fill="#2563eb">2. injects iframe, then postMessage in</text>
+  <text x="252" y="176" font-size="9" font-family="sans-serif" fill="#2563eb">7a. postMessage back, onSuccess(public_token)</text>
 
-  <path d="M520,182 L698,102" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#lk-k)"/>
-  <text x="556" y="140" font-size="9.5" font-family="sans-serif" fill="#5b6470">3. full-page redirect</text>
-  <text x="556" y="152" font-size="9" font-family="sans-serif" fill="#5b6470">+ oauth_state, always a GET back</text>
+  <path d="M392,258 L436,336" stroke="#1a1a1a" stroke-width="1.3" marker-end="url(#lk-k)"/>
+  <text x="150" y="286" font-size="9.5" font-family="sans-serif" fill="#5b6470">3. HTTPS to our backend, link_token as bearer</text>
+  <text x="150" y="298" font-size="9" font-family="sans-serif" fill="#5b6470">POST /link/session, GET /link/session/:id</text>
+  <text x="150" y="310" font-size="9" font-family="sans-serif" fill="#5b6470">server authors every step, client renders it</text>
+  <text x="150" y="322" font-size="9" font-family="sans-serif" fill="#2563eb">at terminal state this response carries public_token</text>
 
-  <path d="M400,258 L448,338" stroke="#1a1a1a" stroke-width="1.3" marker-end="url(#lk-k)"/>
-  <text x="286" y="304" font-size="9.5" font-family="sans-serif" fill="#5b6470">4. HTTPS + link_token</text>
+  <path d="M520,182 L698,102" stroke="#1a1a1a" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#lk-k)" marker-start="url(#lk-k-s)"/>
+  <text x="292" y="116" font-size="9.5" font-family="sans-serif" fill="#5b6470">4. full-page redirect out, carrying oauth_state_id (single use)</text>
+  <text x="292" y="128" font-size="9" font-family="sans-serif" fill="#5b6470">bank 302s back to OUR origin, always a GET, state + code</text>
+
+  <path d="M498,258 L530,336" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#lk-k)"/>
+  <text x="548" y="292" font-size="9.5" font-family="sans-serif" font-weight="600" fill="#1a1a1a">5. finalize, one guarded POST</text>
+  <text x="548" y="304" font-size="9" font-family="sans-serif" fill="#5b6470">POST /link/oauth/callback { state, code }</text>
+  <text x="548" y="316" font-size="9" font-family="sans-serif" fill="#b91c1c">burns oauth_state_id atomically, BEFORE 6</text>
+
+  <path d="M660,360 L800,360 L800,98" fill="none" stroke="#b91c1c" stroke-width="1.6" marker-end="url(#lk-r)"/>
+  <text x="610" y="196" font-size="9.5" font-family="sans-serif" font-weight="600" fill="#b91c1c">6. code exchange, OUR client_secret</text>
+  <text x="610" y="208" font-size="9" font-family="sans-serif" fill="#b91c1c">back channel, server to server</text>
+  <text x="610" y="220" font-size="9" font-family="sans-serif" fill="#5b6470">bank token never leaves our servers</text>
 
   <path d="M112,258 L112,338" stroke="#2563eb" stroke-width="1.6" marker-end="url(#lk-b)"/>
-  <text x="18" y="304" font-size="9.5" font-family="sans-serif" fill="#2563eb">5. public_token</text>
+  <text x="18" y="298" font-size="9.5" font-family="sans-serif" fill="#2563eb">7b. public_token</text>
+  <text x="18" y="310" font-size="9" font-family="sans-serif" fill="#5b6470">inert on its own</text>
 
   <path d="M238,404 L416,404" stroke="#15803d" stroke-width="1.8" marker-end="url(#lk-g)"/>
-  <text x="248" y="420" font-size="9.5" font-family="sans-serif" fill="#15803d">6. exchange, server to server</text>
+  <text x="248" y="394" font-size="9.5" font-family="sans-serif" fill="#15803d">8. exchange, server to server</text>
 
-  <path d="M646,338 L744,100" stroke="#b91c1c" stroke-width="1.5" marker-end="url(#lk-k)"/>
-  <text x="666" y="240" font-size="9.5" font-family="sans-serif" fill="#b91c1c">7. code exchange with</text>
-  <text x="666" y="252" font-size="9.5" font-family="sans-serif" fill="#b91c1c">OUR client_secret</text>
-
-  <text x="24" y="442" font-size="10" font-family="sans-serif" fill="#5b6470">Blue = browser-safe values. Green = customer-backend hops requiring their secret. Red = the exchange that mints the access_token, server only.</text>
+  <text x="24" y="440" font-size="9.5" font-family="sans-serif" fill="#5b6470">Blue = browser-safe. Green = customer-backend hops needing their secret. Red = the bank chain, server only.</text>
+  <text x="24" y="452" font-size="9.5" font-family="sans-serif" fill="#5b6470">5 and 6 are one request handler. The nonce burn in 5 must commit before 6 starts, or a replayed callback exchanges the code twice.</text>
 </svg>
 
 <h2>3. Data model and credentials</h2>
@@ -231,7 +246,7 @@ handler.open() / handler.exit()</pre>
 
 <h2>5. 30-second recap script</h2>
 <div class="card a">
-  Host page loads our SDK, which injects an iframe widget from our origin — the iframe is the isolation boundary, credentials only ever pass between the browser and the bank. Server mints a <code>LinkSession</code> and owns the authoritative FlowState; the client holds only a short-lived <code>link_token</code> and renders whatever step the server reports. At OAuth we redirect out to the bank with a single-use <span class="nonce">oauth_state_id</span>; on return the SPA has amnesia, so it recovers the session (sessionStorage or the state in the URL), fires one guarded POST to finalize exactly once, then a safe GET to render. Idempotency-Keys and the single-use nonce guarantee at most one link. The <code>public_token</code> goes up to the customer's backend, which exchanges it server-to-server for the <code>access_token</code> — which never touches the browser.
+  Host page loads our SDK, which injects an iframe widget from our origin — the iframe is the isolation boundary, credentials only ever pass between the browser and the bank. Server mints a <code>LinkSession</code> and owns the authoritative FlowState; the client holds only a short-lived <code>link_token</code> and renders whatever step the server reports. At OAuth we redirect out to the bank with a single-use <span class="nonce">oauth_state_id</span>; on return the SPA has amnesia, so it recovers the session (sessionStorage or the state in the URL), fires one guarded POST to finalize exactly once, then a safe GET to render. Idempotency-Keys and the single-use nonce guarantee at most one link. We mint the <code>public_token</code> only after that exchange succeeds and the Item exists, hand it back on the widget's own session response, and the widget <code>postMessage</code>s it out to the host page with a pinned <code>targetOrigin</code>. From there it goes up to the customer's backend, which exchanges it server-to-server for the <code>access_token</code> — which never touches the browser.
 </div>
 
 
