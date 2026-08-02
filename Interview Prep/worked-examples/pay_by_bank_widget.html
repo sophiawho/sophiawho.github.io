@@ -80,7 +80,7 @@
       <li><b>Exactly-once money movement.</b> Refresh, double-click, back button, duplicated redirects, retried webhooks.</li>
       <li><b>Merchant page survival.</b> Losing a live checkout mid-flow is a product failure.</li>
       <li><b>Honest async UI.</b> The rail answers on its own schedule.</li>
-      <li class="a">Accessibility and i18n, covered in section 19.</li>
+      <li class="a">Accessibility and i18n, covered in section 16.</li>
     </ul>
     <h4>Rail and risk, decided up front</h4>
     <p>ACH, and <b class="tag-g">we underwrite the return risk.</b> Once we say <code>succeeded</code> that is terminal for the merchant.</p>
@@ -382,9 +382,11 @@ payment_session.expired</pre>
   <text x="738" y="283" font-size="9" font-family="sans-serif" fill="#5b6470">server to server, never in a browser</text>
   <text x="738" y="296" font-size="9" font-family="sans-serif" fill="#5b6470">nonce already burned, so this runs once</text>
 
-  <path d="M400,94 L418,226" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#a-b)"/>
-  <text x="120" y="150" font-size="9.5" font-family="sans-serif" fill="#2563eb">8. BroadcastChannel, same-origin,</text>
-  <text x="120" y="163" font-size="9.5" font-family="sans-serif" fill="#2563eb">then window.close()</text>
+  <path d="M400,94 L418,226" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 4" marker-end="url(#a-b)"/>
+  <text x="90" y="144" font-size="9.5" font-family="sans-serif" fill="#5b6470">8. window.close(). A BroadcastChannel post</text>
+  <text x="90" y="156" font-size="9.5" font-family="sans-serif" fill="#5b6470">is attempted but the popup and the embedded</text>
+  <text x="90" y="168" font-size="9.5" font-family="sans-serif" fill="#5b6470">iframe are in different storage partitions,</text>
+  <text x="90" y="180" font-size="9.5" font-family="sans-serif" font-weight="600" fill="#b91c1c">so the SSE stream is what actually delivers this.</text>
 
   <path d="M452,304 L452,408" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#a-k)"/>
   <text x="286" y="344" font-size="9.5" font-family="sans-serif" fill="#5b6470">9. POST /confirm</text>
@@ -410,30 +412,13 @@ payment_session.expired</pre>
 <h2>7. 30-second recap script</h2>
 <div class="card a">
   <p>The merchant's backend creates a payment session with our API secret, which is what makes the amount server-asserted rather than something a browser can claim. That returns a session token scoped to exactly one session and one amount, safe to hand to the browser because the worst it can do is pay the merchant. Their page loads our SDK, which injects an iframe from our origin, and that iframe is the isolation boundary in both directions.</p>
-  <p>When the user picks a bank we open a popup on our own origin, which 302s to the bank. The popup matters because the bank cannot be framed and because destroying a live checkout page is a conversion disaster. The bank returns to our origin with a code and a single-use nonce we generated. We burn that nonce with one atomic conditional update <i>before</i> exchanging the code, so a double-click or a prefetch cannot exchange twice, and then we tell the still-alive iframe over a same-origin BroadcastChannel.</p>
+  <p>When the user picks a bank we open a popup on our own origin, which 302s to the bank. The popup matters because the bank cannot be framed and because destroying a live checkout page is a conversion disaster. The bank returns to our origin with a code and a single-use nonce we generated. We burn that nonce with one atomic conditional update <i>before</i> exchanging the code, so a double-click or a prefetch cannot exchange twice, and then the server pushes <code>authorized</code> down the SSE stream the still-alive iframe has held open since boot. <b>The popup never has to reach the iframe directly</b>, which matters because they sit in different storage partitions.</p>
   <p>Coming back means consent, not payment. We read the balance, score the risk, and only then insert a payment row whose unique constraint on session id is the real double-charge defense, writing the outbox event in the same transaction. The rail answers in days, not milliseconds, so we deliver a signed, at-least-once, deliberately unordered webhook to the merchant, backed by a cursor endpoint because push-only integrations are never complete. We call succeeded terminal and absorb ACH returns ourselves, which is a business decision, not a technical one. Credentials only ever pass between the user's browser and the bank, and the access token never touches a browser.</p>
 </div>
 
 <p class="sub" style="margin-top:22px">Three lines to keep in your head. <b>The server owns the money state, the client only renders it.</b> · <b>The client is a courier, not a judge.</b> · <b>Push the invariant down to the layer that can enforce it.</b></p>
 
-<div class="part">PART TWO — deep dives <span>· pull these out when probed</span></div><h2>8. Design choices to defend</h2>
-<div class="grid2">
-  <div class="card">
-    <h3>Why Postgres</h3>
-    <p>Money system, tiny working set, hard correctness needs. You want real unique constraints and multi-row transactions, because both the outbox and the nonce burn depend on writing two things atomically.</p>
-    <p>Peak is tens of payments per second. One primary handles it. <b>Reaching for a distributed KV here trades away the exact guarantee the design rests on, for scale you do not need.</b></p>
-  </div>
-  <div class="card">
-    <h3>Two details to defend</h3>
-    <p><b><code>amount_minor</code> as an integer.</b> Float money is a real bug. A cent of drift on a reconciliation report is an audit finding.</p>
-    <p><b>The partial unique index.</b> User tries Chase, insufficient funds, tries Wells Fargo. One session, two attempts, one order, one reference. A plain <code>unique(session_id)</code> would forbid the retry.</p>
-    <div class="why"><b>The pattern.</b> Push the invariant down to the layer that can enforce it. If-statements are hope, constraints are guarantees.</div>
-  </div>
-</div>
-<h3>Why REST at the merchant edge</h3>
-<p>REST rather than gRPC because <b>we do not control the client.</b> Merchants are on PHP 7, Ruby, Java 8. gRPC belongs behind our own API layer, where we control both ends. The two-tier answer is the good one. <b>REST at the edge because I do not control the client, gRPC internally because I do.</b> GraphQL loses here, because a small fixed set of auditable idempotent mutations gets nothing from a query planner and pays for it in rate limiting and audit clarity.</p>
-<p class="a"><b>And action endpoints beat a generic PATCH.</b> <code>POST /payment_sessions/{id}/cancel</code> is not strictly RESTful, but <code>PATCH</code> with <code>{state}</code> implies the client may set arbitrary states. You would need a transition whitelist immediately, which is the action endpoints again with a bigger blast radius. Stripe has <code>/cancel</code> and <code>/confirm</code> for this reason.</p>
-<h2>9. The happy path, hop by hop</h2>
+<div class="part">PART TWO — deep dives <span>· sorted by how likely you are to be asked · lead with 8, 9, 10</span></div><h2>8. The happy path, hop by hop</h2>
 
 <p>Everything above is structure. This is the thing to be able to narrate without notes, because an interviewer will ask you to walk the flow and every gap shows up here. Three columns matter at every step. <b>Who is calling, what credential gets minted or spent, and what gets checked.</b></p>
 
@@ -525,7 +510,7 @@ payment_session.expired</pre>
 </tr>
 <tr>
   <td>14</td><td>popup → iframe</td>
-  <td><code>BroadcastChannel.postMessage(…)</code>, <b>then</b> <code>window.close()</code></td><td>—</td>
+  <td>server pushes <code>authorized</code> on the <b>SSE stream</b> the iframe already holds, popup calls <code>window.close()</code>. <span class="a">A <code>BroadcastChannel</code> post is attempted opportunistically and assumed to fail, since the popup and the embedded iframe are in different storage partitions.</span></td><td>—</td>
   <td>same-origin by construction, so no cross-origin check needed at all</td>
 </tr>
 <tr>
@@ -613,7 +598,7 @@ payment_session.expired</pre>
              (a thin page we serve into the popup)
 page JS  → POST /v1/oauth/callback { state, code }
              burn + exchange
-page JS  → BroadcastChannel, then close()</pre>
+page JS  → close()   <span class="a">iframe already learned via SSE</span></pre>
     <p>The write is a real POST, so a reload cannot re-fire it. Costs an extra round trip and depends on JS running.</p>
   </div>
   <div class="card">
@@ -621,57 +606,13 @@ page JS  → BroadcastChannel, then close()</pre>
 <pre>bank 302 → GET /v1/oauth/callback?code&amp;state
              backend burns + exchanges INLINE
 backend  → 303 Location: /oauth/done   (clean URL)
-done pg  → BroadcastChannel, then close()</pre>
+done pg  → close()   <span class="a">iframe already learned via SSE</span></pre>
     <p>Fewer hops, no JS dependency on the critical part. Side effects on a GET, which sounds wrong but is safe for two reasons. <b>The 303 to a clean URL means reload re-requests the done page, not the callback.</b> And if the callback is somehow re-requested anyway, the burned nonce rejects it.</p>
   </div>
 </div>
 <p class="a"><b>How to answer if asked which.</b> Take B for the simplicity and lean on the nonce. Reach for A if you need the callback to work while the exchange is slow enough to want a spinner. Knowing that the bank's redirect is always a GET, and that you therefore do not get to choose the method, is the underlying point.</p>
 
-<h2>10. The redirect problem, and why a popup</h2>
-
-<p>This is the deep dive that separates a good answer from a transcription. Start from the constraint.</p>
-
-<div class="why">
-  <b>The constraint.</b> A bank login page cannot render inside your iframe. Every real bank sends <code>X-Frame-Options: DENY</code> or <code>CSP frame-ancestors 'self'</code>. And even if one did not, asking a user to type bank credentials into a third-party iframe embedded in a merchant page is <i>exactly</i> the phishing pattern, and it destroys your "we never see credentials" claim, because the embedding page could overlay it.
-  <br><br>
-  So the bank must be in a <b>top-level browsing context</b>. There are only two of those available to you. A new window, or the current tab.
-</div>
-
-<div class="grid2">
-  <div class="card">
-    <h3>Option A — take the current tab <span class="tag-r">rejected as default</span></h3>
-    <p>Navigate the top frame to the bank. Come back to a stored <code>return_url</code>, merchant page reboots, widget re-mounts and rehydrates from the server.</p>
-    <p><b>Cost.</b> You destroy the merchant's checkout page. Cart state, half-filled address form, promo code, all their JS state. On an account-linking widget that is annoying. <b>At checkout it is a conversion disaster</b>, and it would be the number one integration complaint you receive.</p>
-    <p class="a">You still have to build this. It is the mobile path and the popup-blocked fallback. You do not get to delete the rehydration logic.</p>
-  </div>
-  <div class="card">
-    <h3>Option B — a popup <span class="tag-g">default on desktop</span></h3>
-    <p><code>window.open</code> creates a <b>new top-level window</b>. It does not overlay your widget and it does not replace the tab. The merchant tab keeps running in the background with the iframe still mounted.</p>
-    <div class="warn"><b>The gotcha.</b> <code>window.open</code> must be called <b>synchronously inside the user's click handler</b>. Any <code>await</code> before it and the browser has lost the user-activation flag and the popup blocker eats it. So fetch the authorize URL <i>before</i> the click, or open a blank popup first and set <code>popup.location</code> once the URL arrives.</div>
-  </div>
-</div>
-
-<div class="grid2">
-  <div class="card">
-    <h3>Why BroadcastChannel over window.opener</h3>
-    <p><code>BroadcastChannel</code> is same-origin pub/sub. Both the popup and the iframe are on our origin, so they can talk without holding a reference to each other, and without any cross-origin <code>postMessage</code> risk at all.</p>
-    <p><code>window.opener.postMessage</code> is the fallback, but <code>opener</code> is frequently <code>null</code> under <code>Cross-Origin-Opener-Policy</code> headers, which you want for other reasons. Do not make it the only path.</p>
-    <p class="a">Third fallback, and worth mentioning: the iframe can just poll <code>GET /widget/session</code> or hold an SSE stream open. Since the server is the source of truth anyway, the browser channel is a latency optimization, not a correctness requirement.</p>
-  </div>
-  <div class="card">
-    <h3>What changes on mobile</h3>
-    <ul>
-      <li><b>Popups are unreliable.</b> Mobile Safari in particular. Detect and fall back to the full-tab redirect.</li>
-      <li><b>You need <code>return_url</code>.</b> On return, look up the session by <code>oauth_state</code>, read the stored and pre-validated <code>return_url</code>, 302 there with the session id appended.</li>
-      <li><b>Both pages have amnesia.</b> The merchant page reboots and the widget SPA restarts empty. Recovery has two independent paths. <code>sessionStorage</code> breadcrumb for same-tab, and <code>oauth_state</code> in the URL for the case where storage is empty or the bank opened a new tab.</li>
-      <li><b>App-to-app.</b> Many banks deep-link into their native app. You leave the browser entirely and come back through a universal link. Same recovery logic, which is why building it around the server-side <code>oauth_state</code> lookup rather than client storage is the right call.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="oneliner">Say this: "Same framing constraint as any OAuth widget, but at checkout the page I'd be destroying is worth a lot more, so I default to the popup on desktop and keep the redirect-and-rehydrate path for mobile."</div>
-
-<h2>11. Exactly-once, in three places</h2>
+<h2>9. Exactly-once, in three places</h2>
 
 <p>Money systems fail by doing things twice. There are exactly three places that can double here, and each needs a different mechanism. Learn them as a set, because interviewers will pick one and push.</p>
 
@@ -739,57 +680,50 @@ token = exchangeWithBank(code);   <span class="a">after the claim</span></pre>
   -- 0 rows -> someone else owns this debit. return their result, do not submit.
 
   UPDATE payment_session SET state = 'payment_submitted' WHERE session_id = $2;
-  INSERT INTO webhook_outbox (...) VALUES (...);   -- same transaction, see section 13
+  INSERT INTO webhook_outbox (...) VALUES (...);   -- same transaction, see section 11
 COMMIT;
 
 -- only now, outside the transaction, call the rail with a
 -- deterministic idempotency reference derived from payment_id.</pre>
 <div class="warn"><b>The honest caveat, and volunteer it.</b> The gap between <code>COMMIT</code> and the rail call is not transactional. If you crash there, you have a <code>submitting</code> row and no idea whether the rail got it. There is no way to close this with a database. You close it with a <b>reconciliation job</b> that queries the rail by your deterministic reference for anything stuck in <code>submitting</code> past a threshold. Every real payments system has this job.</div>
 
-<h2>12. How the bank gets data to our backend</h2>
+<h2>10. Isolation and the three security boundaries</h2>
 
-<p>There are <b>three separate channels</b> from the bank side, they arrive at different times, and conflating them is a common mistake. Draw them as three arrows, not one.</p>
-
-<table>
-<tr><th>#</th><th>Channel</th><th>Carries</th><th>Timing</th><th>Trust level</th></tr>
-<tr>
-  <td>1</td>
-  <td><b>Browser redirect</b> to our <code>redirect_uri</code></td>
-  <td><code>code</code> and <code>state</code></td>
-  <td>Seconds. Synchronous with the user.</td>
-  <td class="tag-r">Untrusted. It came through a browser we do not control. Every value must be validated server-side.</td>
-</tr>
-<tr>
-  <td>2</td>
-  <td><b>Our server-to-server call</b> to the bank's token endpoint</td>
-  <td>We send <code>code</code> + our client secret, we get back the access token, account token, <code>last4</code></td>
-  <td>Sub-second, we initiate it</td>
-  <td class="tag-g">Trusted. Mutual TLS, our secret, the bank's certificate. This is the first thing in the flow we can believe.</td>
-</tr>
-<tr>
-  <td>3</td>
-  <td><b>Rail settlement</b>, via our bank partner</td>
-  <td>Accepted, settled, or a return code such as <code>R01</code></td>
-  <td class="tag-a">Hours to days. Long after the user is gone.</td>
-  <td class="tag-g">Trusted, signed or mTLS, but slow and out of order.</td>
-</tr>
-</table>
-
+<p>They are separate mechanisms solving separate problems. Do not blur them.</p>
 <div class="grid2">
   <div class="card">
-    <h3>Channel 1 is the one that bites people</h3>
-    <p>Everything arriving on the redirect passed through a browser. An attacker can craft that URL. So the callback handler must, in order, burn the nonce atomically, look up the session <b>from the nonce row</b> rather than from anything in the URL, and only then exchange the code.</p>
-    <p>Never trust a <code>session_id</code>, an amount, or a merchant id that arrived in a redirect query string. The <b>only</b> thing you take from that URL is an opaque token you can look up in your own database.</p>
+    <h3>1. The iframe</h3>
+    <p>Same-origin policy is what stops the merchant page from reading the widget's DOM, JS, or the <code>session_token</code> in its memory. It also stops the widget from reading their page. It is a two-way wall and both directions matter for a merchant's own security review.</p>
+    <h3>2. postMessage</h3>
+    <p>Pin the exact target origin on send. Check <code>event.origin</code> against an allowlist on receive, with <b>exact string equality</b>.</p>
+    <p class="tag-r">Never <code>origin.includes('merchant.com')</code>. <code>merchant.com.attacker.io</code> passes that check.</p>
   </div>
   <div class="card">
-    <h3>Channel 3 is push or pull, and it depends</h3>
-    <p><b>Push.</b> The bank partner POSTs to a signed endpoint we expose, or drops a NACHA return file into an SFTP bucket that triggers a processing job. Low latency, but you must handle duplicates and out-of-order delivery.</p>
-    <p><b>Pull.</b> We poll the partner's status API on a schedule. Simpler and easier to reason about, and honestly fine here because ACH settles in days. Latency of a five-minute poll is noise next to a two-day settlement.</p>
-    <div class="why"><b>Do both, and say why.</b> Push for latency, poll as a safety net so a missed webhook does not strand a payment forever. The reconciliation job from section 11 is the same job. On a slow rail, <b>polling is the source of truth and push is the optimization</b>, which is the inverse of how it works for the merchant-facing webhooks.</div>
+    <h3>3. The CSRF nonce</h3>
+    <p>Covered in section 9. Server-generated, session-bound, single-use, burned atomically.</p>
+    <h3>Plus: the origin allowlist</h3>
+    <p>Each merchant registers their domains. The widget refuses to boot if the embedding origin is not on the list, enforced with a <code>frame-ancestors</code> CSP on the widget document itself.</p>
+    <p class="a">Without this, any site that gets hold of a live <code>session_token</code> could embed your widget and run a convincing branded phishing page against a real session. This is a real attack and it is easy to forget, and it is the reason a browser-scoped token is not sufficient on its own.</p>
   </div>
 </div>
 
-<h2>13. Webhook delivery and the merchant handler</h2>
+<h3>The postMessage frames, in full</h3>
+<table>
+<tr><th style="width:16%">Frame</th><th style="width:14%">Direction</th><th>Payload and why</th></tr>
+<tr><td><code>READY</code></td><td>widget → host</td><td><code>{sessionId}</code>. Booted, stop the spinner.</td></tr>
+<tr><td><code>RESIZE</code></td><td>widget → host</td><td><code>{sessionId, height}</code>. The parent sets the iframe height and cannot know our content height. Fires on every step change. <b>Easy to forget, very visible when missing.</b></td></tr>
+<tr><td><code>EVENT</code></td><td>widget → host</td><td><code>{sessionId, name}</code>. Telemetry for their funnel analytics.</td></tr>
+<tr><td><code>SUCCESS</code></td><td>widget → host</td><td><code>{sessionId, status, amountMinor, currency, institutionName, accountLast4}</code>. <b class="tag-r">Display data only. No credential.</b></td></tr>
+<tr><td><code>EXIT</code></td><td>widget → host</td><td><code>{sessionId, status, errorCode?}</code>. Closed, expired, or failed.</td></tr>
+<tr><td><code>OPEN</code> / <code>CLOSE</code></td><td>host → widget</td><td><code>{}</code>. Merchant's own button or dismiss control.</td></tr>
+</table>
+<p class="a">Every frame carries <code>sessionId</code> so a message from a stale widget instance is discarded rather than applied.</p>
+
+<div class="warn"><b>Two things to say about <code>SUCCESS</code>.</b> It carries no credential, unlike Link's <code>SUCCESS</code> which carries a <code>public_token</code>, because nothing is handed to the merchant here. And <b><code>onSuccess</code> is permission to render a confirmation screen, not permission to ship.</b> Their backend acts on the webhook, never on this callback.</div>
+
+<div class="why"><b>What the merchant never sees.</b> The entire OAuth leg. The popup opening, the bank redirect, the callback, the state coming home on our SSE stream. That conversation is between our iframe and our popup, both on our origin. From the merchant page's view the widget goes quiet for ninety seconds and then emits <code>SUCCESS</code>.</div>
+
+<h2>11. Webhook delivery and the merchant handler</h2>
 
 <h3>What we send, and what we deliberately do not</h3>
 <div class="grid2">
@@ -894,43 +828,7 @@ Merchant verifies:
   </div>
 </div>
 
-<h2>14. Isolation and the three security boundaries</h2>
-
-<p>They are separate mechanisms solving separate problems. Do not blur them.</p>
-<div class="grid2">
-  <div class="card">
-    <h3>1. The iframe</h3>
-    <p>Same-origin policy is what stops the merchant page from reading the widget's DOM, JS, or the <code>session_token</code> in its memory. It also stops the widget from reading their page. It is a two-way wall and both directions matter for a merchant's own security review.</p>
-    <h3>2. postMessage</h3>
-    <p>Pin the exact target origin on send. Check <code>event.origin</code> against an allowlist on receive, with <b>exact string equality</b>.</p>
-    <p class="tag-r">Never <code>origin.includes('merchant.com')</code>. <code>merchant.com.attacker.io</code> passes that check.</p>
-  </div>
-  <div class="card">
-    <h3>3. The CSRF nonce</h3>
-    <p>Covered in section 11. Server-generated, session-bound, single-use, burned atomically.</p>
-    <h3>Plus: the origin allowlist</h3>
-    <p>Each merchant registers their domains. The widget refuses to boot if the embedding origin is not on the list, enforced with a <code>frame-ancestors</code> CSP on the widget document itself.</p>
-    <p class="a">Without this, any site that gets hold of a live <code>session_token</code> could embed your widget and run a convincing branded phishing page against a real session. This is a real attack and it is easy to forget, and it is the reason a browser-scoped token is not sufficient on its own.</p>
-  </div>
-</div>
-
-<h3>The postMessage frames, in full</h3>
-<table>
-<tr><th style="width:16%">Frame</th><th style="width:14%">Direction</th><th>Payload and why</th></tr>
-<tr><td><code>READY</code></td><td>widget → host</td><td><code>{sessionId}</code>. Booted, stop the spinner.</td></tr>
-<tr><td><code>RESIZE</code></td><td>widget → host</td><td><code>{sessionId, height}</code>. The parent sets the iframe height and cannot know our content height. Fires on every step change. <b>Easy to forget, very visible when missing.</b></td></tr>
-<tr><td><code>EVENT</code></td><td>widget → host</td><td><code>{sessionId, name}</code>. Telemetry for their funnel analytics.</td></tr>
-<tr><td><code>SUCCESS</code></td><td>widget → host</td><td><code>{sessionId, status, amountMinor, currency, institutionName, accountLast4}</code>. <b class="tag-r">Display data only. No credential.</b></td></tr>
-<tr><td><code>EXIT</code></td><td>widget → host</td><td><code>{sessionId, status, errorCode?}</code>. Closed, expired, or failed.</td></tr>
-<tr><td><code>OPEN</code> / <code>CLOSE</code></td><td>host → widget</td><td><code>{}</code>. Merchant's own button or dismiss control.</td></tr>
-</table>
-<p class="a">Every frame carries <code>sessionId</code> so a message from a stale widget instance is discarded rather than applied.</p>
-
-<div class="warn"><b>Two things to say about <code>SUCCESS</code>.</b> It carries no credential, unlike Link's <code>SUCCESS</code> which carries a <code>public_token</code>, because nothing is handed to the merchant here. And <b><code>onSuccess</code> is permission to render a confirmation screen, not permission to ship.</b> Their backend acts on the webhook, never on this callback.</div>
-
-<div class="why"><b>What the merchant never sees.</b> The entire OAuth leg. The popup opening, the bank redirect, the callback, the BroadcastChannel message coming home. That conversation is between our iframe and our popup, both on our origin. From the merchant page's view the widget goes quiet for ninety seconds and then emits <code>SUCCESS</code>.</div>
-
-<h2>15. Rails, risk, and why succeeded is terminal</h2><div class="grid2">
+<h2>12. Rails, risk, and why succeeded is terminal</h2><div class="grid2">
   <div class="card">
     <h3>Why <code>authorized</code> and <code>payment_submitted</code> are separate</h3>
     <p>This is the single most common state-machine mistake on this question. Coming back from the bank means <b>we have consent</b>. It does not mean money moved. Nothing has been debited.</p>
@@ -945,79 +843,119 @@ Merchant verifies:
   </div>
 </div>
 
-<h2>16. Follow-ups — answers to have ready</h2>
+<h2>13. The redirect problem, and why a popup</h2>
 
-<p class="q tag-a">The provider backend goes down mid-flow. What does the user see?</p>
-<p class="a">Depends entirely on where. Before <code>authorized</code>, the widget shows a retry and nothing is lost, because no money moved. After <code>payment_submitted</code>, the debit is already on the rail and our database is the only record of it, so the answer is that this database must be replicated with synchronous commit before we ever call the rail. <b>Fail closed.</b> If we cannot durably record the intent, we must not submit. An unrecorded debit is unrecoverable money loss, whereas a rejected payment is a bad afternoon.</p>
+<p>This is the deep dive that separates a good answer from a transcription. Start from the constraint.</p>
 
-<p class="q tag-a">The bank's OAuth server is down or slow.</p>
-<p class="a">Fail open toward the user with a clear message, because nothing has been committed. Circuit-break per institution so one broken bank does not consume your connection pool, and mark it degraded in the institution list so users pick a working one instead of failing repeatedly. Session sits in <code>bank_auth_pending</code> until it expires at 30 minutes. This is the one place where per-dependency isolation really matters, since you integrate with thousands of banks with wildly different reliability.</p>
+<div class="why">
+  <b>The constraint.</b> A bank login page cannot render inside your iframe. Every real bank sends <code>X-Frame-Options: DENY</code> or <code>CSP frame-ancestors 'self'</code>. And even if one did not, asking a user to type bank credentials into a third-party iframe embedded in a merchant page is <i>exactly</i> the phishing pattern, and it destroys your "we never see credentials" claim, because the embedding page could overlay it.
+  <br><br>
+  So the bank must be in a <b>top-level browsing context</b>. There are only two of those available to you. A new window, or the current tab.
+</div>
 
-<p class="q tag-a">The user closes the popup halfway through.</p>
-<p class="a">Nothing happens, which is the point of the design. The session stays in <code>bank_auth_pending</code>, the nonce expires in 10 minutes, the session expires in 30. The iframe can detect the closed popup by polling <code>popup.closed</code> and offer a retry, which mints a fresh nonce and invalidates the old one. No cleanup needed because nothing was committed.</p>
-
-<p class="q tag-a">Two tabs, same order, both open the widget.</p>
-<p class="a">The <code>unique (merchant_id, merchant_reference)</code> constraint means the merchant's second create either returns the same session through the idempotency key or fails. If they somehow get two sessions, the partial unique index still limits <b>each session</b> to one live debit, but the merchant could be charged twice for one order. <b>That is a real gap and the merchant_reference uniqueness is the only thing that closes it, which means it depends on the merchant passing a stable reference.</b> Volunteer this rather than waiting to be asked.</p>
-
-<p class="q tag-a">A webhook is delivered but the merchant returns 500 forever.</p>
-<p class="a">We retry for 24 hours, then stop and alert. Their order hangs, which is why <code>GET /v1/events?after={cursor}</code> exists as a pull-based recovery path. <b>The deeper point is that a push-only integration is never complete.</b> Any system whose correctness depends on the other party's uptime needs a pull path.</p>
-
-<p class="q tag-a">Hot spots or scale problems?</p>
-<p class="a">Not really on the payment path, since sessions are naturally sharded by merchant and there is no shared contended row. Two real ones. First, a flash sale at one large merchant concentrates load on one merchant's rows and on their webhook endpoint, so rate-limit outbound delivery per merchant and give large merchants their own delivery workers. Second, the institution search is read-heavy and identical for everyone, so cache it at the CDN. Neither is the interesting part of this system, which is worth saying so you do not burn time there.</p>
-
-<p class="q tag-a">You said succeeded is terminal, but ACH returns exist. Are you not lying to the merchant?</p>
-<p class="a">We are making them a promise and taking the risk, which is different from lying. Internally the <code>Payment</code> row still records a return and it flows to a loss ledger. What makes this viable is <b>scoring before we submit</b>, using balance from the bank connection we already have, account age, cross-merchant velocity, and device signals. If our loss rate exceeds what we priced into the fee, the business fails, not the architecture. That framing is the honest one.</p>
-
-<p class="q tag-a">Why not just use the current tab everywhere and skip the popup?</p>
-<p class="a">You could, and you must build that path anyway for mobile. I default to the popup on desktop purely because the page being destroyed is a live checkout with cart and form state, and that is a conversion cost the merchant will not accept. It is a UX trade, not a security one. Both are equally secure, since the bank is top-level either way.</p>
-
-<p class="q tag-a">What is the weakest part of your design?</p>
-<p class="a">The gap between committing <code>submitting</code> and the rail acknowledging. No database transaction spans it, so it is closed by a reconciliation sweeper rather than a guarantee, and the sweeper's correctness depends on the rail exposing lookup by our deterministic reference. If a partner did not support that, I would need to hold submission behind a durable queue with a bounded, manually reviewed retry, and accept latency to get certainty.</p>
-
-<h2>17. Numbers to drop</h2>
 <div class="grid2">
   <div class="card">
-    <h3>Load</h3>
-    <ul>
-      <li>Mid-size platform, <b>10M payments/month</b> ≈ 4 payments/sec average, <b class="tag-g">~40/sec at Black Friday peak</b>.</li>
-      <li>That is tiny. One Postgres primary handles it with room to spare, which is exactly why you should not shard.</li>
-      <li>Each payment is roughly <b>8 to 12 API calls</b> across widget, callback and polling, so call it <b>~500 req/sec peak</b>.</li>
-      <li>Institution search is the read hot spot at maybe 10x the payment rate, and it is fully cacheable.</li>
-    </ul>
+    <h3>Option A — take the current tab <span class="tag-r">rejected as default</span></h3>
+    <p>Navigate the top frame to the bank. Come back to a stored <code>return_url</code>, merchant page reboots, widget re-mounts and rehydrates from the server.</p>
+    <p><b>Cost.</b> You destroy the merchant's checkout page. Cart state, half-filled address form, promo code, all their JS state. On an account-linking widget that is annoying. <b>At checkout it is a conversion disaster</b>, and it would be the number one integration complaint you receive.</p>
+    <p class="a">You still have to build this. It is the mobile path and the popup-blocked fallback. You do not get to delete the rehydration logic.</p>
   </div>
   <div class="card">
-    <h3>Storage and time</h3>
+    <h3>Option B — a popup <span class="tag-g">default on desktop</span></h3>
+    <p><code>window.open</code> creates a <b>new top-level window</b>. It does not overlay your widget and it does not replace the tab. The merchant tab keeps running in the background with the iframe still mounted.</p>
+    <div class="warn"><b>The gotcha.</b> <code>window.open</code> must be called <b>synchronously inside the user's click handler</b>. Any <code>await</code> before it and the browser has lost the user-activation flag and the popup blocker eats it. So fetch the authorize URL <i>before</i> the click, or open a blank popup first and set <code>popup.location</code> once the URL arrives.</div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h3>How the popup gets its answer home <span class="tag-g">SSE, not BroadcastChannel</span></h3>
+    <p><b>The SSE stream is the mechanism.</b> The iframe opened <code>GET /v1/widget/session/events</code> at boot and held it through the whole OAuth leg. The popup posts the callback, the server burns, exchanges, commits <code>authorized</code>, and pushes on that stream. <span class="key">The iframe learns from the server, never from the popup.</span></p>
+    <p class="a"><b>The popup could not win a race anyway.</b> It can only broadcast after its POST returns, and the server emitted on the stream before it wrote that response. A browser-to-browser message here is strictly later than the thing it claims to optimize.</p>
+    <p><code>BroadcastChannel</code> is kept as an <b>opportunistic</b> path only, attempted and never depended on. <code>window.opener.postMessage</code> is not even that, since <code>opener</code> is frequently <code>null</code> under the <code>Cross-Origin-Opener-Policy</code> headers you want for other reasons.</p>
+    <p class="a"><b>Popup cancel is a separate mechanism.</b> If the user closes the popup at the bank, no request reaches us, so the stream has nothing to say. The iframe called <code>window.open</code> and holds the handle, so it polls <code>popup.closed</code>. A window reference is not storage, so nothing below touches it.</p>
+  </div>
+  <div class="card">
+    <h3>Why BroadcastChannel is nearly dead here <span class="tag-r">storage partitioning</span></h3>
+    <p>Browsers key storage by the pair of <b>top-level site and frame origin</b>, not origin alone. That covers cookies, localStorage, sessionStorage, IndexedDB, SharedWorker and <code>BroadcastChannel</code>. Chrome shipped it in 2023, Safari has had it under ITP for longer, Firefox does it under Total Cookie Protection.</p>
+    <p><b>Apply it here.</b> Our iframe is <code>provider.com</code> inside <code>merchant.com</code>, so its key is that pair. The popup is a <b>top-level</b> context on <code>provider.com</code>, so it is first-party. Same origin, different partitions. Two channels with the same name that cannot hear each other.</p>
+    <div class="warn"><b>The failure is silent.</b> No exception, no error event. You post and nothing ever arrives. <span class="tag-r">And it works perfectly in development</span>, because you test the widget embedded on your own domain, which is the one case where the partitions collapse. Partition inheritance for popups has also shifted between engine versions, so the practical description is that it sometimes works — acceptable for an optimization, disqualifying for a correctness path.</div>
+    <p class="a">The Storage Access API is not a rescue. It needs a user gesture plus prior first-party interaction and is aimed at cookies.</p>
+  </div>
+  <div class="card">
+    <h3>What changes on mobile</h3>
     <ul>
-      <li><code>PaymentSession</code> ≈ 500 bytes. 10M/month ≈ <b>5 GB/month</b>, ~60 GB/year. Trivial.</li>
-      <li>Nonce and idempotency rows are reaped, so they stay in the low millions.</li>
-      <li><b>Latency budget for the user.</b> Widget boot under 500ms, institution search under 100ms, callback exchange 200 to 800ms driven by the bank, balance check 1 to 3s.</li>
-      <li><b>Latency of the money.</b> Standard ACH 1 to 3 business days, same-day ACH by cutoff. <b class="tag-a">Six orders of magnitude slower than the UI.</b> That gap is the whole design.</li>
-      <li>Webhook fan-out at peak is ~120/sec across all merchants, which one worker pool handles.</li>
+      <li><b>Popups are unreliable.</b> Mobile Safari in particular. Detect and fall back to the full-tab redirect.</li>
+      <li><b>You need <code>return_url</code>.</b> On return, look up the session by <code>oauth_state</code>, read the stored and pre-validated <code>return_url</code>, 302 there with the session id appended.</li>
+      <li><b>Both pages have amnesia.</b> The merchant page reboots and the widget SPA restarts empty. Recovery has two independent paths. <code>sessionStorage</code> breadcrumb for same-tab, and <code>oauth_state</code> in the URL for the case where storage is empty or the bank opened a new tab.</li>
+      <li><b>App-to-app.</b> Many banks deep-link into their native app. You leave the browser entirely and come back through a universal link. Same recovery logic, which is why building it around the server-side <code>oauth_state</code> lookup rather than client storage is the right call.</li>
     </ul>
   </div>
 </div>
 
-<h2>18. How to spend the 60 minutes</h2>
+<div class="oneliner">Say this: "Same framing constraint as any OAuth widget, but at checkout the page I'd be destroying is worth a lot more, so I default to the popup on desktop and keep the redirect-and-rehydrate path for mobile."</div>
 
-<p>This problem has far more surface than fits. The failure mode is spending 25 minutes on institution search and never reaching settlement. Budget explicitly and say the budget out loud.</p>
+<h2>14. Design choices to defend</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Why Postgres</h3>
+    <p>Money system, tiny working set, hard correctness needs. You want real unique constraints and multi-row transactions, because both the outbox and the nonce burn depend on writing two things atomically.</p>
+    <p>Peak is tens of payments per second. One primary handles it. <b>Reaching for a distributed KV here trades away the exact guarantee the design rests on, for scale you do not need.</b></p>
+  </div>
+  <div class="card">
+    <h3>Two details to defend</h3>
+    <p><b><code>amount_minor</code> as an integer.</b> Float money is a real bug. A cent of drift on a reconciliation report is an audit finding.</p>
+    <p><b>The partial unique index.</b> User tries Chase, insufficient funds, tries Wells Fargo. One session, two attempts, one order, one reference. A plain <code>unique(session_id)</code> would forbid the retry.</p>
+    <div class="why"><b>The pattern.</b> Push the invariant down to the layer that can enforce it. If-statements are hope, constraints are guarantees.</div>
+  </div>
+</div>
+<h3>Why REST at the merchant edge</h3>
+<p>REST rather than gRPC because <b>we do not control the client.</b> Merchants are on PHP 7, Ruby, Java 8. gRPC belongs behind our own API layer, where we control both ends. The two-tier answer is the good one. <b>REST at the edge because I do not control the client, gRPC internally because I do.</b> GraphQL loses here, because a small fixed set of auditable idempotent mutations gets nothing from a query planner and pays for it in rate limiting and audit clarity.</p>
+<p class="a"><b>And action endpoints beat a generic PATCH.</b> <code>POST /payment_sessions/{id}/cancel</code> is not strictly RESTful, but <code>PATCH</code> with <code>{state}</code> implies the client may set arbitrary states. You would need a transition whitelist immediately, which is the action endpoints again with a bigger blast radius. Stripe has <code>/cancel</code> and <code>/confirm</code> for this reason.</p>
+<h2>15. How the bank gets data to our backend</h2>
+
+<p>There are <b>three separate channels</b> from the bank side, they arrive at different times, and conflating them is a common mistake. Draw them as three arrows, not one.</p>
 
 <table>
-<tr><th>Minutes</th><th>What</th><th>The one thing you must land</th></tr>
-<tr><td>0 – 7</td><td>Requirements, scope cuts, rail choice</td><td>"Repeat payments out, ACH, we eat the return risk."</td></tr>
-<tr><td>7 – 15</td><td>Entities and the token model</td><td>The token gradient. This is the spine of the whole answer.</td></tr>
-<tr><td>15 – 22</td><td>APIs, split by who is calling</td><td>Merchant-to-us needs a secret. Widget-to-us does not.</td></tr>
-<tr><td>22 – 32</td><td>Architecture diagram plus happy path</td><td>The popup. Draw it, do not hand-wave it.</td></tr>
-<tr><td>32 – 50</td><td>Deep dives, interviewer picks or you offer</td><td>Redirect + rehydration, the nonce race, settlement webhooks.</td></tr>
-<tr><td>50 – 58</td><td>Failure modes and the critique of your own design</td><td>Volunteer at least one hole before they find it.</td></tr>
-<tr><td>58 – 60</td><td>Recap</td><td>The 30-second script at the bottom of this page.</td></tr>
+<tr><th>#</th><th>Channel</th><th>Carries</th><th>Timing</th><th>Trust level</th></tr>
+<tr>
+  <td>1</td>
+  <td><b>Browser redirect</b> to our <code>redirect_uri</code></td>
+  <td><code>code</code> and <code>state</code></td>
+  <td>Seconds. Synchronous with the user.</td>
+  <td class="tag-r">Untrusted. It came through a browser we do not control. Every value must be validated server-side.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><b>Our server-to-server call</b> to the bank's token endpoint</td>
+  <td>We send <code>code</code> + our client secret, we get back the access token, account token, <code>last4</code></td>
+  <td>Sub-second, we initiate it</td>
+  <td class="tag-g">Trusted. Mutual TLS, our secret, the bank's certificate. This is the first thing in the flow we can believe.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><b>Rail settlement</b>, via our bank partner</td>
+  <td>Accepted, settled, or a return code such as <code>R01</code></td>
+  <td class="tag-a">Hours to days. Long after the user is gone.</td>
+  <td class="tag-g">Trusted, signed or mTLS, but slow and out of order.</td>
+</tr>
 </table>
 
-<div class="warn">
-  <b>Depth calibration for 60 minutes.</b> Go deep on exactly three things. Recommended: (a) the token model, (b) exactly-once at the OAuth callback, (c) settlement and webhooks. Everything else gets one sentence and an offer. "Institution search is a typeahead over a few thousand rows, cached at the edge, I'd rather spend the time on settlement unless you want it." That sentence is worth more than actually designing the typeahead.
+<div class="grid2">
+  <div class="card">
+    <h3>Channel 1 is the one that bites people</h3>
+    <p>Everything arriving on the redirect passed through a browser. An attacker can craft that URL. So the callback handler must, in order, burn the nonce atomically, look up the session <b>from the nonce row</b> rather than from anything in the URL, and only then exchange the code.</p>
+    <p>Never trust a <code>session_id</code>, an amount, or a merchant id that arrived in a redirect query string. The <b>only</b> thing you take from that URL is an opaque token you can look up in your own database.</p>
+  </div>
+  <div class="card">
+    <h3>Channel 3 is push or pull, and it depends</h3>
+    <p><b>Push.</b> The bank partner POSTs to a signed endpoint we expose, or drops a NACHA return file into an SFTP bucket that triggers a processing job. Low latency, but you must handle duplicates and out-of-order delivery.</p>
+    <p><b>Pull.</b> We poll the partner's status API on a schedule. Simpler and easier to reason about, and honestly fine here because ACH settles in days. Latency of a five-minute poll is noise next to a two-day settlement.</p>
+    <div class="why"><b>Do both, and say why.</b> Push for latency, poll as a safety net so a missed webhook does not strand a payment forever. The reconciliation job from section 9 is the same job. On a slow rail, <b>polling is the source of truth and push is the optimization</b>, which is the inverse of how it works for the merchant-facing webhooks.</div>
+  </div>
 </div>
 
-
-<h2>19. Accessibility and i18n</h2>
+<h2>16. Accessibility and i18n</h2>
 
 <p>Rarely the main event, but on a <b>frontend</b> round an embeddable modal invites these questions, and having a real answer separates you from candidates who only did the backend.</p>
 
@@ -1047,6 +985,78 @@ Merchant verifies:
 </div>
 
 <p class="a"><b>If asked to prioritise.</b> Focus trap and focus restoration first, because a keyboard user simply cannot complete the flow without them. The live region second, because of the silent async advance. Everything else is polish.</p>
+<h2>17. Follow-ups — answers to have ready</h2>
+
+<p class="q tag-a">The provider backend goes down mid-flow. What does the user see?</p>
+<p class="a">Depends entirely on where. Before <code>authorized</code>, the widget shows a retry and nothing is lost, because no money moved. After <code>payment_submitted</code>, the debit is already on the rail and our database is the only record of it, so the answer is that this database must be replicated with synchronous commit before we ever call the rail. <b>Fail closed.</b> If we cannot durably record the intent, we must not submit. An unrecorded debit is unrecoverable money loss, whereas a rejected payment is a bad afternoon.</p>
+
+<p class="q tag-a">The bank's OAuth server is down or slow.</p>
+<p class="a">Fail open toward the user with a clear message, because nothing has been committed. Circuit-break per institution so one broken bank does not consume your connection pool, and mark it degraded in the institution list so users pick a working one instead of failing repeatedly. Session sits in <code>bank_auth_pending</code> until it expires at 30 minutes. This is the one place where per-dependency isolation really matters, since you integrate with thousands of banks with wildly different reliability.</p>
+
+<p class="q tag-a">The user closes the popup halfway through.</p>
+<p class="a">Nothing happens, which is the point of the design. The session stays in <code>bank_auth_pending</code>, the nonce expires in 10 minutes, the session expires in 30. The iframe can detect the closed popup by polling <code>popup.closed</code> and offer a retry, which mints a fresh nonce and invalidates the old one. No cleanup needed because nothing was committed.</p>
+
+<p class="q tag-a">Two tabs, same order, both open the widget.</p>
+<p class="a">The <code>unique (merchant_id, merchant_reference)</code> constraint means the merchant's second create either returns the same session through the idempotency key or fails. If they somehow get two sessions, the partial unique index still limits <b>each session</b> to one live debit, but the merchant could be charged twice for one order. <b>That is a real gap and the merchant_reference uniqueness is the only thing that closes it, which means it depends on the merchant passing a stable reference.</b> Volunteer this rather than waiting to be asked.</p>
+
+<p class="q tag-a">A webhook is delivered but the merchant returns 500 forever.</p>
+<p class="a">We retry for 24 hours, then stop and alert. Their order hangs, which is why <code>GET /v1/events?after={cursor}</code> exists as a pull-based recovery path. <b>The deeper point is that a push-only integration is never complete.</b> Any system whose correctness depends on the other party's uptime needs a pull path.</p>
+
+<p class="q tag-a">Hot spots or scale problems?</p>
+<p class="a">Not really on the payment path, since sessions are naturally sharded by merchant and there is no shared contended row. Two real ones. First, a flash sale at one large merchant concentrates load on one merchant's rows and on their webhook endpoint, so rate-limit outbound delivery per merchant and give large merchants their own delivery workers. Second, the institution search is read-heavy and identical for everyone, so cache it at the CDN. Neither is the interesting part of this system, which is worth saying so you do not burn time there.</p>
+
+<p class="q tag-a">You said succeeded is terminal, but ACH returns exist. Are you not lying to the merchant?</p>
+<p class="a">We are making them a promise and taking the risk, which is different from lying. Internally the <code>Payment</code> row still records a return and it flows to a loss ledger. What makes this viable is <b>scoring before we submit</b>, using balance from the bank connection we already have, account age, cross-merchant velocity, and device signals. If our loss rate exceeds what we priced into the fee, the business fails, not the architecture. That framing is the honest one.</p>
+
+<p class="q tag-a">Why not just use the current tab everywhere and skip the popup?</p>
+<p class="a">You could, and you must build that path anyway for mobile. I default to the popup on desktop purely because the page being destroyed is a live checkout with cart and form state, and that is a conversion cost the merchant will not accept. It is a UX trade, not a security one. Both are equally secure, since the bank is top-level either way.</p>
+
+<p class="q tag-a">What is the weakest part of your design?</p>
+<p class="a">The gap between committing <code>submitting</code> and the rail acknowledging. No database transaction spans it, so it is closed by a reconciliation sweeper rather than a guarantee, and the sweeper's correctness depends on the rail exposing lookup by our deterministic reference. If a partner did not support that, I would need to hold submission behind a durable queue with a bounded, manually reviewed retry, and accept latency to get certainty.</p>
+
+<h2>18. Numbers to drop</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Load</h3>
+    <ul>
+      <li>Mid-size platform, <b>10M payments/month</b> ≈ 4 payments/sec average, <b class="tag-g">~40/sec at Black Friday peak</b>.</li>
+      <li>That is tiny. One Postgres primary handles it with room to spare, which is exactly why you should not shard.</li>
+      <li>Each payment is roughly <b>8 to 12 API calls</b> across widget, callback and polling, so call it <b>~500 req/sec peak</b>.</li>
+      <li>Institution search is the read hot spot at maybe 10x the payment rate, and it is fully cacheable.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Storage and time</h3>
+    <ul>
+      <li><code>PaymentSession</code> ≈ 500 bytes. 10M/month ≈ <b>5 GB/month</b>, ~60 GB/year. Trivial.</li>
+      <li>Nonce and idempotency rows are reaped, so they stay in the low millions.</li>
+      <li><b>Latency budget for the user.</b> Widget boot under 500ms, institution search under 100ms, callback exchange 200 to 800ms driven by the bank, balance check 1 to 3s.</li>
+      <li><b>Latency of the money.</b> Standard ACH 1 to 3 business days, same-day ACH by cutoff. <b class="tag-a">Six orders of magnitude slower than the UI.</b> That gap is the whole design.</li>
+      <li>Webhook fan-out at peak is ~120/sec across all merchants, which one worker pool handles.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>19. How to spend the 60 minutes</h2>
+
+<p>This problem has far more surface than fits. The failure mode is spending 25 minutes on institution search and never reaching settlement. Budget explicitly and say the budget out loud.</p>
+
+<table>
+<tr><th>Minutes</th><th>What</th><th>The one thing you must land</th></tr>
+<tr><td>0 – 7</td><td>Requirements, scope cuts, rail choice</td><td>"Repeat payments out, ACH, we eat the return risk."</td></tr>
+<tr><td>7 – 15</td><td>Entities and the token model</td><td>The token gradient. This is the spine of the whole answer.</td></tr>
+<tr><td>15 – 22</td><td>APIs, split by who is calling</td><td>Merchant-to-us needs a secret. Widget-to-us does not.</td></tr>
+<tr><td>22 – 32</td><td>Architecture diagram plus happy path</td><td>The popup. Draw it, do not hand-wave it.</td></tr>
+<tr><td>32 – 50</td><td>Deep dives, interviewer picks or you offer</td><td><b>Offer in section order.</b> Part Two is sorted by how likely it is to come up, so lead with 8, 9, 10. You will get through two, maybe three.</td></tr>
+<tr><td>50 – 58</td><td>Failure modes and the critique of your own design</td><td>Volunteer at least one hole before they find it.</td></tr>
+<tr><td>58 – 60</td><td>Recap</td><td>The 30-second script in section 7.</td></tr>
+</table>
+
+<div class="warn">
+  <b>Depth calibration for 60 minutes.</b> Go deep on exactly three things. Recommended: (a) the token model, (b) exactly-once at the OAuth callback, (c) settlement and webhooks. Everything else gets one sentence and an offer. "Institution search is a typeahead over a few thousand rows, cached at the edge, I'd rather spend the time on settlement unless you want it." That sentence is worth more than actually designing the typeahead.
+</div>
+
+
 
 </body>
 </html>

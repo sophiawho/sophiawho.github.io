@@ -271,7 +271,7 @@ handler.open() / handler.exit()</pre>
 </div>
 
 
-<div class="part">PART TWO — deep dives <span>· pull these out when probed</span></div>
+<div class="part">PART TWO — deep dives <span>· sorted by how likely you are to be asked · lead with 6, 7, 8</span></div>
 <h2>6. OAuth redirect and rehydration <span class="badge">CORE PROBLEM</span></h2>
 <p class="a">The SPA reloads from scratch (amnesia). Question on return: <b>which session is this browser?</b> Two independent recovery paths: (1) <b>sessionStorage breadcrumb</b> = <code>link_token</code>, works same-tab; (2) <span class="nonce">oauth_state_id</span> in the callback URL, server looks up the session, works new-tab with empty storage. <b>The client is a courier, not a judge</b> — a client "state I sent vs got back" check proves nothing; the server generated + stored the state and does the only comparison that counts. Client just forwards <code>state</code>+<code>code</code>, then <code>GET /link/session/:id</code> and renders whatever step the server reports.</p>
 
@@ -293,7 +293,25 @@ handler.open() / handler.exit()</pre>
 <div class="warn"><b>The window you cannot close, and name it before they do.</b> If the user refreshes between the burn and the write, they hold a dead nonce and no token, and they start the flow over. <span class="tag-r">Do not rescue this by replaying the token to a burned nonce</span> — that hands a live <code>link_token</code> to anyone who later finds that URL in a history export or a proxy log. Accept a few milliseconds of exposure to a restart, and say that you chose it.</div>
 <p class="a"><b>Same-tab still sends the nonce.</b> It already has a <code>link_token</code>, but the two answer different questions. The <code>link_token</code> says <i>which session</i>; the nonce says <i>this callback really came from the redirect we started</i>. Neither substitutes for the other.</p>
 
-<h2>7. Why the <code>public_token</code> rides the browser</h2>
+<h2>7. Exactly-once, and the nonce</h2>
+<p class="a">UI shows a step only after the server confirms it — model illegal transitions as rejected so a stale message or duplicated redirect can't jump forward. First callback wins and burns the state, the second is rejected. OAuth retry mints a fresh <span class="nonce">oauth_state_id</span>, invalidating the old one for free. Invariant: <b>at most one link created</b>.</p>
+
+<h3>Burn it atomically, and burn it first</h3>
+<pre>UPDATE oauth_state SET used_at = now()
+ WHERE state = $1 AND used_at IS NULL AND expires_at &gt; now();
+-- assert rows_affected == 1, else reject
+
+token = exchangeWithBank(code);   <span class="a">-- only AFTER the claim</span></pre>
+<p class="a">A <code>SELECT</code> then <code>UPDATE</code> is a race. Two concurrent callbacks from a double-click or a prefetch both read <code>used_at IS NULL</code> and both exchange, and the window is as wide as a network call to a bank. <b>Claim first, then do the slow thing.</b> If the exchange fails afterwards the nonce stays burned and the user retries with a fresh one, which is correct.</p>
+<p class="a"><b>And the stakes are higher than "advance a step."</b> Per §6 this same handler also mints the replacement <code>link_token</code> for the new-tab case, so a second execution would issue a second live credential, not just a duplicate write.</p>
+
+<h2>8. Security — three separate boundaries</h2>
+<p class="a"><b>(1) iframe isolation</b> — same-origin policy blocks the customer page from reading widget JS/DOM. <b>(2) postMessage channel</b> — pin the exact target origin on send, check <code>event.origin</code> against the allowlist on receive (exact string match, never <code>includes</code> — <code>evil-customer.com.attacker.com</code> passes a naive substring check). <b>(3) CSRF state</b> — server-generated, session-bound, single-use <span class="nonce">oauth_state_id</span> on the redirect; forged callbacks fail the match, replays fail single-use.</p>
+
+<h3>The trust rule, stated precisely</h3>
+<p class="a">The client only ever holds values that are <b>safe to leak</b>: <code>link_token</code> (expires fast), <span class="nonce">oauth_state_id</span> (useless once burned), <code>public_token</code> (inert without the secret). Server-only: customer secret creds, <code>access_token</code>, and the <i>authority</i> to validate/burn a nonce. A client-generated nonce is worthless for CSRF.</p>
+
+<h2>9. Why the <code>public_token</code> rides the browser</h2>
 
 <p>Natural interviewer question. Why not just have our backend push it to the customer's backend? Four reasons, and the best one is not the obvious one.</p>
 
@@ -317,19 +335,7 @@ handler.open() / handler.exit()</pre>
 
 <div class="why"><b>The rule that generalises, and it is worth saying.</b> The delivery mechanism follows from <b>whether the answer exists while the user is still present</b>. In Link it does, so you hand it through the browser and gain identity, latency, and a simpler integration. In a payments widget the outcome arrives days after the tab closed, so a browser handoff is impossible and webhooks are forced, along with the outbox and the cursor endpoint. <span class="a">Same choice, different constraint.</span></div>
 
-<h2>8. Exactly-once, and the nonce</h2>
-<p class="a">UI shows a step only after the server confirms it — model illegal transitions as rejected so a stale message or duplicated redirect can't jump forward. First callback wins and burns the state, the second is rejected. OAuth retry mints a fresh <span class="nonce">oauth_state_id</span>, invalidating the old one for free. Invariant: <b>at most one link created</b>.</p>
-
-<h3>Burn it atomically, and burn it first</h3>
-<pre>UPDATE oauth_state SET used_at = now()
- WHERE state = $1 AND used_at IS NULL AND expires_at &gt; now();
--- assert rows_affected == 1, else reject
-
-token = exchangeWithBank(code);   <span class="a">-- only AFTER the claim</span></pre>
-<p class="a">A <code>SELECT</code> then <code>UPDATE</code> is a race. Two concurrent callbacks from a double-click or a prefetch both read <code>used_at IS NULL</code> and both exchange, and the window is as wide as a network call to a bank. <b>Claim first, then do the slow thing.</b> If the exchange fails afterwards the nonce stays burned and the user retries with a fresh one, which is correct.</p>
-<p class="a"><b>And the stakes are higher than "advance a step."</b> Per §6 this same handler also mints the replacement <code>link_token</code> for the new-tab case, so a second execution would issue a second live credential, not just a duplicate write.</p>
-
-<h2>9. Re-auth and update mode</h2>
+<h2>10. Re-auth and update mode</h2>
 <p class="a">Every Item eventually breaks. Passwords change, banks invalidate grants, open-banking consent lapses on a schedule. <b>This is a lifecycle, not an edge case</b>, and the recovery splits cleanly by whether the user has to be present.</p>
 
 <div class="grid2">
@@ -348,12 +354,6 @@ token = exchangeWithBank(code);   <span class="a">-- only AFTER the claim</span>
 <p><b>Why the seed is the whole trick.</b> Because <code>item_id</code> survives, the customer's <code>access_token</code> keeps working and their own user-to-Item mapping never moves. A re-auth is invisible in their database. <span class="a">If re-auth minted a new Item instead, every password change would force the customer to re-store a token and re-key their records, and no integration would last a year.</span></p>
 
 <div class="why"><b>This is the concrete case that makes "webhooks are the safety net" real.</b> The browser is long gone when an Item breaks, so there is no callback to fire. The customer learns from <code>ITEM_LOGIN_REQUIRED</code> on the webhook, or from an API call returning it, and then prompts their own user. <span class="a">Open-banking consent expiry is <b>scheduled</b> rather than failure-driven, so you emit a pending-expiration warning in advance and re-auth before anything actually breaks.</span></div>
-
-<h2>10. Security — three separate boundaries</h2>
-<p class="a"><b>(1) iframe isolation</b> — same-origin policy blocks the customer page from reading widget JS/DOM. <b>(2) postMessage channel</b> — pin the exact target origin on send, check <code>event.origin</code> against the allowlist on receive (exact string match, never <code>includes</code> — <code>evil-customer.com.attacker.com</code> passes a naive substring check). <b>(3) CSRF state</b> — server-generated, session-bound, single-use <span class="nonce">oauth_state_id</span> on the redirect; forged callbacks fail the match, replays fail single-use.</p>
-
-<h3>The trust rule, stated precisely</h3>
-<p class="a">The client only ever holds values that are <b>safe to leak</b>: <code>link_token</code> (expires fast), <span class="nonce">oauth_state_id</span> (useless once burned), <code>public_token</code> (inert without the secret). Server-only: customer secret creds, <code>access_token</code>, and the <i>authority</i> to validate/burn a nonce. A client-generated nonce is worthless for CSRF.</p>
 
 <h2>11. Edge cases and abuse</h2>
 <p class="a">Every FlowState has an <code>ERROR</code> edge (bank down, state mismatch, expired). Cancel/ESC → <code>EXIT</code>, session marked abandoned. <code>expires_at</code> (~4h) rejects late transitions. Rate-limit session creates / OAuth attempts per link_token / IP / customer; monitor nonce-failure spikes (forged-callback probing). Back button is safe: GET re-fires freely, the finalize POST is protected by the burned nonce + Idempotency-Key.</p>
