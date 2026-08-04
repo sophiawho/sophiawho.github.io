@@ -41,7 +41,7 @@
 <body>
 
 <h1>Dog-Sitting App — Worked Example</h1>
-<p class="sub">Rover/Wag-style · 1.5M owners, 1M sitters · geo + time search · no double-booking · a teaching walkthrough, not a cheatsheet. Two deep dives you asked for: modeling and displaying time slots, and holding a booking for 10 minutes.</p>
+<p class="sub">Rover/Wag-style · US launch, 5M owners, 5M sitters · 250k sits/week · 2.5M searches/week · geo + time search · no double-booking · a teaching walkthrough, not a cheatsheet.</p>
 
 <h2>1. Requirements</h2>
 
@@ -51,7 +51,8 @@
 
 <p>The non-functional requirements are what actually shape the design, and there are two that matter. Search is a <b>geospatial-plus-time</b> query, and it's the read hot path. Booking needs <b>consistency</b> so a sitter is never double-booked for overlapping times. Everything else follows from those two.</p>
 
-<div class="callout"><b>The scale read is the most important sentence, because it tells you what NOT to build.</b> 1.5M owners and 1M sitters is a small dataset, the write volume (bookings) is modest, and — critically — the contention is low. Unlike Ticketmaster, no single sitter is fought over by ten million people in the same millisecond. So the correctness problem here is real but cheap: a row-level database constraint solves it, with no waiting queue and no distributed locking. Saying this up front, and later defending why you're <i>not</i> reaching for the heavy Ticketmaster machinery, is the L5 signal — right-sizing beats over-engineering.</div>
+<div class="callout"><b>The scale read is the most important sentence, because it tells you what NOT to build — so convert the numbers to rates before you draw anything.</b> 2.5M searches/week is <b>~4 searches per second</b>. 250k sits/week is <b>~0.4 bookings per second</b>. Those are astonishingly small numbers: a single Postgres instance handles this on a laptop. 5M owners and 5M sitters is a few GB of profiles. The write volume is negligible and — critically — the contention is low. Unlike Ticketmaster, no single sitter is fought over by ten million people in the same millisecond. So the correctness problem here is real but cheap: a row-level database constraint solves it, with no waiting queue and no distributed locking. Saying this up front, and later defending why you're <i>not</i> reaching for the heavy Ticketmaster machinery, is the L5 signal — right-sizing beats over-engineering.
+<p><b>The trap to avoid: computing these numbers and then ignoring them.</b> Writing "2.5M searches/week" on the board and then drawing microservices, Kafka, CDC and a search cluster for 4 QPS is the most common L4 tell there is — it shows you did the arithmetic as a ritual rather than as an input. You don't have to actually build the small version, but you must <i>acknowledge</i> it: <span class="tag-g">"at 4 QPS a single Postgres does all of this, so let me justify each piece of machinery I add rather than assuming it."</span> Then add the search index because the geo-plus-filter query genuinely needs it, and add async workers because email shouldn't sit on the booking path. Every component earns its place out loud.</p></div>
 
 <h2>2. Architecture</h2>
 <svg viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="12">
@@ -83,9 +84,9 @@
   <text x="635" y="225" text-anchor="middle" font-size="10.5" fill="#5b6470">slots, rates</text>
 
   <rect x="55" y="295" width="180" height="62" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
-  <text x="145" y="319" text-anchor="middle" font-weight="600">Geo / search index</text>
-  <text x="145" y="336" text-anchor="middle" font-size="10.5" fill="#5b6470">S2 / geohash cells</text>
-  <text x="145" y="350" text-anchor="middle" font-size="10.5" fill="#5b6470">+ availability</text>
+  <text x="145" y="317" text-anchor="middle" font-weight="600">Elasticsearch</text>
+  <text x="145" y="333" text-anchor="middle" font-size="10" fill="#5b6470">geo_point + filters + rank</text>
+  <text x="145" y="346" text-anchor="middle" font-size="10" fill="#5b6470">derived read model</text>
 
   <rect x="300" y="295" width="180" height="62" rx="10" fill="#fff" stroke="#b45309" stroke-width="1.6"/>
   <text x="390" y="319" text-anchor="middle" font-weight="600" fill="#b45309">Bookings DB</text>
@@ -98,8 +99,9 @@
   <text x="635" y="350" text-anchor="middle" font-size="10.5" fill="#5b6470">rates</text>
 
   <rect x="775" y="185" width="150" height="52" rx="27" fill="#fff" stroke="#2563eb"/>
-  <text x="850" y="207" text-anchor="middle" font-size="11.5" fill="#2563eb">Redis</text>
-  <text x="850" y="224" text-anchor="middle" font-size="10" fill="#5b6470">search cache · optional hold</text>
+  <text x="850" y="203" text-anchor="middle" font-size="11.5" fill="#2563eb">Redis · 3 caches</text>
+  <text x="850" y="218" text-anchor="middle" font-size="9.5" fill="#5b6470">profile · search results · ratings</text>
+  <text x="850" y="230" text-anchor="middle" font-size="9.5" fill="#b91c1c">never: availability</text>
 
   <rect x="775" y="295" width="150" height="62" rx="10" fill="#fff8ec" stroke="#b45309"/>
   <text x="850" y="319" text-anchor="middle" font-size="11.5" fill="#b45309">Secrets svc</text>
@@ -121,11 +123,11 @@
 
 <p>The architecture has three ideas, and each is worth a sentence of defense rather than just a box.</p>
 
-<p><b>Idea one: search reads from a derived index, not the source of truth.</b> A sitter's location is static, but their availability changes constantly as bookings come and go. So the searchable copy — geo cells plus current availability — is a read model kept fresh by CDC from the sitter and bookings databases, exactly like the tweet-search index. It's eventually consistent by seconds, which is fine for browsing because the booking step re-checks the authoritative database before committing. A stale "available" in search just yields an occasional "sorry, just taken" at booking time, never a double-booking.</p>
+<p><b>Idea one: search reads from a derived index, not the source of truth.</b> A sitter's location is static, but their availability changes constantly as bookings come and go. So the searchable copy — a denormalized Elasticsearch document holding location, filters, ratings and current availability — is a read model kept fresh by CDC from the sitter and bookings databases, exactly like the tweet-search index. It's eventually consistent by seconds, which is fine for browsing because the booking step re-checks the authoritative database before committing. A stale "available" in search just yields an occasional "sorry, just taken" at booking time, never a double-booking.</p>
 
 <p><b>Idea two: the write path is separate and owns consistency.</b> Booking goes through its own service into a bookings database, and that database — not application code — is what guarantees no overlap. Keeping the write path distinct from the read path means the heavy search traffic never contends with the correctness-critical booking transaction.</p>
 
-<p><b>Idea three: shard by the thing you transact against.</b> The bookings table is sharded by <code>sitterId</code>, so every booking for one sitter lives on one shard. That makes the overlap check and the insert a single-shard transaction with no distributed commit — the ACID-plus-colocation lesson made concrete. We'll lean on this in §5.</p>
+<p><b>Idea three: shard by the thing you transact against.</b> The bookings table is sharded by <code>sitterId</code>, so every booking for one sitter lives on one shard. That makes the overlap check and the insert a single-shard transaction with no distributed commit — the ACID-plus-colocation lesson made concrete. We'll lean on this in §6.</p>
 
 <h2>3. Core entities</h2>
 <div class="grid2">
@@ -151,8 +153,8 @@ Booking {
   </div>
   <div class="card">
     <h3>Why these shapes</h3>
-    <p>The decision that ripples through the whole design is representing time as a <b>range</b> (<code>tstzrange</code>), not a pair of loose start/end columns. A range is a first-class value the database can compare for overlap, which is what lets §5 enforce non-overlap natively and §6 do containment matching cleanly.</p>
-    <p><code>geoCell</code> is precomputed from lat/lng so search is an index lookup, not a per-row distance scan. Money is integer minor units, formatted at render. And <code>status</code> plus <code>reservedUntil</code> exist to support the 10-minute hold in §7 — a booking has a life cycle, it isn't just created-or-not.</p>
+    <p>The decision that ripples through the whole design is representing time as a <b>range</b> (<code>tstzrange</code>), not a pair of loose start/end columns. A range is a first-class value the database can compare for overlap, which is what lets §6 enforce non-overlap natively and §7 do containment matching cleanly.</p>
+    <p><code>geoCell</code> is precomputed from lat/lng so search is an index lookup, not a per-row distance scan. Money is integer minor units, formatted at render. And <code>status</code> plus <code>reservedUntil</code> exist to support the 10-minute hold in §8 — a booking has a life cycle, it isn't just created-or-not.</p>
   </div>
 </div>
 
@@ -166,7 +168,9 @@ Booking {
       <tr><td>Geohash</td><td>Simplest, fits any B-tree/Redis. Boundary effects — query target cell + 8 neighbors.</td></tr>
       <tr><td>Quadtree</td><td>Adapts to density (fine cells in cities). More upkeep.</td></tr>
       <tr><td>S2 / H3</td><td>Production-grade cells, handle boundaries/distortion well.</td></tr>
-      <tr><td>PostGIS</td><td>GiST index + <code>ST_DWithin</code> radius queries. The pragmatic pick at 1M rows on Postgres.</td></tr>
+      <tr><td>PostGIS</td><td>GiST index + <code>ST_DWithin</code> radius queries. The pragmatic pick at 5M rows on Postgres.</td></tr>
+      <tr><td><b>Elasticsearch</b></td><td><code>geo_point</code> + <code>geo_distance</code> <i>combined with</i> structured filters and relevance ranking in one query. The pick here — see below.</td></tr>
+      <tr><td>Redis GEO</td><td><code>GEOADD</code>/<code>GEOSEARCH</code>, geohash-backed sorted sets. Sub-ms radius, but no filtering or ranking. A hot cache, not a search engine.</td></tr>
     </table>
   </div>
   <div class="card">
@@ -176,7 +180,172 @@ Booking {
   </div>
 </div>
 
-<h2>5. No double-booking (the Ticketmaster lesson, right-sized)</h2>
+<h3>Why Elasticsearch is the right search-optimized database here</h3>
+
+<p>Say the reason out loud, because "I'd use Elasticsearch" without one is a name-drop. Sitter search is never <i>only</i> a geo query — it's <b>proximity AND filters AND ranking, resolved in a single pass</b>. "Boarding, large dogs OK, under $60/night, within 5 miles, sorted by rating." A pure spatial structure (geohash in Redis, S2 cells in a KV store) gives you the radius and then leaves you to filter and rank in application code over the candidate set. Elasticsearch does all three in the engine: <code>geo_point</code> fields indexed as BKD trees for the distance cut, an inverted index for the categorical filters, and a scoring pass over the survivors. That combination is the justification.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>The document is denormalized</h3>
+    <pre>PUT /sitters/_doc/1234
+{
+  "sitter_id": 1234,
+  "loc": { "lat": 37.77, "lon": -122.41 },  // geo_point
+  "services": ["boarding","walking"],
+  "dog_sizes": ["small","large"],
+  "nightly_rate_cents": 5500,
+  "rating_avg": 4.62, "rating_count": 1043,
+  "available": [ {"gte":"2026-08-08","lt":"2026-08-11"} ]
+}</pre>
+    <p>One flat document joins what is four tables in Postgres — the sitter row, their services, their rates, and their review aggregate. That's the whole point of a search-optimized store: <span class="tag-g">pay the join cost once at write time so the read is a single index hit.</span></p>
+    <p class="a">The consequence candidates miss: a change to <i>any</i> of those source tables must re-emit the whole sitter document. That fan-in is what your CDC consumer actually has to handle.</p>
+  </div>
+  <div class="card">
+    <h3>The query</h3>
+    <pre>GET /sitters/_search
+{ "query": { "bool": {
+  "filter": [
+    { "geo_distance": { "distance": "5mi",
+        "loc": {"lat":37.77,"lon":-122.41} } },
+    { "term":  { "services": "boarding" } },
+    { "term":  { "dog_sizes": "large" } },
+    { "range": { "nightly_rate_cents": {"lte":6000} } }
+  ],
+  "should": [ { "rank_feature":
+      { "field": "rating_avg" } } ]
+}}}</pre>
+    <p><code>filter</code> clauses are boolean and cacheable by the engine, <code>should</code> contributes to score. This <i>is</i> the two-stage query from the card above, expressed declaratively — Elasticsearch picks the cheapest filter to lead with rather than you hand-ordering the passes.</p>
+  </div>
+</div>
+
+<h3>What "CDC → refresh search index" actually means</h3>
+
+<p>Two different things get collapsed into that arrow on the diagram, and separating them is a small piece of depth worth having ready.</p>
+
+<p><b>The pipeline sense.</b> Postgres commits a write. Debezium (or equivalent) tails the WAL and emits a change event. A consumer rebuilds the affected sitter's denormalized document and issues a bulk upsert into Elasticsearch. Nothing writes to Elasticsearch directly — the search index is a <i>derived</i> store, and treating it as a second source of truth is how you get two systems that disagree with no way to reconcile.</p>
+
+<p><b>The Elasticsearch sense, which is a real technical term.</b> An indexed document is not immediately searchable. It lands in an in-memory buffer plus a translog. A <b>refresh</b> flushes that buffer into a new Lucene segment and opens it for reading, which is the moment the document becomes visible to queries. The default <code>refresh_interval</code> is <b>1 second</b> — this is why Elasticsearch is described as <i>near</i>-real-time rather than real-time.</p>
+
+<table>
+  <tr><th>Knob</th><th>Effect</th><th>When</th></tr>
+  <tr><td><code>refresh_interval: 1s</code></td><td>Default. New docs searchable within ~1s.</td><td>Steady state.</td></tr>
+  <tr><td><code>refresh_interval: 30s</code></td><td>Fewer, larger segments → much faster bulk ingest, less merge pressure.</td><td>Backfills and full reindexes.</td></tr>
+  <tr><td><code>?refresh=wait_for</code></td><td>The write call blocks until the doc is visible.</td><td>Read-your-own-writes, e.g. a sitter editing their profile then viewing it.</td></tr>
+</table>
+
+<div class="callout"><b>Chain the staleness budget out loud, because it's the sentence that shows you understand the whole path.</b> A sitter's availability change is visible in search after the CDC lag plus the refresh interval — call it a few seconds. That is acceptable <i>only</i> because search is advisory and §6's exclusion constraint is authoritative: a stale "available" costs an occasional "sorry, just taken" at booking time, never a double-booking. State the budget and then state why it's safe. <b>And know when not to reach for this:</b> if the design had no filters and no ranking, just "5 nearest points," Elasticsearch would be over-engineering and PostGIS or a plain geohash index would be the stronger answer. Naming the case where you'd reject it is what makes the case where you choose it credible.</div>
+
+<h2>5. Caching (three caches, and one thing we refuse to cache)</h2>
+
+<p>"Add Redis" is not an answer. The answer is <b>which three things, why each one is a good candidate, and how each is invalidated</b> — and a good candidate always has the same two properties: it's read far more than it's written, and it can tolerate being slightly wrong. Anything that fails the second test doesn't get cached no matter how hot it is.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>1 · Sitter profile, by ID</h3>
+    <pre>sitter:1234  ->  { name, photos, bio,
+                   rates, services, ... }</pre>
+    <p><b>Why it's a good candidate.</b> Every search result renders a profile card, and every result page fans out to dozens of these, so the read-to-write ratio is enormous. A sitter edits their bio maybe monthly. The data is also self-contained, so there's exactly one key to worry about.</p>
+    <p><b>Invalidation: event-driven, on the CDC stream you already built.</b> The same change event that re-indexes the Elasticsearch document also writes the profile cache. No extra plumbing. Prefer <b>update-in-place</b> over delete so a popular sitter's key is never briefly absent.</p>
+    <p class="a">TTL of a few hours as a backstop against a dropped event, not as the primary mechanism.</p>
+  </div>
+  <div class="card">
+    <h3>2 · Search results, by quantized geo + filter set</h3>
+    <p><b>Why it's a good candidate.</b> Search is the read hot path and it's the most expensive query in the system. Demand is also heavily clustered — on a holiday weekend, thousands of owners in the same city issue near-identical queries within minutes of each other.</p>
+    <p><b>The catch that makes or breaks it: raw coordinates give a ~0% hit rate.</b> 37.7749 and 37.7751 are neighbours in the real world and different keys in Redis. So you <b>quantize the key</b> before you use it.</p>
+    <pre>raw:  lat=37.77490 lng=-122.41940 r=5mi
+      svc=boarding size=large rate&lt;=$60
+      2026-08-08→10  sort=rating
+
+key:  sitters:v1:cell=9q8yy:svc=boarding
+      :size=lg:rate_bucket=75</pre>
+    <p>A 5-character geohash is roughly a 5km box, so a whole neighbourhood collapses onto one key. Filters are canonicalized into a fixed, sorted order so the same logical query can't produce two different strings.</p>
+    <p class="a">Note what is <i>absent</i> from that key: the dates, the radius, and the exact price. Removing them is the whole design, and the next subsection is about why.</p>
+  </div>
+</div>
+
+<h3>Two details that make the search cache actually work</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Cache a superset, re-filter precisely on read</h3>
+    <p>Because you snapped the centre to a cell, the cached result isn't centred on the real user. So query Elasticsearch with a <b>padded radius</b>, cache that wider set, then compute exact distances and re-sort <i>in the application layer</i> before responding. The cache buys you the expensive engine round trip; the app layer restores per-user precision. <span class="tag-g">You get sharing without lying about distance.</span></p>
+  </div>
+  <div class="card">
+    <h3>Cache IDs, not documents</h3>
+    <p>Store an ordered list of <code>sitter_id</code>s, then hydrate each from cache #1. Otherwise the same sitter's blob is duplicated across dozens of search keys and a single profile edit forces you to hunt down every one of them. With IDs, a profile edit invalidates <i>one</i> key and every search result is instantly correct.</p>
+    <p class="a">The risk to name unprompted: <b>key cardinality</b>. Every filter multiplies the key space, and a key read once cost more to write than it saved. Mitigation — only cache the common shapes (page 0, default sort, one or two filters); deep pages and exotic filter combinations go straight to Elasticsearch.</p>
+  </div>
+</div>
+
+<h3>Designing the key for reuse: are we caching geography, or availability too?</h3>
+
+<p>This is the question that decides whether the cache is worth having, so answer it explicitly rather than letting it sit implied. <b>The cached value is a geography-and-static-attributes candidate set. Availability is deliberately not in it.</b></p>
+
+<p>The reason is that the two dimensions change at wildly different rates, and <span class="tag-g">a cache key is only as reusable as its most volatile component.</span> A sitter's location, services, and rates change maybe monthly. Their availability changes every time anyone books them. Worse, availability is <i>queried</i> as a date range, and date ranges are nearly unique per user — one owner wants Aug 8–10, the next wants Aug 9–12, and those are different keys holding almost identical answers. Bake dates into the key and you've built a cache with a hit rate near zero that also goes stale in seconds. Both failure modes at once.</p>
+
+<p>So split the query along its own natural seam.</p>
+
+<table>
+  <tr><th>Stage</th><th>What it answers</th><th>Where it runs</th><th>Volatility</th></tr>
+  <tr><td><b>1 · Candidate set</b></td><td>Who is near here and matches the static filters?</td><td class="tag-g">Redis, cached, shared</td><td>Changes monthly</td></tr>
+  <tr><td><b>2 · Availability</b></td><td>Which of those few hundred are free Aug 8–10?</td><td class="tag-a">Live, per request</td><td>Changes constantly</td></tr>
+  <tr><td><b>3 · Rank</b></td><td>Exact distance, rating, price ordering</td><td>App layer, per request</td><td>Per user</td></tr>
+</table>
+
+<p>Stage 1 is expensive and shared. Stage 2 is cheap and personal — it's one indexed query, <code>WHERE sitter_id IN (...) AND during &amp;&amp; requested_range</code>, over a few hundred IDs rather than a million. You've moved the volatile dimension out of the cache and onto a query that was always going to be fast. And this keeps the promise from the card below, that availability is read from the source of truth and never cached.</p>
+
+<h3>Three techniques for making cache entries reusable</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h3>1 · Cache composable units, not whole answers</h3>
+    <p>Radius varies by user — 5 miles, 10 miles, 25 miles. If radius is in the key, those are three entries covering overlapping ground.</p>
+    <p>Instead, <b>cache per cell and assemble per request</b>. Store one entry per geohash cell, then a 10-mile query fetches the covering set of cells and unions them. A 25-mile query reuses every cell the 5-mile query already warmed.</p>
+    <p class="a">This is the general move: make the cached unit smaller than the question. Small units get shared across many questions; whole answers get shared across none. It's the same reason you cache sitter IDs and hydrate profiles separately.</p>
+  </div>
+  <div class="card">
+    <h3>2 · Bucket every continuous dimension</h3>
+    <p>"Under $60" and "under $65" are different keys and nearly identical answers. Round the filter <i>up</i> to a bucket boundary — 50, 75, 100 — cache the wider set, then apply the exact threshold in the app layer.</p>
+    <p>You've already done exactly this to latitude and longitude. Bucketing is the same trick applied to a different axis, and it works on any continuous input: price, rating floor, travel radius, minimum review count.</p>
+    <p class="a">Always round in the direction that produces a <b>superset</b>, never a subset. A superset can be filtered down to the truth; a subset silently hides valid sitters and you'll never see the bug in a dashboard.</p>
+  </div>
+</div>
+
+<div class="callout"><b>3 · Drop low-selectivity filters from the key entirely.</b> If 90% of sitters accept large dogs, then <code>size=lg</code> barely narrows the result but still doubles your key space. Leave it out, over-fetch, and filter it in the app layer. The test for whether a filter earns a place in the key is not "does the user set it" but <b>"does it change the answer enough to justify halving the reuse of every other entry."</b> Run that test per filter and most designs end up with two or three key dimensions, not eight.</div>
+
+<p>All three techniques are the same idea in different clothes: <b>the cache stores a generous, slow-changing superset, and the request narrows it precisely.</b> Every dimension you can move from the key into the app layer multiplies your hit rate, and the cost is a slightly larger payload and a few lines of filtering — which is a trade you should take almost every time.</p>
+
+<p class="a">A concrete payoff worth stating: because dates left the key, the cached set only goes stale when a sitter joins, leaves, moves, or edits their rates. That's rare, so the TTL rises from ~60 seconds to <b>several minutes</b>, and you can now invalidate it on the CDC event too, since the volatile input is gone. Removing the fast-changing dimension didn't just improve the hit rate, it upgraded the invalidation strategy from "hope" to "event-driven."</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>3 · Review aggregates</h3>
+    <pre>sitter:1234:reviews -> { sum: 4820,
+                         count: 1043 }
+avg = sum / count = 4.62</pre>
+    <p><b>Why it's a good candidate.</b> Every search result and every profile view shows the rating, and recomputing an average over a thousand rows per render is pure waste. Reviews arrive rarely relative to how often the number is read.</p>
+    <p><b>Invalidation: don't invalidate — increment.</b> Store the <i>components</i> rather than the computed value, so a new 5-star review is <code>HINCRBY sum 5</code> and <code>HINCRBY count 1</code>. That's an atomic O(1) update that never touches Postgres. An edited review is a delta; a deleted one decrements both.</p>
+    <p class="a">Long TTL (~24h) underneath as a <i>correctness</i> backstop: counters drift if an event is dropped or double-consumed, and expiry forces a periodic recompute from the source that heals the drift.</p>
+  </div>
+  <div class="card">
+    <h3>The one we refuse to cache: availability &amp; booking state</h3>
+    <p>This is the deliberate omission, and volunteering it is worth more than the three caches combined. Availability is the <i>consistency-critical</i> data in this system. A cached "available" that is actually booked produces a double-booking — the exact failure §6 exists to make structurally impossible. Caching it would reintroduce, at the cache layer, the bug we removed at the database layer.</p>
+    <p class="a">The line to say: <span class="tag-g">stale in <i>search</i> is fine, stale at <i>write</i> time is not.</span> Search may show a sitter who just went offline, because the booking request re-reads the source of truth and fails cleanly with "just taken." The cache is allowed to be optimistic precisely because the constraint is pessimistic.</p>
+  </div>
+</div>
+
+<h3>Invalidation, in one table</h3>
+<table>
+  <tr><th>Cache</th><th>TTL</th><th>Primary invalidation</th><th>Tolerated staleness</th></tr>
+  <tr><td>Sitter profile</td><td>hours (backstop)</td><td>CDC event → update in place</td><td>Seconds. A stale bio is harmless.</td></tr>
+  <tr><td>Search candidate set<br><span class="a">(geo + static filters, no dates)</span></td><td>minutes</td><td>TTL, plus best-effort CDC eviction of the affected cells</td><td>Minutes. Only wrong if a sitter joins, leaves, moves or re-prices.</td></tr>
+  <tr><td>Review aggregates</td><td>~24h (backstop)</td><td>Atomic increment on review event</td><td>Seconds. Nobody notices 4.62 vs 4.63.</td></tr>
+  <tr><td>Availability</td><td class="tag-r">not cached</td><td>—</td><td class="tag-r">Zero. Read the source of truth.</td></tr>
+</table>
+
+<div class="callout"><b>Why the search cache is TTL-driven and the other two are event-driven.</b> Targeted invalidation requires knowing which keys contain a given entity. For a profile that's one key, so events work. For search results one sitter appears in many keys spanning every filter combination that matched them, so you accept a TTL and let the write path catch the error. Note how much that improves once dates leave the key: a sitter maps to a small, computable set of cells, so CDC eviction becomes <i>partially</i> possible as a best-effort optimization on top of the TTL. <b>The general rule to state: invalidate by event when the key set is small and knowable, by TTL when it isn't, and don't cache at all when the data must be correct.</b> Also, prefer updating a key over deleting it — deleting a hot key makes every concurrent request miss at once and stampede the database, which is a cache <i>causing</i> the outage it was added to prevent.</div>
+
+<h2>6. No double-booking (the Ticketmaster lesson, right-sized)</h2>
 <p>The core guarantee is that no two active bookings for the same sitter overlap in time. The instinct people reach for is a check-then-insert in application code: read the sitter's bookings, see if the new slot conflicts, and if not, insert. That instinct is wrong, and it's wrong in the exact way Ticketmaster was — between your read and your write, another request can slip in and book the same slot, so two "successful" bookings overlap. The fix is the same principle: make correctness a property the datastore enforces atomically, not something the application hopes it checked in time.</p>
 <div class="grid2">
   <div class="card">
@@ -196,9 +365,113 @@ ALTER TABLE bookings
     <p class="a">The senior move is to <i>say</i> you considered the Ticketmaster machinery and rejected it on the scale read, rather than either forgetting consistency or over-building for it.</p>
   </div>
 </div>
+
+<h3>Why shard by <code>sitterId</code> and not by region</h3>
+
+<p>Region is the intuitive answer for a geographic product, and it's wrong here. Four reasons, in ascending order of how much they matter.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>The two obvious problems</h3>
+    <p><b>Skew.</b> Population is not uniformly distributed and neither are dog sitters. The Bay Area, NYC and LA would hold orders of magnitude more sitters and bookings than Montana. Region sharding hands you a permanently hot shard and a permanently idle one, and you cannot fix it by adding hardware because the imbalance is in the key. Hashing on <code>sitterId</code> distributes evenly <i>by construction</i>.</p>
+    <p><b>Time zones make it worse.</b> Booking traffic peaks in the evening, local time. A region shard therefore gets slammed for a few hours and idles for the rest of the day, and every region shard peaks separately. Hash sharding smears that load across the whole cluster at all times, so you provision for the average instead of for each region's peak.</p>
+  </div>
+  <div class="card">
+    <h3>Boundaries are real, and they leak</h3>
+    <p>The schema has <code>willTravel</code> and <code>travelRadius</code>. A sitter five minutes from a region border serves owners on both sides of it. Under region sharding, which shard holds them? Any answer you pick makes cross-border queries fan out to two shards, or forces you to duplicate the sitter, which reintroduces the consistency problem you sharded to avoid.</p>
+    <p class="a">Region boundaries are also a <i>business</i> decision. "Split California into North and South" is a product conversation that turns into a data migration. Hash slots rebalance mechanically and nobody has to have an opinion.</p>
+  </div>
+</div>
+
+<div class="callout"><b>The decisive reason, and the one to lead with: shard on an immutable key, because the shard key defines the transaction boundary.</b> §6's exclusion constraint only works if every booking for a sitter lives in one database. <code>sitterId</code> guarantees that forever, because a sitter's ID never changes. Region seems to guarantee it too — right up until a sitter moves to another city. Now their entire booking history has to migrate across shards, and <i>while that migration is in flight the overlap constraint is unenforceable</i>, because the rows it must compare are split across two databases. A sitter relocating should be a profile update. Under region sharding it becomes a distributed migration that can double-book someone. <span class="tag-g">Pick a shard key that cannot change, or your correctness guarantee has an expiry date.</span></div>
+
+<p><b>And the argument <i>for</i> region sharding doesn't survive contact with the architecture anyway.</b> The appeal is locality — keep geographically-near sitters together so proximity searches stay on one shard. But search never touches this database. It goes to Elasticsearch (§4), which maintains its own geo index over a derived copy. The read path that would have benefited from geographic colocation isn't reading from here at all, so region sharding pays every one of the costs above and collects none of the benefit.</p>
+
+<p class="a">Two honest caveats worth volunteering. First, <b>region sharding is right when the driver is data residency rather than performance</b> — if GDPR requires EU sitter data to physically stay in the EU, that's a legal constraint that outranks all of the above, and you'd shard by region at the top level and by <code>sitterId</code> within it. Second, <b>at 5M sitters and 0.4 bookings/sec you wouldn't shard anything yet.</b> Profiles are a few GB and fit comfortably on one primary with read replicas. Bookings are what grow without bound, so bookings are what you shard. Saying "I'd shard bookings by <code>sitterId</code> and leave sitters unsharded until there's a reason" is a stronger answer than sharding everything reflexively.</p>
 <p>Notice the constraint uses <code>&amp;&amp;</code> on ranges, and the ranges are half-open <code>[start, end)</code>. That detail matters: a booking ending at 5:00 and another starting at 5:00 must <i>not</i> count as overlapping, and half-open intervals give you that for free — <code>[3,5)</code> and <code>[5,7)</code> don't overlap, but <code>[3,5)</code> and <code>[4,6)</code> do. Getting the boundary convention right is the difference between a clean "back-to-back bookings are allowed" and an annoying phantom conflict.</p>
 
-<h2>6. Deep dive — modeling and displaying time slots</h2>
+<h3>"SQL, for ACID properties" is not an answer — and the row-lock trap</h3>
+
+<p>When the interviewer asks how you prevent two simultaneous bookings, "I'd use a SQL database for ACID" is the single most common way to lose the point. <b>ACID is a set of properties, not a mechanism.</b> Atomicity says your transaction is all-or-nothing. It says nothing about whether two transactions running concurrently can both decide the sitter is free. At the default <code>READ COMMITTED</code> isolation they absolutely can. Name the mechanism.</p>
+
+<p>The natural next answer is "lock the row," and it contains a trap worth understanding, because it's where a sharp interviewer will take you.</p>
+
+<div class="callout"><b><code>SELECT ... FOR UPDATE</code> locks rows that exist. The conflicting booking doesn't exist yet.</b> That's the whole problem. You cannot lock a row that hasn't been inserted, so locking your conflict-check query locks nothing at all.
+<pre>T1: SELECT * FROM bookings
+    WHERE sitter_id=1 AND during &amp;&amp; '[10:00,11:00)'
+    FOR UPDATE;              -- 0 rows returned, 0 rows locked
+T2: (same query)             -- 0 rows returned, 0 rows locked
+T1: INSERT ...               -- succeeds
+T2: INSERT ...               -- also succeeds.  double-booked</pre>
+Both transactions dutifully took a lock on the empty set and proceeded. This is the classic <b>phantom</b> problem, and it's the reason row-level locking on its own does not solve booking systems. If you say "row lock" without saying <i>which</i> row, this is the follow-up you'll get.</div>
+
+<h3>Three mechanisms that actually work, ranked</h3>
+
+<div class="grid2">
+  <div class="card">
+    <h3>1 · Exclusion constraint <span class="tag-g">(lead with this)</span></h3>
+    <p>The version at the top of this section. There is <b>no read-then-write</b>, so there is no window to race in — the second <code>INSERT</code> fails at the index level, atomically.</p>
+    <p>Why it's the strongest answer: you can't forget to take a lock, a new code path can't bypass it, and a batch script written two years from now inherits the guarantee automatically. <span class="tag-g">The rule lives in the schema, not in every developer's memory.</span></p>
+    <p class="a">Cost: Postgres-specific (needs <code>btree_gist</code> and range types). Say so, then offer #2 as the portable fallback.</p>
+  </div>
+  <div class="card">
+    <h3>2 · Lock the <i>parent</i> row</h3>
+    <p>If you must use locking, lock something that exists. The sitter row does.</p>
+    <pre>BEGIN;
+SELECT id FROM sitters
+  WHERE id = 1 FOR UPDATE;   -- real row
+SELECT 1 FROM bookings
+  WHERE sitter_id=1
+    AND during &amp;&amp; '[10:00,11:00)';
+-- if none:
+INSERT INTO bookings ...;
+COMMIT;</pre>
+    <p>Every booking attempt for that sitter now queues behind one lock, making check-then-insert atomic. It serializes even non-overlapping bookings, which sounds bad and is <b>completely irrelevant here</b> — at well under one booking per second across millions of sitters, per-sitter contention is effectively zero. Say that out loud; it converts a limitation into a scale-read justification.</p>
+  </div>
+</div>
+
+<p><b>3 · <code>SERIALIZABLE</code> isolation.</b> Postgres will detect the write skew and abort one of the transactions. Correct, and the most portable of the three in spirit, but it pushes retry logic into every booking path and costs throughput on all transactions to fix a conflict that occurs rarely. Worth naming as the option you considered and rejected on cost.</p>
+
+<p class="a">A fourth, only if you discretized time into fixed slots (§7 option B): a plain <code>UNIQUE (sitter_id, slot_id)</code> index does the whole job, which is exactly the Ticketmaster seat model. That's a real argument in favour of discretization, and worth mentioning when you weigh the schema options.</p>
+
+<div class="callout"><b>The thirty seconds that scores.</b> Don't name one mechanism — name all of them and rank them. "The strongest version is an exclusion constraint on <code>(sitter_id, during)</code>, because it removes the check-then-act entirely rather than protecting it. If the database didn't support range types I'd take a <code>FOR UPDATE</code> lock on the <i>sitter</i> row, not on the bookings query, because locking a query that returns zero rows locks nothing and phantoms slip straight through. <code>SERIALIZABLE</code> also works but buys me retry logic on every booking to solve a rare conflict." <span class="tag-g">Ranking options with reasons is the difference between knowing an answer and having judgement.</span></div>
+
+<h3>The gap the constraint does <i>not</i> close</h3>
+
+<p>Read the constraint carefully and notice what it never mentions: the availability table. It compares bookings to <b>other bookings</b>, and nothing else. So this insert succeeds.</p>
+
+<pre>sitter declares availability:  [08:00, 21:00)
+owner books:                   [03:00, 04:00)   -- 3am</pre>
+
+<p>No other booking overlaps 3am, so the exclusion constraint is satisfied and the row commits. You've just booked a sitter outside the hours they offered. Your <i>display</i> logic would never have rendered that slot, but display is a UI concern — anything hitting <code>POST /bookings</code> directly bypasses it, as does a retry, a migration script, or an internal admin tool. <span class="tag-g">Never let a correctness rule live only in the code that draws the button.</span></p>
+
+<p>Booking correctness is therefore <b>two independent checks against two different things</b>, and they need two different mechanisms because they're two different races.</p>
+
+<table>
+  <tr><th>Check</th><th>Against</th><th>Race</th><th>Mechanism</th></tr>
+  <tr><td>No double-booking</td><td>Other bookings</td><td>The conflicting row <b>doesn't exist yet</b></td><td class="tag-g">Exclusion constraint</td></tr>
+  <tr><td>Within offered hours</td><td>Availability</td><td>The sitter could <b>delete the window</b> mid-transaction</td><td class="tag-g"><code>SELECT … FOR UPDATE</code></td></tr>
+</table>
+
+<div class="callout"><b>This is where <code>SELECT FOR UPDATE</code> finally earns its place, and the contrast with the trap above is the thing worth internalizing.</b>
+<pre>BEGIN;
+-- this row EXISTS, so the lock actually locks something
+SELECT id FROM availability
+ WHERE sitter_id = 1
+   AND during @&gt; '[10:00,11:00)'::tstzrange   -- containment
+ FOR UPDATE;
+-- 0 rows → reject: the sitter never offered this window
+
+INSERT INTO bookings ...;   -- constraint handles booking-vs-booking
+COMMIT;</pre>
+Same tool, opposite verdict. Locking the <i>bookings</i> conflict query is useless because the row it would need to lock hasn't been inserted. Locking the <i>availability</i> row works perfectly, because it exists and the lock stops the sitter withdrawing it mid-transaction. <b>Knowing which race each mechanism solves is the actual understanding being tested</b> — "use a lock" and "use a constraint" are both right answers to different halves of this problem, and mixing them up is how you get a design that looks correct and isn't.</div>
+
+<p>Note the two operators differ, and not by accident. <code>&amp;&amp;</code> is <b>overlap</b>, used by the constraint because <i>any</i> intersection between two bookings is a conflict. <code>@&gt;</code> is <b>containment</b>, used here because the booking must fit <i>entirely</i> inside the offered window. That's §7's "overlap for search, containment for booking" rule appearing as literal SQL.</p>
+
+<h3>Handling the rejection</h3>
+<p>When the constraint rejects an insert, Postgres raises SQLSTATE <code>23P01</code> (<code>exclusion_violation</code>). Catch that specific code and return a clean <b><code>409 Conflict</code></b> with refreshed availability attached, so the client can re-render immediately. Letting it propagate as a generic exception gives the owner a 500 for what is a completely normal, expected outcome in a marketplace — and a 500 will also trip your alerting, so every lost race becomes a page. <span class="tag-g">Distinguishing expected conflicts from actual failures is a small detail that reads as production experience.</span></p>
+
+<h2>7. Deep dive — modeling and displaying time slots</h2>
 <p>This is the follow-up: an owner searches for "1/1 4–6pm," a sitter offers "1/1 3–5pm," and you have to decide how to store, match, and display these. It's deceptively deep, and the schema choice drives everything downstream.</p>
 
 <h3>Three schema options, with the trade-offs</h3>
@@ -207,7 +480,7 @@ ALTER TABLE bookings
     <h3>A · Continuous ranges (start/end)</h3>
     <p>Store each availability window as one <code>[start, end)</code> range row. "1/1 3–5pm" is a single row. A booking is a sub-range of it.</p>
     <ul>
-      <li><span class="tag-g">Pros:</span> exact, compact (one row per contiguous window), any duration, and it pairs directly with the Postgres overlap constraint from §5. Matching is range math.</li>
+      <li><span class="tag-g">Pros:</span> exact, compact (one row per contiguous window), any duration, and it pairs directly with the Postgres overlap constraint from §6. Matching is range math.</li>
       <li><span class="tag-r">Cons:</span> "is this window free" is a containment query needing a GiST index, and a booking in the middle of a window <i>splits</i> the free time (3–5 with a 4–4:30 booking leaves 3–4 and 4:30–5), which you compute on the fly rather than store.</li>
     </ul>
   </div>
@@ -222,17 +495,55 @@ ALTER TABLE bookings
 </div>
 <p><b>C · Recurring rules.</b> Store "available weekdays 9–5" as an RRULE plus exception overrides. Compact for regular schedules and matches how sitters actually think, but you still have to expand it into option A or B to check a concrete date, so it's a layer on top, not a replacement.</p>
 
-<div class="callout"><b>The answer that scores: store precise, display discrete.</b> Model the source of truth as continuous ranges (option A) because it's exact and it's what the overlap constraint needs, but render a discretized slot grid (option B) in the UI because that's what users can actually click. The owner's "4–6pm" selection snaps to, say, 30-minute increments on the way in, then becomes a precise range for storage and matching. You get option B's usability and option A's exactness, and you've turned "which schema" into "the right schema for each layer."</p></div>
+<div class="callout"><b>The answer that scores: store precise, display discrete.</b> Model the source of truth as continuous ranges (option A) because it's exact and it's what the overlap constraint needs, but render a discretized slot grid (option B) in the UI because that's what users can actually click. The owner's "4–6pm" selection snaps to, say, 30-minute increments on the way in, then becomes a precise range for storage and matching. You get option B's usability and option A's exactness, and you've turned "which schema" into "the right schema for each layer."</div>
 
 <h3>Matching: overlap for search, containment for booking</h3>
 <p>Here's the subtlety in your example. The owner wants <b>4–6pm</b>; the sitter is available <b>3–5pm</b>. These <i>overlap</i> (4–5pm is common), but the sitter cannot cover the <i>whole</i> 4–6pm request. So the matching rule depends on the intent. For <b>search/browse</b>, overlap is the right filter — show sitters who have any availability intersecting the owner's window, because the owner may be flexible. For an actual <b>booking</b>, you need <b>containment</b>: the requested range must fit entirely inside an availability window minus existing bookings. 4–6pm is not contained in 3–5pm, so this sitter is not a full match for that booking.</p>
 <p>What you <i>show</i> is then a product decision worth naming out loud. You can exclude partial matches, or you can surface them helpfully — "This sitter is free 4–5pm of your 4–6pm request" — and let the owner shorten their window or pick another sitter. Displaying the partial overlap rather than silently dropping the sitter is usually the better marketplace experience.</p>
 
-<h3>The timezone gotcha, and the display format</h3>
-<p>"1/1 4–6pm" is ambiguous until you attach a timezone, and this is the correctness bug that bites financial and scheduling apps alike. Store everything as timezone-aware timestamps (UTC under the hood), and render in the relevant local zone — the walk happens at the sitter's wall-clock time, so that's usually the anchor. On screen, show the human form the owner typed ("Fri Jan 1, 4:00–6:00 PM") plus the duration, and keep the machine form (the range, in UTC) for matching. The half-open convention from §5 carries into display too: a 4–6pm slot and a 6–8pm slot are adjacent, not overlapping, so a sitter can legitimately offer both back to back.</p>
+<p>The rule maps directly onto two Postgres range operators, which is a satisfying place for it to land.</p>
+<pre>search:   av.during &amp;&amp; :requested    -- overlap:     any intersection counts
+booking:  av.during @&gt; :requested    -- containment: must fit entirely inside</pre>
+<p class="a">And note that containment is a rule you have to <b>enforce</b>, not merely one you match on. The exclusion constraint in §6 compares bookings to other bookings and never looks at availability, so containment needs its own check — a <code>FOR UPDATE</code> lock on the availability row, inside the booking transaction. §6 works through why that lock is the right tool here and the wrong tool for the double-booking half.</p>
 
-<h2>7. Deep dive — holding a booking for 10 minutes</h2>
-<p>The second follow-up: when the owner presses <b>Book</b>, hold the slot for 10 minutes while they finish checkout, then either confirm or release it. This is the Ticketmaster reserve-then-pay pattern, and the interesting part is doing it without a second reservation store and without breaking the §5 constraint.</p>
+<h3>The timezone gotcha, and the display format</h3>
+<p>"1/1 4–6pm" is ambiguous until you attach a timezone, and this is the correctness bug that bites financial and scheduling apps alike. Store everything as timezone-aware timestamps (UTC under the hood), and render in the relevant local zone — the walk happens at the sitter's wall-clock time, so that's usually the anchor. On screen, show the human form the owner typed ("Fri Jan 1, 4:00–6:00 PM") plus the duration, and keep the machine form (the range, in UTC) for matching. The half-open convention from §6 carries into display too: a 4–6pm slot and a 6–8pm slot are adjacent, not overlapping, so a sitter can legitimately offer both back to back.</p>
+
+<h3>Do <i>not</i> store remaining availability — derive it</h3>
+
+<p>This is the design decision that separates the two versions of this system, and it's easy to get wrong because the wrong answer feels more "efficient." The question is what happens to a sitter's availability row when a booking lands inside it.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>✗ Materialize the subtraction</h3>
+    <pre>availability: [08:00, 21:00)
+  ↓ booking arrives 10:00–11:00
+availability: [08:00, 10:00)
+              [11:00, 21:00)   -- split, stored</pre>
+    <p>The booking service writes the booking <i>and</i> rewrites the availability rows, so "what's free" is a cheap read. This is the intuitive design and it's what most whiteboards show.</p>
+    <p class="tag-r">It requires a correct split on booking, a correct <b>merge</b> on cancellation, and a correct rewrite on modification. And it demands that two tables stay in agreement forever.</p>
+  </div>
+  <div class="card">
+    <h3>✓ Keep base + bookings, subtract on read</h3>
+    <pre>base:     [08:00, 21:00)      -- never mutated
+bookings: [10:00, 11:00)
+free   =  base MINUS bookings
+       =  [08:00,10:00), [11:00,21:00)</pre>
+    <p>Availability is a <b>computed view</b>, not a stored fact. Booking inserts one row and touches nothing else. The exclusion constraint on <code>bookings</code> alone is now sufficient for correctness, because bookings are the only mutable state.</p>
+    <p class="tag-g">Cost: one range subtraction per read, over a handful of rows. At this scale that's free, and it caches trivially.</p>
+  </div>
+</div>
+
+<p><b>The argument that wins it is cancellation</b>, which is the operation people forget to test their schema against. Under the stored design, cancelling the 10–11 booking means locating the two rows you split, merging them back into one contiguous <code>[08:00, 21:00)</code>, handling the case where only one side is adjacent, and doing all of it transactionally. Under the derived design, cancellation is flipping one status field — availability is instantly correct again because it was never a separate fact that could be wrong.</p>
+
+<div class="callout"><b>The principle, stated generally: two facts that must agree can always disagree.</b> Storing remaining availability creates a second copy of information already implied by <code>base − bookings</code>, and every copy needs a correct update path for every operation, forever. Deriving it makes disagreement <i>structurally impossible</i> rather than merely prevented by careful code. <span class="tag-g">Notice this is the same move as §6's exclusion constraint — instead of implementing a guarantee, remove the need for it.</span> That's the instinct interviewers are actually probing for, and it generalizes far past this problem.</div>
+
+<p><b>The one legitimate exception, and it's already in the architecture.</b> Elasticsearch <i>does</i> need materialized availability, because you cannot efficiently filter on a value computed per query. That's fine, because it's an explicitly derived read model that's allowed to be seconds stale and gets rebuilt by CDC. So the line to draw is: <span class="tag-g">materialize for <b>search</b>, where staleness is acceptable and the booking step re-checks; compute for <b>booking</b>, where it isn't.</span> A worker updating the search index's availability is correct. That same worker updating the availability that booking decisions read is a race condition — between the booking committing and the worker running, the source of truth says the sitter is still free.</p>
+
+<p class="a">Watch for this in your own diagrams. If an async worker consuming from a queue is what updates availability, and the booking path reads that availability, you have made your consistency-critical data eventually consistent with itself. The exclusion constraint can still save you if bookings are what it checks — but if the check reads a worker-maintained table, nothing does.</p>
+
+<h2>8. Deep dive — holding a booking for 10 minutes</h2>
+<p>The second follow-up: when the owner presses <b>Book</b>, hold the slot for 10 minutes while they finish checkout, then either confirm or release it. This is the Ticketmaster reserve-then-pay pattern, and the interesting part is doing it without a second reservation store and without breaking the §6 constraint.</p>
 
 <h3>The two-step flow</h3>
 <div class="grid2">
@@ -253,7 +564,7 @@ POST /bookings/{id}/confirm  (after pay)
   </div>
   <div class="card">
     <h3>Why the hold is just a <code>pending</code> row</h3>
-    <p>The <code>pending</code> booking is a real row, and because the §5 exclusion constraint covers <code>status IN ('pending','confirmed')</code>, a hold <b>blocks other overlapping holds and bookings</b> the instant it's inserted. So two owners pressing Book at the same time for the same slot can't both get a hold — the database rejects the second, exactly like a confirmed conflict. No Redis, no separate lock. The hold reuses the same correctness machinery.</p>
+    <p>The <code>pending</code> booking is a real row, and because the §6 exclusion constraint covers <code>status IN ('pending','confirmed')</code>, a hold <b>blocks other overlapping holds and bookings</b> the instant it's inserted. So two owners pressing Book at the same time for the same slot can't both get a hold — the database rejects the second, exactly like a confirmed conflict. No Redis, no separate lock. The hold reuses the same correctness machinery.</p>
   </div>
 </div>
 
@@ -267,12 +578,39 @@ POST /bookings/{id}/confirm  (after pay)
 <h3>What the client does</h3>
 <p>The Book press carries a client-generated <b>idempotency key</b> so a double-tap or a network retry creates one hold, not two — and that same key flows to the payment provider on confirm so a retry never double-charges. The UI shows a <b>countdown timer</b> from <code>reserved_until</code>, and on expiry it tells the owner the hold lapsed and re-checks availability rather than letting them pay for a slot they no longer have. If they confirm in time, the hold flips to a real booking; if they abandon, the sweeper reclaims it silently.</p>
 
-<h2>8. Extension: recurring walks, pickup/dropoff, lockbox codes</h2>
+<h3>The variant to be ready for: what if booking is a single transaction?</h3>
+
+<p>If the interviewer removes payment confirmation and says booking is one atomic operation, the correct answer is <b>yes, delete <code>reserved_until</code> entirely</b> — along with the <code>pending</code> status, the <code>expired</code> status, the sweeper job, and the lazy-reclaim branch. Answer decisively rather than hedging, because the whole hold apparatus exists to solve exactly one problem, and that problem just went away.</p>
+
+<p>The reasoning to say out loud: <b>a hold is the price you pay for a gap between deciding and committing.</b> The two-step flow exists because the owner picks a slot, then goes away to a payment provider for an unbounded amount of time, and during that gap the slot must be neither free (someone else takes it) nor permanently taken (they might abandon). <code>reserved_until</code> is what makes an incomplete booking visible to the exclusion constraint while it's still incomplete. Collapse the gap to a single transaction and there is no incomplete state to represent. The insert either commits or it doesn't.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>What you delete</h3>
+    <ul>
+      <li><code>reserved_until</code> and the <code>pending</code> / <code>expired</code> statuses.</li>
+      <li>The one-minute sweeper job, and the monitoring and alerting that came with it.</li>
+      <li>Lazy reclaim on conflict — a constraint violation now unambiguously means "genuinely booked," so the loser just gets told.</li>
+      <li>The client countdown timer and the whole expiry UX.</li>
+    </ul>
+    <p class="a">Note this also removes the trap from the callout above. With no expiry there's no temptation to put <code>now()</code> in the constraint predicate, so the immutability problem never arises.</p>
+  </div>
+  <div class="card">
+    <h3>What survives, and why</h3>
+    <p><b><code>status</code> stays.</b> Cancellation is a real lifecycle event with nothing to do with holds — an owner cancels a booking three days out. You still need <code>confirmed</code> and <code>cancelled</code>, and the exclusion constraint still filters on active status so a cancelled row stops blocking the slot.</p>
+    <p><b>The idempotency key stays.</b> A double-tap or a network retry can still produce two identical inserts, and single-transaction booking does nothing to prevent that. This is the detail people drop when they delete the hold, and keeping it is a nice signal.</p>
+    <p><b>The exclusion constraint is untouched.</b> It was always doing the real work. The hold was scaffolding around it.</p>
+  </div>
+</div>
+
+<div class="callout"><b>Then immediately name what buys it back, because the assumption is unrealistic for a real marketplace.</b> Any requirement that reintroduces a gap between request and commit reintroduces the pending state. Payment is the obvious one. But so is <b>sitter approval</b> — on a real Rover the sitter <i>accepts</i> a request rather than being instantly bookable, which is inherently two-phase and where the hold is measured in hours or days rather than ten minutes. Same for a background check, or an owner-sitter message thread before confirming. <span class="tag-g">The structure is identical, only the timeout constant changes.</span> Saying "I'd remove it under your assumption, and here is the single requirement that brings it straight back" shows you understand what the mechanism is <i>for</i> rather than having memorized that booking systems have holds. That's the difference between right-sizing and pattern-matching.</div>
+
+<h2>9. Extension: recurring walks, pickup/dropoff, lockbox codes</h2>
 <p>Three changes. The reassuring part is that the core booking machinery doesn't move — each walk is just another booking flowing through the same overlap constraint, which is the sign the model was factored well.</p>
 <div class="grid2">
   <div class="card">
     <h3>Recurring walks — materialize, don't just store a rule</h3>
-    <p>Store a <code>WalkSeries</code> with a recurrence rule ("weekly MWF" or "daily") and a window, but <b>materialize individual booking rows</b> for a rolling horizon (the next 4–8 weeks), each carrying a <code>seriesId</code>. You can't enforce non-overlap on a rule you haven't expanded, and each occurrence has to reserve a real slot through the §5 constraint. A background job extends the horizon as time passes.</p>
+    <p>Store a <code>WalkSeries</code> with a recurrence rule ("weekly MWF" or "daily") and a window, but <b>materialize individual booking rows</b> for a rolling horizon (the next 4–8 weeks), each carrying a <code>seriesId</code>. You can't enforce non-overlap on a rule you haven't expanded, and each occurrence has to reserve a real slot through the §6 constraint. A background job extends the horizon as time passes.</p>
     <p class="a">Editing or cancelling is the classic "this instance vs the whole series" problem, the same one Google Calendar has — let an instance override or detach from its series.</p>
   </div>
   <div class="card">
@@ -282,7 +620,78 @@ POST /bookings/{id}/confirm  (after pay)
   </div>
 </div>
 
-<h2>9. Follow-ups — answers to have ready</h2>
+<h2>10. Service boundaries — are microservices right here?</h2>
+
+<p>The diagram in §2 shows separate search, booking and availability services, so be ready to defend that split rather than treating it as the default shape of a system. The generic pros-and-cons list ("independent deployment, but operational overhead") scores nothing. Argue it from <i>this</i> system.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>The case for splitting — arguments specific to this design</h3>
+    <p><b>The read and write paths have genuinely different profiles.</b> Search is high volume, spiky, stateless and eventually consistent. Booking is low volume, transactional and must be exactly right. They need different instance counts, different autoscaling triggers, different latency budgets and different on-call urgency. Independent scaling here is a real benefit, not a slide-deck one.</p>
+    <p><b>The service boundary sits where the storage boundary already is.</b> Search owns Elasticsearch, booking owns the sharded Postgres. When a proposed split lines up with a data-store split you already needed, that's evidence the seam is real rather than invented.</p>
+    <p><b>Failure isolation on the axis that matters.</b> If Elasticsearch degrades, browsing gets worse but existing bookings can still be viewed and cancelled. If the booking database is saturated, browsing still works and you're only failing the small fraction of traffic that converts. A monolith couples those blast radii.</p>
+  </div>
+  <div class="card">
+    <h3>The case against — costs this design actually pays</h3>
+    <p><b>You lose transactions across the boundary.</b> This is the big one and it's covered below.</p>
+    <p><b>Every hop becomes a partial failure.</b> Booking calling availability over the network means timeouts, retries, and the possibility that the call succeeded but the response was lost. In-process that's a function call that either returns or throws.</p>
+    <p><b>Debugging gets harder in exactly the wrong place.</b> "Why did this owner get double-charged" now spans three services' logs and needs distributed tracing to answer.</p>
+    <p><b>The scale read argues against it.</b> 4 searches/sec is small. A modular monolith with Elasticsearch as the one separate store would serve this fine, deploy faster and be easier to reason about. A startup building this should probably do that.</p>
+  </div>
+</div>
+
+<div class="callout"><b>The answer that separates a senior candidate: draw service boundaries around consistency requirements, not around nouns.</b> The instinctive decomposition is one service per entity — Sitter, Owner, Booking, Availability, Review. That's noun-driven, and here it would be actively harmful, because <b>§6's entire correctness story depends on bookings and the availability they're checked against living in one database.</b> Split "Booking service" and "Availability service" into separate stores and the exclusion constraint is gone. You'd replace an atomic, database-enforced guarantee with a saga, compensating transactions and a reconciliation job — trading a problem the database solves for free for a distributed systems problem you now maintain forever. <span class="tag-g">So: booking and availability are one service sharing one database, and the labels in the diagram are modules within it.</span> Search is genuinely separate because it's already eventually consistent by design and nothing transactional crosses that line.</div>
+
+<p>The rule to state, which generalizes past this problem: <b>anything that must be in one transaction goes in one service.</b> Draw the transaction boundaries first and let the service boundaries fall around them. If a proposed split would force a distributed transaction, the split is wrong — merge those services and find a different seam. Search versus booking passes that test cleanly, because the only thing crossing it is a CDC stream that was always asynchronous.</p>
+
+<p class="a">The pragmatic close, worth saying because interviewers are listening for judgement rather than dogma: "I'd draw these three boxes because they scale and fail differently, but I'd keep booking and availability in one database so the overlap constraint survives. At this scale I'd honestly start with a monolith plus Elasticsearch and split search out when its traffic justified it — the boundary I've drawn is the one I'd extract first, not the one I'd start with."</p>
+
+<h2>11. Follow-ups — answers to have ready</h2>
+
+<p class="q tag-a">How do you prevent two simultaneous bookings? <span class="a">(the question this design exists to answer)</span></p>
+<p class="a">An exclusion constraint on <code>(sitter_id, during)</code> over active statuses. The reason I prefer it to locking is that it removes the check-then-act entirely rather than protecting it, so there's no window to race in and no way for a future code path to bypass the rule. If the database lacked range types I'd take <code>SELECT FOR UPDATE</code> on the <b>sitter</b> row — deliberately not on the bookings query, because that query returns zero rows in the racing case and locking zero rows locks nothing, so phantoms slip straight through. <code>SERIALIZABLE</code> is a third option that works but pushes retry logic into every booking path to solve a conflict that's rare here. And I'd avoid answering this with "SQL, for ACID" — ACID doesn't say concurrent transactions can't both read "free" and both insert, which at <code>READ COMMITTED</code> is exactly what happens.</p>
+
+<p class="q tag-a">Your constraint stops overlapping bookings. What stops someone booking a sitter at 3am?</p>
+<p class="a">Nothing, as written — that's a real gap and worth catching before the interviewer does. The exclusion constraint compares bookings to other bookings and never references availability, so a 3am booking satisfies it as long as no other booking overlaps 3am. Correctness is actually two checks. Booking-versus-booking is the constraint, because the conflicting row doesn't exist yet and can't be locked. Booking-versus-availability is a <code>SELECT … FOR UPDATE</code> on the availability row using the containment operator <code>@&gt;</code>, which works precisely because that row <i>does</i> exist and the lock stops the sitter withdrawing the window mid-transaction. Same tool, opposite verdict on the two halves. And I'd never rely on the UI not rendering the slot, because anything hitting the endpoint directly bypasses that.</p>
+
+<p class="q tag-a">What does the client see when it loses the race?</p>
+<p class="a">Postgres raises SQLSTATE <code>23P01</code>, exclusion violation. I'd catch that code specifically and return a 409 with refreshed availability so the client re-renders straight away. If it propagates as a generic exception the owner gets a 500 for a completely expected marketplace outcome, and it trips alerting too, so every lost race becomes a page. Separating expected conflicts from real failures matters as much for on-call as for UX.</p>
+
+<p class="q tag-a">A booking lands in the middle of an availability window. What happens to that window?</p>
+<p class="a">Nothing. I don't store remaining availability, I derive it as base availability minus bookings at read time. The reason is cancellation: if I materialize the split I now need a correct merge to undo it, plus a correct rewrite for every modification, and two tables that must agree forever. Deriving it means booking inserts one row and touches nothing else, and cancelling flips one status field with availability instantly correct again. It's the same instinct as the exclusion constraint — rather than implementing a guarantee that two facts agree, remove the second fact. The exception is the search index, which does need materialized availability because you can't filter efficiently on a computed value. That's fine because it's an explicitly stale derived read model. Materialize for search, compute for booking.</p>
+
+<p class="q tag-a">Your worker updates availability off a Kafka queue. Is that safe?</p>
+<p class="a">Safe for the search index, not safe if booking decisions read it. Between the booking committing and the worker running, that table still says the sitter is free, so a second booking passes its check — I'd have made my consistency-critical data eventually consistent with itself, which defeats the whole point. The async path is the right place for search updates, emails and incrementing the sit counter, because all of those tolerate seconds of lag. The availability that the booking transaction checks has to be in the same database as the booking insert, which is also why I wouldn't split booking and availability into separate services.</p>
+
+<p class="q tag-a">Why shard by sitter ID instead of by region? Region seems natural for a geo product.</p>
+<p class="a">Three reasons, and one of them is decisive. Region skews badly — the Bay Area would carry orders of magnitude more load than Montana, and time zones make each region shard peak separately so you provision for every local peak instead of the global average. Boundary sitters with a travel radius serve owners on both sides of a line, so region forces fan-out or duplication for exactly those cases. But the decisive one is that <b>the shard key defines my transaction boundary, so it has to be immutable.</b> The exclusion constraint only works if all of a sitter's bookings are colocated. Sitter ID guarantees that permanently. Region guarantees it until a sitter moves house, and then their booking history has to migrate across shards, during which the constraint can't be enforced. I'd also point out that the usual argument for region sharding is geographic locality for search, and search doesn't read this database at all — it reads Elasticsearch. So region pays every cost and collects no benefit. The exception is data residency: if EU data must stay in the EU, that's a legal requirement that outranks all of this.</p>
+
+<p class="q tag-a">Does your search cache store availability, or just geography?</p>
+<p class="a">Just geography plus the static filters. Availability is applied live afterward. The reason is that a cache key is only as reusable as its most volatile component, and availability is both the fastest-changing field and the one queried as a near-unique date range per user. Putting dates in the key gives you a near-zero hit rate <i>and</i> entries that go stale in seconds. So the cached value is a candidate set of sitter IDs for a cell plus service plus rate bucket, and then one indexed query filters those few hundred IDs by the requested range. That also keeps my earlier promise that availability is never cached.</p>
+
+<p class="q tag-a">How do you get more users sharing the same cache entries?</p>
+<p class="a">Three moves, all the same idea. Cache units smaller than the question — one entry per geo cell rather than per radius, so a 25-mile search unions cells that a 5-mile search already warmed. Bucket every continuous dimension, rounding price and radius up to boundaries so "under $60" and "under $65" hit one entry, always rounding toward a superset so the app layer can filter down without hiding valid results. And drop filters that barely narrow anything, since a filter matching 90% of sitters halves your reuse while removing almost nothing. The general principle is that the cache holds a generous slow-changing superset and the request narrows it precisely.</p>
+
+<p class="q tag-a">If booking were a single transaction with no payment step, would you still need <code>reserved_until</code>?</p>
+<p class="a">No, and I'd delete the pending and expired statuses, the sweeper and the lazy reclaim with it. A hold exists purely to represent a decision that's been made but not yet committed, and it's the gap created by the payment provider that makes that state necessary. One transaction, no gap, no state. I'd keep <code>status</code> because cancellation is unrelated to holds, and I'd keep the idempotency key because a double-tap can still create two inserts. Then I'd flag that the assumption is unrealistic for a real marketplace: sitter approval alone brings the pending state straight back, just with a timeout measured in hours instead of ten minutes.</p>
+
+<p class="q tag-a">Would you build this as microservices?</p>
+<p class="a">I'd split search from booking, because they scale, fail and stay consistent differently, and the seam matches a data-store boundary I already needed. I would <i>not</i> split booking from availability, and that's the more interesting half of the answer — those two must share a database or the exclusion constraint disappears and I'm replacing an atomic guarantee with a saga and a reconciliation job. The rule I'd state is to draw service boundaries around transaction boundaries rather than around nouns. And at roughly 4 searches per second I'd be honest that a modular monolith plus Elasticsearch is probably the right starting point, with search as the first thing I'd extract when its traffic justified it.</p>
+
+<p class="q tag-a">Why Elasticsearch rather than PostGIS, when your data is already in Postgres?</p>
+<p class="a">Because the query isn't only geographic. It's proximity plus categorical filters plus ranking, and Elasticsearch resolves all three in one engine pass over a denormalized document. PostGIS would handle the radius well but push filtering and relevance ranking back into application code, and the sitter document spans four tables so I'd be joining on every search. The cost I'm accepting is a second store to keep in sync and eventual consistency measured in seconds. If the requirement had been "five nearest sitters, no filters," I'd have taken PostGIS and skipped the pipeline entirely.</p>
+
+<p class="q tag-a">What does "refresh" mean in your CDC arrow?</p>
+<p class="a">Two things, and I'd separate them. Pipeline-wise it's Debezium tailing the Postgres WAL, a consumer rebuilding the affected sitter's document, and a bulk upsert. Elasticsearch-wise, "refresh" is a specific term: an indexed doc sits in an in-memory buffer and isn't searchable until a refresh flushes it into a new Lucene segment. That defaults to one second, which is why Elasticsearch is near-real-time. I'd raise <code>refresh_interval</code> to 30s during backfills, and use <code>refresh=wait_for</code> on the path where a sitter edits their profile and immediately views it.</p>
+
+<p class="q tag-a">A sitter changes their nightly rate. What has to happen?</p>
+<p class="a">The rate lives in three places, so three things fire off one CDC event. The Elasticsearch document is re-emitted whole, because the doc is denormalized and I can't patch one field independently of the join that produced it. The sitter profile cache is updated in place. The search results cache is <i>not</i> touched — I can't enumerate which keys contain that sitter, so it ages out on its 60-second TTL. That last one is the interesting answer: I'd rather serve a one-minute-stale price in a result list and show the true price on the profile than build a tag-based invalidation scheme that evicts half the cache on every edit.</p>
+
+<p class="q tag-a">Why not cache availability? It's the hottest read you have.</p>
+<p class="a">Because it's the one piece of data that has to be right. A cached "available" that's actually booked is a double-booking, which is precisely the failure §6's exclusion constraint exists to make impossible — caching it would reintroduce the bug at a different layer. The general rule I'd apply: cache what tolerates being slightly wrong, and read the source of truth for what doesn't. Stale in search is fine because booking re-checks; stale at write time is not.</p>
+
+<p class="q tag-a">Your search cache key is a rounded geo cell. Doesn't that give wrong distances?</p>
+<p class="a">It would if I returned the cached set directly. Instead I query Elasticsearch with a padded radius, cache that superset keyed by the cell, and then compute exact distances and re-sort in the application layer per request. The cache saves the engine round trip, the app layer restores precision. Without the quantization the hit rate is near zero, because no two users share a raw lat/long.</p>
 
 <p class="q tag-a">Why don't you need Redis locks or a waiting queue like Ticketmaster?</p>
 <p class="a">Contention. Ticketmaster had ten million people racing for one event, a genuine hot key, so it needed a queue to shed load and locks to serialize. Here a single sitter is booked by at most a handful of owners and rarely at the same instant, so the row-level exclusion constraint fully serializes the rare conflict with no extra infrastructure. Naming that I considered the heavier tools and rejected them on the scale read is the point.</p>
@@ -302,21 +711,22 @@ POST /bookings/{id}/confirm  (after pay)
 <p class="q tag-a">Does a recurring MWF series need distributed transactions?</p>
 <p class="a">No. Each occurrence is a separate booking for one sitter, and all of a sitter's bookings live on the same shard, so materializing the series is a set of single-shard inserts, each independently checked by the constraint. If one date conflicts, only that instance fails and you surface it for the owner to adjust.</p>
 
-<h2>10. Numbers to drop</h2>
+<h2>12. Numbers to drop</h2>
 <div class="grid2">
   <div class="card">
     <h3>Scale</h3>
-    <p>1M sitters is small — profiles plus availability fit comfortably in one sharded Postgres with read replicas. <span class="tag-g">The dataset doesn't force exotic infrastructure; the interesting parts are the geo index, the overlap constraint, and the hold, not raw scale.</span></p>
+    <p><b>2.5M searches/week = ~4/sec. 250k sits/week = ~0.4/sec.</b> Both trivial. 5M sitter profiles is a few GB, comfortably one Postgres primary with read replicas. <span class="tag-g">The dataset doesn't force exotic infrastructure; the interesting parts are the geo index, the overlap constraint, and the hold, not raw scale.</span></p>
   </div>
   <div class="card">
-    <h3>Search &amp; holds</h3>
+    <h3>Search, caches &amp; holds</h3>
+    <p>Elasticsearch is near-real-time by ~1s (<code>refresh_interval</code>), so end-to-end search staleness is CDC lag plus a second. The search candidate-set cache runs a multi-minute TTL because dates are excluded from the key; profile and rating caches are event-updated with hour- and day-scale TTL backstops. Availability is never cached — it's one indexed <code>IN</code> query over the few hundred cached candidate IDs.</p>
     <p>The spatial cut takes ~1M candidates to a few hundred per query; the time filter and ranking run on that small set. Holds are 10-minute <code>pending</code> rows; the sweeper touches only rows past <code>reserved_until</code>, a tiny fraction of the table each minute.</p>
   </div>
 </div>
 
-<h2>11. 30-second recap script</h2>
+<h2>13. 30-second recap script</h2>
 <div class="card a">
-  Two paths with different priorities. Search is a geospatial-plus-time read: precompute each sitter's S2 or geohash cell, do a coarse spatial cut to a few hundred candidates, then filter by availability and rank, served from a CDC-fed derived index that's stale by seconds. Booking is the consistency path: I model time as half-open ranges and add a Postgres exclusion constraint so two active bookings for the same sitter can't overlap, making double-booking structurally impossible rather than app-checked, and I shard by sitter id so that check plus the insert is a single-shard transaction. Unlike Ticketmaster there's no hot-key contention, so no queue and no Redis lock — I'd say I considered them and rejected them. For time slots I store precise ranges but display a discretized grid, match by overlap for search and containment for booking, and store timezone-aware timestamps because "4pm" is meaningless without a zone. The ten-minute hold is just a pending booking row with a reserved-until stamp, covered by the same constraint so concurrent holds can't collide; expiry lives outside the constraint via a one-minute sweeper plus lazy reclaim on conflict, and the Book press carries an idempotency key that flows through to payment. The recurring-walks extension materializes each occurrence as its own booking through the same constraint, pickup pulls owner location into eligibility, and the lockbox code is a scoped, short-lived, rotated, audited secret.
+  Two paths with different priorities. Search is a geospatial-plus-time read: precompute each sitter's S2 or geohash cell, do a coarse spatial cut to a few hundred candidates, then filter by availability and rank, served from Elasticsearch, which I choose over PostGIS because the query is proximity <i>and</i> filters <i>and</i> ranking together over a denormalized document, and which is a CDC-fed derived index stale by CDC lag plus its one-second refresh interval. On top of that I cache three things — sitter profiles by ID invalidated on the CDC event, a search candidate set keyed by quantized geo cell plus bucketed static filters with dates deliberately left out, so the entry is shared across every date range and the TTL can run to minutes, and review aggregates stored as sum and count so a new review is an atomic increment instead of a stampede-inducing delete. I deliberately do not cache availability, because that's the data that has to be correct, so it's applied live to the few hundred cached candidate IDs. Booking is the consistency path: I model time as half-open ranges and add a Postgres exclusion constraint so two active bookings for the same sitter can't overlap, making double-booking structurally impossible rather than app-checked — not a row lock on the bookings query, because that returns zero rows in the racing case and locking zero rows stops nothing, so the fallback if I had no range types would be a <code>FOR UPDATE</code> on the sitter row instead. I don't store remaining availability at all, I derive it as base minus bookings, so cancellation is one status flip rather than a merge and there are never two facts that can disagree. and I shard by sitter id — not by region, because the shard key defines the transaction boundary so it has to be immutable, and a sitter who moves would otherwise have to migrate shards with the constraint unenforceable in flight. Unlike Ticketmaster there's no hot-key contention, so no queue and no Redis lock — I'd say I considered them and rejected them. For time slots I store precise ranges but display a discretized grid, match by overlap for search and containment for booking, and store timezone-aware timestamps because "4pm" is meaningless without a zone. The ten-minute hold is just a pending booking row with a reserved-until stamp, covered by the same constraint so concurrent holds can't collide; expiry lives outside the constraint via a one-minute sweeper plus lazy reclaim on conflict, and the Book press carries an idempotency key that flows through to payment. The recurring-walks extension materializes each occurrence as its own booking through the same constraint, pickup pulls owner location into eligibility, and the lockbox code is a scoped, short-lived, rotated, audited secret.
 </div>
 
 </body>
