@@ -204,6 +204,8 @@
     .cm  { color: #7aab90; font-style: italic; }
     .ok  { color: #166534; font-weight: 600; }
     .bad { color: #991b1b; }
+    .kw  { color: #0369a1; font-weight: 600; }
+    .str { color: #b45309; }
 
     /* ── Tags ── */
     .tags {
@@ -354,7 +356,10 @@
     <a class="toc-sub" href="#debounce-throttle">Debounce & Throttle</a>
     <a class="toc-sub" href="#fetch-shape">Fetching from an API</a>
     <a class="toc-sub" href="#promise-all">Promise.all</a>
-    <a class="toc-sub" href="#quality-fallback-fetch">Racing + Fallback Fetch (gap)</a>
+    <a class="toc-sub" href="#promise-combinators">all / allSettled / race / any</a>
+    <a class="toc-sub" href="#abortcontroller">AbortController</a>
+    <a class="toc-sub" href="#timeout-patterns">Timeouts — total vs idle</a>
+    <a class="toc-sub" href="#quality-fallback-fetch">Racing + Fallback Fetch (solved)</a>
     <a class="toc-sub" href="#fetch-res-ok">fetch doesn't throw on 404</a>
     <a class="toc-sub" href="#fetch-race-ignore">Stale response races — ignore flag vs abort</a>
     <a class="toc-sub" href="#fetch-endpoint-shapes">Endpoint shapes to ask about</a>
@@ -1165,7 +1170,7 @@ const data = await res.json();       <span class="cm">// .json() is async → pa
 
 <span class="cm">// one-liner — same thing, chained</span>
 const data = await fetch(url).then((r) =&gt; r.json());</pre></div>
-        <div class="gotcha"><strong><code>await</code> only works inside an <code>async</code> function.</strong> A React component body is not async, so you can't <code>await</code> at the top level of the component. Put the fetch inside an <code>async</code> function declared <em>inside</em> a <code>useEffect</code> (or a click handler), then call it. The effect callback itself must stay synchronous — never write <code>useEffect(async () =&gt; ...)</code>.</p>
+        <div class="gotcha"><strong><code>await</code> only works inside an <code>async</code> function.</strong> A React component body is not async, so you can't <code>await</code> at the top level of the component. Put the fetch inside an <code>async</code> function declared <em>inside</em> a <code>useEffect</code> (or a click handler), then call it. The effect callback itself must stay synchronous — never write <code>useEffect(async () =&gt; ...)</code>.</div>
         <div class="code-block"><pre>useEffect(() =&gt; {
   async function load() {              <span class="cm">// async fn lives inside the effect</span>
     setIsLoading(true);
@@ -1199,12 +1204,164 @@ const jobs = await Promise.all(
         <div class="tags"><span class="tag">Promise.all</span><span class="tag">parallel</span><span class="tag">fetch</span><span class="tag">high priority</span></div>
       </div>
 
+      <div class="concept-card" id="promise-combinators">
+        <h3>Promise.all / allSettled / race / any — pick by failure behaviour</h3>
+        <p>Four combinators, and the only thing that distinguishes them is <b>what makes them settle and what makes them reject</b>. Learn that column and the choice is automatic.</p>
+        <div class="code-block"><pre><span class="cm">// all — need EVERYTHING. rejects on the FIRST failure (fail fast)</span>
+<span class="kw">const</span> [a, b] = <span class="kw">await</span> Promise.all([p1, p2]);
+
+<span class="cm">// allSettled — want every outcome. NEVER rejects</span>
+<span class="kw">const</span> rs = <span class="kw">await</span> Promise.allSettled([p1, p2]);
+<span class="cm">// [{status:'fulfilled', value}, {status:'rejected', reason}]</span>
+<span class="kw">const</span> ok = rs.filter(r =&gt; r.status === <span class="str">'fulfilled'</span>).map(r =&gt; r.value);
+
+<span class="cm">// race — FIRST to settle wins, resolve OR reject. timeouts.</span>
+<span class="kw">await</span> Promise.race([fetchIt(), rejectAfter(5000)]);
+
+<span class="cm">// any — first SUCCESS wins. rejects only if ALL fail (AggregateError)</span>
+<span class="kw">await</span> Promise.any([mirror1(), mirror2(), mirror3()]);</pre></div>
+        <div class="note"><b>Decision table.</b> Need all results → <code>all</code>. Need all results even if some fail → <code>allSettled</code>. Need the fastest, and a failure counts as an answer → <code>race</code>. Need the fastest <i>success</i>, failures ignored → <code>any</code>. The <code>race</code> vs <code>any</code> distinction is the one interviewers probe: <code>race</code> settles on the first rejection too, so a fast-failing request beats a slow-succeeding one.</div>
+        <div class="gotcha"><b>None of them cancel the losers.</b> <code>Promise.race</code> resolving does not stop the other fetches — they run to completion, burn bandwidth, and their <code>.then</code> still fires. A promise is a <i>notification</i> of a result, not a handle on the work. That's exactly the gap <code>AbortController</code> fills, and it's why "timeout with <code>Promise.race</code>" is only half an answer.</div>
+        <div class="tags"><span class="tag">Promise</span><span class="tag">race</span><span class="tag">any</span><span class="tag">allSettled</span><span class="tag amber">gotcha</span></div>
+      </div>
+
+      <div class="concept-card" id="abortcontroller">
+        <h3>AbortController — the handle a Promise doesn't give you</h3>
+        <p>A controller owns a <code>signal</code>. Pass the signal into <code>fetch</code>, call <code>.abort()</code>, and the in-flight request is genuinely cancelled and its promise rejects.</p>
+        <div class="code-block"><pre><span class="kw">const</span> c = <span class="kw">new</span> AbortController();
+fetch(url, { signal: c.signal })
+  .then(r =&gt; r.json())
+  .catch(err =&gt; {
+    <span class="cm">// MUST distinguish: your own cancel vs a real failure</span>
+    <span class="kw">if</span> (err.name === <span class="str">'AbortError'</span>) <span class="kw">return</span>;   <span class="ok">// expected</span>
+    setError(err);                                <span class="bad">// real</span>
+  });
+c.abort();
+
+<span class="cm">// ONE controller cancels MANY requests — share the signal</span>
+urls.forEach(u =&gt; fetch(u, { signal: c.signal }));
+c.abort();  <span class="cm">// all of them die</span>
+
+<span class="cm">// built-in timeout, no manual setTimeout</span>
+fetch(url, { signal: AbortSignal.timeout(5000) });  <span class="cm">// → TimeoutError</span>
+
+<span class="cm">// compose several reasons to stop</span>
+fetch(url, { signal: AbortSignal.any([userCancel.signal,
+                                      AbortSignal.timeout(5000)]) });
+
+<span class="cm">// React cleanup — cancel on unmount / dep change</span>
+useEffect(() =&gt; {
+  <span class="kw">const</span> c = <span class="kw">new</span> AbortController();
+  fetch(url, { signal: c.signal })...
+  <span class="kw">return</span> () =&gt; c.abort();
+}, [url]);</pre></div>
+        <div class="note"><b>The <code>AbortError</code> check is not optional.</b> Skip it and your own cleanup renders an error state — unmount the component and the user sees "Something went wrong" flash on the way out. Every <code>.catch</code> on an abortable fetch needs that guard as its first line.</div>
+        <div class="gotcha"><b>Bonus trick worth knowing:</b> <code>addEventListener(type, fn, { signal })</code> also accepts a signal, so one <code>abort()</code> removes every listener you registered with it. Replaces a pile of <code>removeEventListener</code> calls in cleanup. Same "one switch kills all the subscriptions" idea as sharing a signal across fetches.</div>
+        <div class="tags"><span class="tag">AbortController</span><span class="tag">AbortError</span><span class="tag">useEffect cleanup</span><span class="tag">high priority</span></div>
+      </div>
+
+      <div class="concept-card" id="timeout-patterns">
+        <h3>Timeouts — total vs idle, and why the difference broke the Waymo round</h3>
+        <p>Two different clocks that both get called "a 60 second timeout," and picking the wrong one silently changes the behaviour.</p>
+        <div class="code-block"><pre><span class="cm">// TOTAL timeout — one clock, started once, never reset.</span>
+<span class="cm">// "give up 60s after we began, no matter what"</span>
+<span class="kw">const</span> withTimeout = (p, ms) =&gt; Promise.race([
+  p,
+  <span class="kw">new</span> Promise((_, rej) =&gt;
+    setTimeout(() =&gt; rej(<span class="kw">new</span> Error(<span class="str">'timeout'</span>)), ms))
+]);
+
+<span class="cm">// IDLE timeout — clock RESETS on every arrival.</span>
+<span class="cm">// "give up after 60s of NOTHING happening"</span>
+<span class="kw">let</span> timer;
+<span class="kw">const</span> arm = () =&gt; {
+  clearTimeout(timer);              <span class="ok">// reset — this is the whole trick</span>
+  timer = setTimeout(finish, 60_000);
+};
+arm();                              <span class="cm">// start the clock</span>
+onEachResponse(() =&gt; arm());        <span class="cm">// progress → restart it</span></pre></div>
+        <div class="note"><b>How to tell which one is being asked for.</b> "Time out after 60s" = total. "If nothing new arrives for 60s" = idle. The second sentence is the one that appeared in the Waymo prompt, and an idle timeout can legitimately run for ten minutes as long as something lands every 59 seconds. Ask which one they mean — it's a fair clarifying question and it shows you spotted the distinction.</div>
+        <div class="gotcha"><b>Always <code>clearTimeout</code> in <code>.finally</code>.</b> A timer that fires after you've already settled will call <code>setState</code> on an unmounted component or overwrite a good result with a timeout error. And in React the timer id goes in a <b>ref</b>, never state — it's bookkeeping, and putting it in state re-renders on every arm/disarm. Same ref-vs-state split as the countdown timer.</div>
+        <div class="tags"><span class="tag">setTimeout</span><span class="tag">clearTimeout</span><span class="tag">idle timeout</span><span class="tag">useRef</span><span class="tag amber">gotcha</span></div>
+      </div>
+
       <div class="concept-card" id="quality-fallback-fetch">
         <h3>Racing a best-quality fetch against a fallback timeout — flagged gap</h3>
         <p>Waymo round, Jul 28. Given an array of URLs ordered best → worst quality: fetch the best one; if a better response doesn't land within 60s, render the current best but keep listening in case one still arrives; if nothing new arrives for 60s at any point, stop and render the best data (or an error if there's none). Went in shaky — <code>.then/.catch/.finally</code>, <code>AbortController</code>, and timer-driven waiting aren't solid yet. <b>[TODO] Review before the next round.</b></p>
         <div class="note">Shape to re-derive, not yet solved cleanly: kick off the best-quality fetch, race it against a 60s timer (manual <code>setTimeout</code>, or <code>Promise.race</code>). <code>.then</code> handles a response that arrives in time, <code>.catch</code> handles a failed/aborted request, <code>.finally</code> is where you'd clear the pending timer either way so it can't fire after you've already moved on. <code>AbortController</code> is for cancelling an in-flight fetch you've decided you no longer need — not just cleanup, it's the same "stop this in-flight thing" idea as <code>cancelAnimationFrame</code> in the countdown timer, applied to a network request instead of a frame.</div>
-        <div class="gotcha">Re-solve from scratch before this gets asked again. What's real state (best response so far — this is what renders) vs what's just bookkeeping that shouldn't trigger a re-render (a timer id, an <code>AbortController</code> ref — same ref-vs-state split as the countdown timer's refs). And where does the 60-second window reset each time new data lands, vs where does it not.</div>
-        <div class="tags"><span class="tag">fetch</span><span class="tag">AbortController</span><span class="tag">Promise.race</span><span class="tag">finally</span><span class="tag amber">gotcha</span><span class="tag">high priority</span></div>
+        <div class="gotcha"><b>Outcome:</b> only failed round of the four. Waymo asked for one replacement round, so this exact shape is the thing to have cold. Worked solution below.</div>
+
+        <h3 style="margin-top:18px">Clarify first — the prompt has two readings</h3>
+        <p><b>Parallel (most likely):</b> fire all URLs at once, track the best-quality response received so far, stop when nothing new has arrived for 60s. <b>Sequential:</b> try best, on failure try the next one down. The phrase "wait 60s for a <i>better</i> response to arrive" implies other requests are already in flight, so parallel. <b>Ask.</b> Getting this wrong wastes the whole round, and asking costs fifteen seconds.</p>
+
+        <div class="code-block"><pre><span class="cm">// urls ordered best → worst. Lower index = higher quality.</span>
+<span class="kw">function</span> fetchBestQuality(urls, { idleMs = 60_000 } = {}) {
+  <span class="kw">return</span> <span class="kw">new</span> Promise((resolve, reject) =&gt; {
+    <span class="kw">const</span> controller = <span class="kw">new</span> AbortController();
+    <span class="kw">let</span> bestIdx  = Infinity;   <span class="cm">// lowest index seen so far</span>
+    <span class="kw">let</span> bestData = <span class="kw">null</span>;
+    <span class="kw">let</span> pending  = urls.length;
+    <span class="kw">let</span> timer;
+
+    <span class="kw">const</span> finish = () =&gt; {
+      clearTimeout(timer);
+      controller.abort();          <span class="ok">// kill everything still in flight</span>
+      bestData !== <span class="kw">null</span>
+        ? resolve(bestData)
+        : reject(<span class="kw">new</span> Error(<span class="str">'all sources failed'</span>));
+    };
+
+    <span class="kw">const</span> arm = () =&gt; {             <span class="ok">// IDLE timer — reset on progress</span>
+      clearTimeout(timer);
+      timer = setTimeout(finish, idleMs);
+    };
+
+    urls.forEach((url, i) =&gt; {
+      fetch(url, { signal: controller.signal })
+        .then(res =&gt; {
+          <span class="cm">// fetch does NOT throw on 404 — check it yourself</span>
+          <span class="kw">if</span> (!res.ok) <span class="kw">throw</span> <span class="kw">new</span> Error(res.status);
+          <span class="kw">return</span> res.json();
+        })
+        .then(data =&gt; {
+          <span class="kw">if</span> (i &lt; bestIdx) { bestIdx = i; bestData = data; }
+          <span class="kw">if</span> (bestIdx === 0) <span class="kw">return</span> finish();  <span class="ok">// can't beat best</span>
+          arm();                                <span class="cm">// progress → reset</span>
+        })
+        .catch(() =&gt; { <span class="cm">/* this source is out; others may land */</span> })
+        .finally(() =&gt; {
+          <span class="kw">if</span> (--pending === 0) finish();       <span class="cm">// nothing left</span>
+        });
+    });
+
+    arm();                                      <span class="cm">// start the clock</span>
+  });
+}</pre></div>
+
+        <div class="note"><b>The four things being tested, and where each shows up.</b>
+        <br>· <b>Idle vs total timeout</b> — <code>arm()</code> calls <code>clearTimeout</code> before re-setting. That reset <i>is</i> the answer to "if nothing new arrives for 60s."
+        <br>· <b>Early exit</b> — <code>bestIdx === 0</code> means the best possible source already landed, so waiting is pure latency. Easy to miss and cheap to add.
+        <br>· <b><code>.catch</code> per request, not on the whole batch</b> — one dead URL must not kill the others. This is why it isn't <code>Promise.all</code>.
+        <br>· <b><code>.finally</code> for the pending counter</b> — decrements on success <i>and</i> failure, so you settle as soon as nothing is in flight rather than always waiting out the full 60s.</div>
+
+        <div class="gotcha"><b>Two things to say out loud before they ask.</b> <span class="ok">(1)</span> Calling <code>finish()</code> more than once is safe — <code>resolve</code> is idempotent, so the aborted fetches hitting <code>.catch</code> → <code>.finally</code> → <code>finish()</code> again are harmless no-ops. Volunteering that shows you traced the abort path. <span class="ok">(2)</span> I reset the idle timer only on <b>success</b>, not on failure. A URL that fails instantly shouldn't extend your patience — but it's a judgement call worth naming as an assumption.</div>
+
+        <h3 style="margin-top:18px">The React wrapper</h3>
+        <div class="code-block"><pre>useEffect(() =&gt; {
+  <span class="kw">let</span> alive = <span class="kw">true</span>;
+  <span class="kw">const</span> c = <span class="kw">new</span> AbortController();
+
+  fetchBestQuality(urls, { signal: c.signal })
+    .then(d =&gt; { <span class="kw">if</span> (alive) setData(d); })
+    .catch(e =&gt; {
+      <span class="kw">if</span> (e.name === <span class="str">'AbortError'</span>) <span class="kw">return</span>;   <span class="ok">// our own cleanup</span>
+      <span class="kw">if</span> (alive) setError(e);
+    });
+
+  <span class="kw">return</span> () =&gt; { alive = <span class="kw">false</span>; c.abort(); };
+}, [urls]);</pre></div>
+        <div class="note"><b>State vs refs.</b> <code>bestData</code> is real state — it renders. The timer id and the <code>AbortController</code> are bookkeeping and belong in refs, because arming a timer must not trigger a re-render. Same split as the countdown timer. In the plain-function version above they're just closure variables, which is cleaner still — <span class="ok">keep the async logic outside React and let the component only own the result.</span></div>
+        <div class="tags"><span class="tag">fetch</span><span class="tag">AbortController</span><span class="tag">idle timeout</span><span class="tag">finally</span><span class="tag">res.ok</span><span class="tag purple">worked solution</span><span class="tag">high priority</span></div>
       </div>
 
       <div class="concept-card" id="fetch-res-ok">
@@ -1509,6 +1666,7 @@ onPaste={(e) =&gt; { e.preventDefault(); spread(e.clipboardData.getData("text"))
     'js-fundamentals','object-vs-map','destructuring','computed-keys','iteration','regex-test','typescript',
     'functional','map-filter-reduce','flatmap',
     'async','event-loop','settimeout','debounce-throttle','fetch-shape','promise-all',
+    'promise-combinators','abortcontroller','timeout-patterns','quality-fallback-fetch',
     'html-css','css-cheatsheet','css-grid','inline-vs-file','lists','anchor-links',
     'events','input-events','preventdefault'
   ];
