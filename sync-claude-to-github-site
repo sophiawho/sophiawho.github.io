@@ -26,6 +26,7 @@ cp "$PROJECTS/Leetcode/systems-design/back_of_envelope_cheatsheet.html" "$REPO/I
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/plaid_link_frontend.html"    "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/rate_limiter_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/chatroom_websocket_pubsub.html" "$REPO/Interview Prep/worked-examples/"
+cp "$PROJECTS/Leetcode/systems-design/worked-examples/google-questions-worked.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/ticketmaster_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/transactions_table_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
 cp "$PROJECTS/Leetcode/systems-design/worked-examples/financial_dashboard_cheatsheet.html" "$REPO/Interview Prep/worked-examples/"
