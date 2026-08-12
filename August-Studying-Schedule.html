@@ -19,214 +19,426 @@
   .wrap{max-width:1180px;margin:0 auto}
   h1{font-size:28px;font-weight:800;letter-spacing:-.4px}
   h1 span{color:var(--accent2)}
-  .sub{color:var(--muted);font-size:14px;margin:4px 0 14px;max-width:820px}
-  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 14px;max-width:860px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
   .cat{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;letter-spacing:.3px}
   .dsa{background:#e0f2fe;color:#0369a1}
-  .ui{background:#fce7f3;color:#be185d}
-  .beh{background:#ede9fe;color:#6d28d9}
   .sd{background:#fef3c7;color:#b45309}
   .iv{background:#dcfce7;color:#15803d}
-  .week{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 0 10px}
-  .day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 17px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:12px;position:relative;overflow:hidden}
-  .day::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2)}
-  .day.interview::before{background:var(--accent);width:5px}
-  .day.interview{background:linear-gradient(90deg,#ecfdf5 0,#f6fefa 60%,var(--card) 100%);border-color:#a7f3d0;box-shadow:0 1px 4px rgba(16,163,74,.12)}
-  .day.weekend::before{background:var(--pink)}
-  .dh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-  .dh h3{font-size:15.5px;font-weight:800}
-  .hrs{font-size:12px;color:var(--muted);font-weight:700}
-  .ivtag{font-size:12px;font-weight:800;color:#15803d;background:#dcfce7;border-radius:999px;padding:2px 10px}
-  .todo{font-size:11.5px;font-weight:800;color:#b45309;background:#fef3c7;border-radius:999px;padding:2px 10px}
-  ul{list-style:none}
-  li{position:relative;padding-left:15px;margin:5px 0;font-size:14px;color:#374357}
-  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent2);font-weight:800}
-  li b{color:var(--ink)}
-  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .p1{background:#fee2e2;color:#b91c1c}
+  .p2{background:#ffedd5;color:#c2410c}
+  .p3{background:#f1f5f9;color:#64748b}
+
+  /* progress */
+  .progwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+  .progtop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .progtop h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent2)}
+  .progtop .cnt{font-size:13px;color:var(--muted);font-weight:700;margin-left:auto}
+  .bar{height:9px;background:var(--card2);border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#16a34a,#0284c7);border-radius:999px;transition:width .25s}
+  .bysec{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+  .bysec span{background:var(--card2);border:1px solid var(--line);border-radius:7px;padding:2px 9px;font-weight:700}
+  .bysec span.full{background:#dcfce7;border-color:#a7f3d0;color:#15803d}
+
+  /* topic blocks */
+  .topic{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px;position:relative;overflow:hidden}
+  .topic::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent2)}
+  .topic.prio1::before{background:#dc2626}
+  .topic.prio2::before{background:var(--warn)}
+  .topic.prio3::before{background:#94a3b8}
+  .th{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px 10px 20px;cursor:pointer}
+  .th h3{font-size:16.5px;font-weight:800;letter-spacing:-.2px}
+  .th .seen{font-size:11.5px;font-weight:800;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  .th .tcount{margin-left:auto;font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .th .caret{font-size:13px;color:var(--muted);transition:transform .15s;padding-left:4px}
+  .topic.collapsed .caret{transform:rotate(-90deg)}
+  .topic.collapsed .tbody{display:none}
+  .tbody{padding:0 18px 14px 20px}
+  .why{font-size:13.5px;color:#374357;background:var(--card2);border-radius:9px;padding:9px 12px;margin-bottom:10px}
+  .why b{color:var(--ink)}
+  .grp{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:10px 0 4px}
+  .grp.must{color:#b91c1c}
+  .grp.fu{color:var(--warn)}
+  ul.q{list-style:none}
+  ul.q li{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px solid #f0f3f8;font-size:14px;color:#374357}
+  ul.q li:last-child{border-bottom:none}
+  ul.q input[type=checkbox]{margin-top:4px;accent-color:#16a34a;width:15px;height:15px;flex-shrink:0;cursor:pointer}
+  ul.q li.done label{text-decoration:line-through;color:#a8b1c3}
+  ul.q li.done label b{color:#a8b1c3}
+  ul.q label{cursor:pointer}
+  ul.q label b{color:var(--ink)}
+  ul.q label .note{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+  ul.q label a{color:var(--accent2);text-decoration:none}
+  ul.q label a:hover{text-decoration:underline}
+  .doneflag{font-size:10.5px;font-weight:800;color:#15803d;background:#dcfce7;border-radius:999px;padding:1px 7px;margin-left:5px;white-space:nowrap}
+
+  /* calendar strip */
+  .cal{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+  .cd{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:12.5px}
+  .cd.iday{background:linear-gradient(180deg,#ecfdf5 0,var(--card) 60%);border-color:#a7f3d0}
+  .cd.wknd{background:linear-gradient(180deg,#fdf2f8 0,var(--card) 60%);border-color:#fbcfe8}
+  .cd b{display:block;font-size:13px;margin-bottom:2px}
+  .cd .h{color:var(--muted);font-size:11.5px}
+  .cd .tag{display:inline-block;font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px;margin-top:3px}
+
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
   .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--warn);margin-bottom:8px}
-  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:14px}
-
-  /* collapsible days/weeks */
+  .panel ul{list-style:none}
+  .panel li{position:relative;padding-left:15px;margin:5px 0;font-size:14px;color:#374357}
+  .panel li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent2);font-weight:800}
+  .panel li b{color:var(--ink)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
   .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
   .controls button{font-size:12px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;border-radius:8px;padding:5px 11px;cursor:pointer}
   .controls button:hover{background:#d0eafc}
-  .week{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px}
-  .week .caret{font-size:12px;color:var(--muted);transition:transform .15s}
-  .week.collapsed .caret{transform:rotate(-90deg)}
-  .day .dh{cursor:pointer}
-  .day .caret{margin-left:auto;font-size:13px;color:var(--muted);transition:transform .15s;padding-left:8px}
-  .day.collapsed .caret{transform:rotate(-90deg)}
-  .day.collapsed ul{display:none}
-  .day.collapsed .dh{margin-bottom:0}
-  .day.collapsed{opacity:.72}
-  .day.is-past .dh h3{color:var(--muted)}
+  .controls button.danger{color:#b91c1c;background:#fee2e2;border-color:#fecaca}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:14px}
+  @media(max-width:900px){.cal{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>August Studying <span>Schedule</span></h1>
-  <div class="sub">Aug 11 → Aug 20, everything pointed at the <b>Google onsite Thu Aug 20</b>. Weekdays 1–2 LeetCode problems, weekends 2–3. Systems design is a 12-hour block weighted to the weekend, with a mock on Aug 13. No behavioural — that's already done. Click any day or week header to collapse it; past days auto-collapse.</div>
+  <div class="sub">Aug 11 → Aug 20, pointed at the <b>Google onsite Thu Aug 20</b>. Organised by <b>topic, not by date</b> — work down the list in priority order and aim for 2–3 problems per topic. Weekdays 1–2 problems, weekends 2–3. Systems design is a 12-hour block weighted to the weekend. Progress is saved in this browser.</div>
   <div class="legend">
-    <span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="cat iv">Interview day</span>
+    <span class="cat p1">Priority 1 — most asked</span><span class="cat p2">Priority 2</span><span class="cat p3">Priority 3 — only if time</span><span class="cat sd">Sys Design</span><span class="cat iv">Interview</span>
   </div>
 
-  <div class="controls"><button id="expandAll">Expand all</button><button id="collapsePast">Collapse past</button></div>
+  <div class="progwrap">
+    <div class="progtop">
+      <h2>Progress</h2>
+      <div class="cnt" id="cnt">0 / 0</div>
+    </div>
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="bysec" id="bysec"></div>
+  </div>
+
+  <div class="controls">
+    <button id="expandAll">Expand all</button>
+    <button id="collapseAll">Collapse all</button>
+    <button id="reset" class="danger">Reset progress</button>
+  </div>
+
+  <!-- ── CALENDAR STRIP ── -->
+  <div class="cal">
+    <div class="cd"><b>Tue Aug 11</b><span class="h">2.5 h · 1–2 problems</span><span class="cat sd tag">SD 1h</span></div>
+    <div class="cd"><b>Wed Aug 12</b><span class="h">3 h · 1–2 problems</span><span class="cat sd tag">SD 1.5h</span></div>
+    <div class="cd iday"><b>Thu Aug 13</b><span class="h">Mock 4–5pm PT</span><span class="cat sd tag">SD 1h prep</span></div>
+    <div class="cd"><b>Fri Aug 14</b><span class="h">2.5 h · 1–2 problems</span><span class="cat p2 tag">Mock debrief</span></div>
+    <div class="cd wknd"><b>Sat Aug 15</b><span class="h">5.5 h · 2–3 problems</span><span class="cat sd tag">SD 3.5h</span></div>
+    <div class="cd wknd"><b>Sun Aug 16</b><span class="h">5.5 h · 2–3 problems</span><span class="cat sd tag">SD 3.5h</span></div>
+    <div class="cd"><b>Mon Aug 17</b><span class="h">2 h · 1–2 problems</span></div>
+    <div class="cd"><b>Tue Aug 18</b><span class="h">2 h · 1–2 problems</span></div>
+    <div class="cd"><b>Wed Aug 19</b><span class="h">2.5 h · light, no new patterns</span><span class="cat sd tag">SD 1.5h review</span></div>
+    <div class="cd iday"><b>Thu Aug 20</b><span class="h">ONSITE · warm-up only</span><span class="cat iv tag">Google</span></div>
+  </div>
 
   <div class="panel" style="background:#eef6ff;border-color:#c9e0fb">
-    <h2 style="color:#0369a1">How this block works — read first</h2>
+    <h2 style="color:#0369a1">How to use this — read first</h2>
     <ul>
-      <li><b>The loop is DS/A-heavy.</b> Rounds 1 and 3 are DS/A (45 min each), round 2 is systems design (60 min). That's the reverse of the Plaid/Retool/Scale loops you just finished, so the weighting here flips accordingly — 19 problems against 12 hours of design.</li>
-      <li><b>Topic order is deliberate.</b> Backtracking first (Aug 11–12) because it's your oldest flagged gap and the choose/explore/unchoose skeleton is a prerequisite for palindrome partitioning and N-Queens. DP lands on the weekend (Aug 16–17) where there's room to actually build the recurrence rather than pattern-match it. Trees and intervals sit last because they're your strongest — they're a confidence taper, not new learning.</li>
-      <li><b>Systems design = 12h total</b>, split 1 + 1.5 + 1 + 3.5 + 3.5 + 1.5. The two big weekend blocks are unallocated on purpose — <span class="todo">TODO · fill in sys design focus</span>. Everything else is scheduled around them.</li>
-      <li><b>Aug 19 is deliberately light and Aug 20 has no new material.</b> Cramming a new pattern the night before an onsite has never once helped.</li>
-      <li>Log every problem in <code>learning_journal.html</code> the same day. Retry dates matter more than volume here.</li>
+      <li><b>Topic order is priority order.</b> It's weighted by what 8 recent 1point3acres threads actually show, not by Google's general reputation. Full evidence in <code>google-prep.html</code>.</li>
+      <li><b>Each topic has MUST DO and FOLLOW-UPS.</b> Do all the MUST DOs before any follow-up. Then take 1–2 follow-ups from the topics that felt shakiest. Target 2–3 total per priority-1 topic.</li>
+      <li><b>The follow-ups matter more than usual here.</b> Almost every Google report describes one problem that escalates, not a fresh problem per follow-up. The follow-up is what's being scored.</li>
+      <li><b>DP is deliberately down to 2 problems</b> from 5. Zero DP questions appeared across all 8 threads. Kept at low volume rather than cut, since n=8 is a small sample.</li>
+      <li><b>Sys design blocks are 1 + 1.5 + 1 + 3.5 + 3.5 + 1.5 = 12h.</b> Focus is still open. <span class="cat p2">TODO · confirm sys design focus</span></li>
+      <li>Log every problem in <code>learning_journal.html</code> the same day. Retry dates matter more than volume.</li>
     </ul>
   </div>
 
-  <div class="week">Week 1 — Backtracking, tries, topological sort (Aug 11–16)</div>
+  <!-- ══════════ PRIORITY 1 ══════════ -->
 
-  <div class="day" data-date="2026-08-11">
-    <div class="dh"><h3>Tue Aug 11</h3><div class="hrs">2.5 h</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
-    <ul>
-      <li><b>[DS/A · 1.5h · Backtracking template]</b> <b>#78 Subsets</b> then <b>#46 Permutations</b> (~40 min each). These two are the same skeleton with one difference — subsets passes a start index down, permutations tracks a used set. Write the skeleton from memory before you look at either problem, then check. <b>Everything else in backtracking this week derives from these two</b>, so don't rush past them.</li>
-      <li><b>[Sys Design · 1h]</b> Re-read <code>sd_playbook_quarter.pdf</code> and <code>sd_tech_quarter.pdf</code> end to end, then say the 6-step sequence out loud from memory with time budgets attached. <span class="todo">TODO · confirm focus</span></li>
-    </ul>
+  <div class="topic prio1" data-topic="intervals">
+    <div class="th"><h3>Intervals + heap scheduling</h3><span class="seen">seen 3× · most asked</span><span class="cat p1">P1</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why"><b>Why first:</b> the single most common shape in the sample — two separate onsites and a phone screen. The recurring frame is "assign overlapping intervals to the fewest resources," and Google asks it with an <b>OOD twist</b> (design a <code>Car</code> class) and a <b>capacity twist</b> (only K cars, else IMPOSSIBLE). Suggested days: <b>Aug 11–12</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="253"><label><b>#253 Meeting Rooms II</b> <span class="note">Min-heap of end times. The base pattern for every question in this topic.</span></label></li>
+        <li><input type="checkbox" data-q="car-rental"><label><b>Car rental drill</b> — the actual Google question <span class="note">Orders <code>(id, pickup, return)</code> → fewest cars, return orders per car, <b>and design a <code>Car</code> class</b>. See <code>python-class-cheatsheet.html</code> for the class mechanics.</span></label></li>
+        <li><input type="checkbox" data-q="1109"><label><b>#1109 Car Pooling</b> <span class="note">Sweep line with a capacity ceiling. Bridges #253 into the K-resource variant.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="x-concurrent"><label><b>"Output every window with exactly X concurrent" drill</b> <span class="note">Asked at the Aug 5 onsite. No clean LeetCode equivalent. The difficulty is start/end tie-ordering on the same timestamp, then merging adjacent qualifying windows into <b>maximal</b> intervals.</span></label></li>
+        <li><input type="checkbox" data-q="car-k"><label><b>K-car capacity + IMPOSSIBLE</b> <span class="note">Same drill, but only K cars exist. n ran to 200,000 in the real question.</span></label></li>
+        <li><input type="checkbox" data-q="986"><label><b>#986 Interval List Intersections</b> <span class="note">Two pointers, overlap is <code>max(starts)</code> → <code>min(ends)</code>. Quick confidence rep.</span></label></li>
+        <li><input type="checkbox" data-q="435" data-solved="1"><label><b>#435 Non-overlapping Intervals</b><span class="doneflag">in journal</span> <span class="note">Greedy by end time. Skim only.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day" data-date="2026-08-12">
-    <div class="dh"><h3>Wed Aug 12</h3><div class="hrs">3 h</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
-    <ul>
-      <li><b>[DS/A · 1.5h · Backtracking applied]</b> <b>#39 Combination Sum</b> (~40 min — reuse without advancing the index, the one twist) then <b>#131 Palindrome Partitioning</b> (~45 min — flagged in <code>google-prep.html</code>; try every palindromic prefix, recurse on the rest). If #78/#46 didn't stick yesterday, redo one of them instead of starting #131.</li>
-      <li><b>[Sys Design · 1.5h]</b> Mock prep. <span class="todo">TODO · confirm focus</span></li>
-    </ul>
+  <div class="topic prio1" data-topic="unionfind">
+    <div class="th"><h3>Union find &amp; connected components</h3><span class="seen">seen 2×</span><span class="cat p1">P1</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why"><b>The tell to internalise:</b> when a problem says things get <b>added incrementally</b>, that is a union find signal. A Nov 2025 candidate failed this round by trying to patch their BFS instead of switching structures. Suggested day: <b>Aug 15</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="305"><label><b>#305 Number of Islands II</b> <span class="note">The exact onsite follow-up. Land added one cell at a time, report island count after each. Write <code>find</code> with path compression from scratch.</span></label></li>
+        <li><input type="checkbox" data-q="684"><label><b>#684 Redundant Connection</b> <span class="note">The union that <em>fails</em> is the answer. Cleanest possible union-find template.</span></label></li>
+        <li><input type="checkbox" data-q="721"><label><b>#721 Accounts Merge</b> <span class="note">Union find keyed by email. A real Google question, and the "map arbitrary keys to indices" step is the part people fumble.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="clustering"><label><b>2D clustering drill</b> <span class="note">Points + radius r, connected if distance ≤ r, transitive → count clusters. <b>Write the brute-force O(n²) version first</b> — the real interviewer insisted on that before optimising. Then discuss spatial grid / KD-tree for neighbour lookup.</span></label></li>
+        <li><input type="checkbox" data-q="547"><label><b>#547 Number of Provinces</b> <span class="note">Adjacency-matrix version. Fast rep if the others clicked.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day interview" data-date="2026-08-13">
-    <div class="dh"><h3>Thu Aug 13</h3><span class="ivtag">GOOGLE — MOCK · Systems Design 4–5pm PT</span><div class="hrs">2 h study</div><span class="cat sd">Sys Design</span><span class="cat dsa">DS/A</span></div>
-    <ul>
-      <li><b>[Sys Design · 1h · before]</b> Skim only, nothing new. One spoken run of the 6-step sequence, and pick your two default deep dives in advance so you're not choosing them live.</li>
-      <li><b>[MOCK · 4–5pm PT]</b> Treat it as the real thing. <b>Announce every transition out loud</b> — that's the single habit the mock exists to test. Note where you ran over time.</li>
-      <li><b>[DS/A · 1h · after]</b> <b>#211 Design Add and Search Words</b> (~45 min). You have #208 and #212 already, so this is the wildcard variant only — at a <code>.</code>, recurse into every child. Small delta, high recall value.</li>
-    </ul>
+  <div class="topic prio1" data-topic="heap">
+    <div class="th"><h3>Heaps &amp; order statistics</h3><span class="seen">seen 1× · full gap</span><span class="cat p1">P1</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why"><b>Nothing in your journal covers this.</b> #295 appeared with two follow-ups at an onsite and the candidate ran out of time on the second. You did #215 and #621 in July, but two-heaps is a different structure. Suggested day: <b>Aug 16</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="295"><label><b>#295 Find Median from Data Stream</b> <span class="note">Max-heap for the lower half, min-heap for the upper, rebalanced so sizes differ by ≤ 1. Python has no max-heap, so negate. Be ready to dry-run and state complexity unprompted.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="295-kth"><label><b>Kth smallest instead of median</b> <span class="note">The exact follow-up that ran the candidate out of time. Same two-heap idea with the split at k rather than the midpoint.</span></label></li>
+        <li><input type="checkbox" data-q="295-range"><label><b>Small value range variant</b> <span class="note">If values are bounded, drop the heaps for a counting array. State the trade-off out loud.</span></label></li>
+        <li><input type="checkbox" data-q="480"><label><b>#480 Sliding Window Median</b> <span class="note">Two heaps plus lazy deletion. Hard, only if the rest is solid.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day" data-date="2026-08-14">
-    <div class="dh"><h3>Fri Aug 14</h3><div class="hrs">2.5 h</div><span class="cat dsa">DS/A</span><span class="todo">Mock debrief</span></div>
-    <ul>
-      <li><b>[Mock debrief · 30 min]</b> Write down the two weakest moments from yesterday while they're fresh, and which of the 6 steps you rushed. This drives what goes in the Sat/Sun design blocks.</li>
-      <li><b>[DS/A · 2h · Topological sort]</b> <b>#210 Course Schedule II</b> (~40 min — you have #207, this is the same Kahn's with the order returned; if the order is shorter than n there's a cycle). Then <b>#269 Alien Dictionary</b> (~60 min — a Google staple, and much harder than it looks: the trap is that a prefix word appearing after its extension is invalid input, not just an empty answer).</li>
-    </ul>
+  <!-- ══════════ PRIORITY 2 ══════════ -->
+
+  <div class="topic prio2" data-topic="graphs">
+    <div class="th"><h3>Graphs — topological sort, cycles, closure</h3><span class="seen">seen 1×</span><span class="cat p2">P2</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why">The Aug 5 onsite asked <b>transitive closure</b> (which players' ranks are determinable), which is adjacent to but not the same as topological sort. You already have #207 and #743 logged. Suggested day: <b>Aug 14</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="rankings"><label><b>Player rankings drill</b> <span class="note">N players, M "A beat B" results. A rank is determinable if transitive implications settle that player against <b>every</b> other. Floyd–Warshall, or DFS/BFS from each node — say the DFS option first, it's the more natural answer.</span></label></li>
+        <li><input type="checkbox" data-q="210"><label><b>#210 Course Schedule II</b> <span class="note">You have #207. Same Kahn's, but return the order; shorter than n means a cycle.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="269"><label><b>#269 Alien Dictionary</b> <span class="note">Google staple. The trap is that a prefix word appearing <em>after</em> its extension is invalid input, not an empty answer.</span></label></li>
+        <li><input type="checkbox" data-q="787"><label><b>#787 Cheapest Flights Within K Stops</b> <span class="note">Sitting in your journal's Up Next. Plain Dijkstra is wrong because K-stops breaks the greedy invariant — be able to say <em>why</em>, not just that it does. Bellman-Ford, or BFS over <code>(node, stops)</code>.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day weekend" data-date="2026-08-15">
-    <div class="dh"><h3>Sat Aug 15</h3><div class="hrs">5.5 h</div><span class="cat sd">Sys Design</span><span class="cat dsa">DS/A</span></div>
-    <ul>
-      <li><b>[Sys Design · 3.5h]</b> Largest block of the plan. <span class="todo">TODO · confirm focus</span></li>
-      <li><b>[DS/A · 2h · Union find, cycles, weighted paths]</b> <b>#684 Redundant Connection</b> (~35 min — union find where the union that fails *is* the answer; write find with path compression from scratch). <b>#721 Accounts Merge</b> (~45 min — union find keyed by email, a real Google question). <b>#787 Cheapest Flights Within K Stops</b> (~45 min — this is the one sitting in your journal's Up Next. Plain Dijkstra gives wrong answers because the K-stops constraint breaks the greedy invariant; use Bellman-Ford or BFS over state <code>(node, stops_used)</code>. Be able to say *why* Dijkstra fails, not just that it does).</li>
-    </ul>
+  <div class="topic prio2" data-topic="hashgreedy">
+    <div class="th"><h3>Hash map counting + greedy grouping</h3><span class="seen">seen 1× · full gap</span><span class="cat p2">P2</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why">Cheap to learn, and the Aug 11 candidate got "data structure may not have been optimal enough" as feedback here <b>despite solving both parts</b>. Clean structure is scored separately from correctness. Suggested day: <b>Aug 12 or 17</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="freq-partition"><label><b>Frequency-partition drill</b> <span class="note">Same value → same partition, no two partitions may have equal size. Collapses to "are all frequencies pairwise distinct." <code>Counter</code> + set, and the whole point is recognising the collapse fast.</span></label></li>
+        <li><input type="checkbox" data-q="846"><label><b>#846 Hand of Straights</b> <span class="note">The follow-up: partitions must be consecutive runs. Greedy from the smallest remaining value, consume a run, repeat.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day weekend" data-date="2026-08-16">
-    <div class="dh"><h3>Sun Aug 16</h3><div class="hrs">5.5 h</div><span class="cat sd">Sys Design</span><span class="cat dsa">DS/A</span></div>
-    <ul>
-      <li><b>[Sys Design · 3.5h]</b> Second big block. <span class="todo">TODO · confirm focus</span></li>
-      <li><b>[DS/A · 2h · DP, 1-D]</b> Your least-practiced family, so start from the smallest recurrence and grow it. <b>#198 House Robber</b> (~30 min — two states, take or skip; write the recurrence in words before any code). <b>#322 Coin Change</b> (~45 min — unbounded, min instead of max, and the unreachable sentinel is where people trip). <b>#300 Longest Increasing Subsequence</b> (~45 min — get the O(n²) version first and state it out loud; only attempt the patience-sorting O(n log n) if the first one is solid).</li>
-    </ul>
+  <div class="topic prio2" data-topic="backtracking">
+    <div class="th"><h3>Backtracking</h3><span class="seen">seen 1× · your oldest flagged gap</span><span class="cat p2">P2</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why">#78 and #46 are the <b>same skeleton</b> — subsets passes a start index down, permutations tracks a used set. Do them first or you'll learn the pattern three times. Write the skeleton from memory before looking at any problem. Suggested day: <b>Aug 11</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="78"><label><b>#78 Subsets</b> <span class="note">Choose / explore / unchoose, with a start index. The base template.</span></label></li>
+        <li><input type="checkbox" data-q="47"><label><b>#47 Permutations II</b> <span class="note">What Google actually asked, so do this instead of #46. Sort first, then skip a value equal to its predecessor when the predecessor is unused at this depth.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="39"><label><b>#39 Combination Sum</b> <span class="note">Reuse without advancing the index — the only twist.</span></label></li>
+        <li><input type="checkbox" data-q="131"><label><b>#131 Palindrome Partitioning</b> <span class="note">Try every palindromic prefix, recurse on the rest.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="week">Week 2 — DP, trees, intervals → Google onsite (Aug 17–20)</div>
-
-  <div class="day" data-date="2026-08-17">
-    <div class="dh"><h3>Mon Aug 17</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span></div>
-    <ul>
-      <li><b>[DS/A · 2h · DP, strings]</b> <b>#139 Word Break</b> (~45 min — DP over prefixes, and the honest framing is that it's backtracking plus memoization, which ties back to Aug 11). <b>#1143 Longest Common Subsequence</b> (~45 min — the 2-D grid template; once this is solid, edit distance and #718 are the same table with a different transition). Say the state definition out loud before filling any cell.</li>
-    </ul>
+  <div class="topic prio2" data-topic="stack">
+    <div class="th"><h3>Stack, parsing &amp; state machines</h3><span class="seen">seen 2×</span><span class="cat p2">P2</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why">#394 came up in <b>two separate rounds</b> and you already have it logged, so this is a cheap re-fire rather than new learning. The log-parsing question is the same muscle in unfamiliar clothing. Suggested day: <b>Aug 17</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="394" data-solved="1"><label><b>#394 Decode String</b><span class="doneflag">in journal</span> <span class="note">Re-derive cold, don't reread your notes. Stack of <code>[count, partial]</code> per level.</span></label></li>
+        <li><input type="checkbox" data-q="log-parse"><label><b>Quoted-log-split drill</b> <span class="note">Split a log on whitespace, but never inside quotes. Character state machine tracking in-quote. Raise escaped quotes unprompted.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="394-stream"><label><b>#394 memory follow-up</b> <span class="note">Decoded string is enormous. Generate lazily instead of materialising.</span></label></li>
+        <li><input type="checkbox" data-q="log-chunk"><label><b>Log doesn't fit on one machine</b> <span class="note">The real difficulty is that a chunk boundary can land inside a quoted section, so each chunk must carry its in-quote state across.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day" data-date="2026-08-18">
-    <div class="dh"><h3>Tue Aug 18</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span></div>
-    <ul>
-      <li><b>[DS/A · 2h · Trees]</b> <b>#124 Binary Tree Maximum Path Sum</b> (~50 min — the classic split between what you *return* to the parent, one branch only, and what you *record* globally, both branches. Naming those two things differently in your code is most of the battle). <b>#297 Serialize and Deserialize Binary Tree</b> (~50 min — preorder with explicit null markers; a Google favourite and a good one to narrate).</li>
-    </ul>
+  <!-- ══════════ PRIORITY 3 ══════════ -->
+
+  <div class="topic prio3" data-topic="dp">
+    <div class="th"><h3>Dynamic programming</h3><span class="seen">seen 0× · reduced from 5 problems</span><span class="cat p3">P3</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why"><b>Zero DP questions across all 8 threads.</b> Cut from 5 problems to 2. Kept rather than dropped because n=8 is a small self-selected sample and DP is genuinely part of Google's historical range. Say the recurrence in words before writing any code. Suggested day: <b>Aug 16</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="198"><label><b>#198 House Robber</b> <span class="note">Smallest real recurrence — take or skip. Start here even though it's easy.</span></label></li>
+        <li><input type="checkbox" data-q="322"><label><b>#322 Coin Change</b> <span class="note">Unbounded, min instead of max. The unreachable sentinel is where people trip.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups <span style="font-weight:600;text-transform:none;letter-spacing:0">— only if every P1 topic is complete</span></div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="300"><label><b>#300 Longest Increasing Subsequence</b> <span class="note">O(n²) first and say it out loud. Patience sorting only if that's solid.</span></label></li>
+        <li><input type="checkbox" data-q="139"><label><b>#139 Word Break</b> <span class="note">Honestly backtracking + memo, which ties back to that topic.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day" data-date="2026-08-19">
-    <div class="dh"><h3>Wed Aug 19</h3><div class="hrs">2.5 h</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="todo">Light day — no new patterns</span></div>
-    <ul>
-      <li><b>[DS/A · 1h · Intervals, confidence taper]</b> <b>#986 Interval List Intersections</b> (~30 min — two pointers, overlap is <code>max(starts)</code> to <code>min(ends)</code>) and <b>#253 Meeting Rooms II</b> (~30 min — min-heap of end times). You already have #56, #57, #435 and #252 logged, so this is a re-fire of a pattern you own, chosen deliberately to end the block on something that works.</li>
-      <li><b>[Sys Design · 1.5h · review only]</b> Re-read your own worked examples in <code>systems-design/worked-examples/</code> and the two quarter sheets. <b>No new material.</b> <span class="todo">TODO · confirm focus</span></li>
-      <li>Lay out clothes, confirm the address and parking, and sleep. In-person loops start earlier than they feel like they will.</li>
-    </ul>
+  <div class="topic prio3" data-topic="trees">
+    <div class="th"><h3>Trees</h3><span class="seen">seen 0× · you're already strong</span><span class="cat p3">P3</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why">No tree questions in the sample, and you have #98, #102, #199 and #236 logged. One problem, chosen because it's the one classic you don't have. Suggested day: <b>Aug 18</b>.</div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="124"><label><b>#124 Binary Tree Maximum Path Sum</b> <span class="note">The split between what you <b>return</b> to the parent (one branch) and what you <b>record</b> globally (both branches). Naming those two things differently in your code is most of the battle.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="297"><label><b>#297 Serialize and Deserialize Binary Tree</b> <span class="note">Preorder with explicit null markers. Good one to narrate.</span></label></li>
+        <li><input type="checkbox" data-q="437"><label><b>#437 Path Sum III</b> <span class="note">Prefix sum on a tree — a real Google shape even though it didn't surface in this sample.</span></label></li>
+      </ul>
+    </div>
   </div>
 
-  <div class="day interview" data-date="2026-08-20">
-    <div class="dh"><h3>Thu Aug 20</h3><span class="ivtag">GOOGLE — IN PERSON ONSITE</span><div class="hrs">warm-up only</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
-    <ul>
-      <li><b>11:15–12:00 · DS/A</b> · <b>12:00–1:00 · Lunch with a Googler</b> · <b>1:00–2:00 · Systems Design</b> · <b>2:00–2:45 · DS/A</b></li>
-      <li><b>[Warm-up · 30 min, morning]</b> One easy problem you've already solved, purely to get your hands moving. Skim the pattern index in <code>leetcode_cheatsheet.html</code> and the 6-step sequence on the quarter sheet. <b>Nothing new.</b></li>
-      <li><b>DS/A rounds:</b> clarify → example → outline → complexity → code → test, per <code>coding_interview_playbook.html</code>. State the brute force and its Big-O before optimizing, every time. Google grades the narration as much as the solution.</li>
-      <li><b>Design round:</b> requirements before boxes. Pick your own two deep dives. Never name a technology without the trade-off attached.</li>
-      <li><b>Lunch still counts.</b> It's informal and it isn't scored on a rubric, but the Googler's impression can surface in the packet.</li>
-      <li><b>[After]</b> Log all three rounds in <code>interview_history.html</code> while they're fresh, and any new problem shapes in <code>learning_journal.html</code>.</li>
-    </ul>
+  <div class="topic prio3" data-topic="misc">
+    <div class="th"><h3>Binary search &amp; tries</h3><span class="seen">seen 1× / 0×</span><span class="cat p3">P3</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why">Binary search appeared once, on <b>strings</b> rather than numbers. Tries didn't appear at all and you already have #208 and #212 — skip unless everything above is done. Suggested day: <b>Aug 19</b> if at all.</div>
+      <div class="grp fu">Only if time</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="bsearch-str"><label><b>Binary search over a sorted string array</b> <span class="note">Same template you used for #981, with string comparison. 20 minutes, mostly to prove the template transfers.</span></label></li>
+        <li><input type="checkbox" data-q="211"><label><b>#211 Design Add and Search Words</b> <span class="note">You have #208 and #212, so this is only the wildcard delta — at a <code>.</code>, recurse into every child.</span></label></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════ NON-CODING ══════════ -->
+
+  <div class="topic" data-topic="sysdesign" style="--accent2:#d97706">
+    <div class="th"><h3>Systems design — 12 hours</h3><span class="seen">Round 2 · full 60 min</span><span class="cat sd">SD</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why"><b>Mock is Thu Aug 13, 4–5pm PT.</b> Blocks: Aug 11 (1h) · Aug 12 (1.5h) · Aug 13 (1h prep) · Aug 15 (3.5h) · Aug 16 (3.5h) · Aug 19 (1.5h review). Recent Google design rounds were <b>product-flavoured</b> (token-based rate limiter, anomaly detection), not pure infra. <span class="cat p2">TODO · confirm specific focus</span></div>
+      <div class="grp must">Must do</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="sd-playbook"><label><b>6-step sequence from memory, out loud, with time budgets</b> <span class="note"><code>sd_playbook_quarter.pdf</code>. Announcing transitions is the single habit the mock exists to test.</span></label></li>
+        <li><input type="checkbox" data-q="sd-mock"><label><b>Google mock — Thu Aug 13, 4–5pm PT</b> <span class="note">Pick your two default deep dives <em>before</em> the call so you're not choosing them live.</span></label></li>
+        <li><input type="checkbox" data-q="sd-debrief"><label><b>Mock debrief, Aug 14, 30 min</b> <span class="note">Write down the two weakest moments and which step you rushed. This drives the weekend blocks.</span></label></li>
+        <li><input type="checkbox" data-q="sd-ratelimit"><label><b>Token-based rate limiter drill</b> <span class="note">The Aug 5 onsite question. Token bucket, but the unit is billing tokens. The wrinkle: you can estimate tokens before an LLM call but only know actual usage after, so reserve on the estimate and reconcile on completion.</span></label></li>
+      </ul>
+      <div class="grp fu">Follow-ups</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="sd-anomaly"><label><b>Anomaly detection drill</b> <span class="note">Streaming metrics → alerts. Probes: missing/delayed data, seasonality, spike vs drop vs drift, no labels, false-positive suppression, feedback loop.</span></label></li>
+        <li><input type="checkbox" data-q="sd-review"><label><b>Aug 19 review — your own worked examples only</b> <span class="note"><code>systems-design/worked-examples/</code> plus the two quarter sheets. No new material the day before.</span></label></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="topic" data-topic="onsite" style="--accent2:#16a34a">
+    <div class="th"><h3>Onsite day — Thu Aug 20</h3><span class="seen">in person</span><span class="cat iv">IV</span><span class="tcount"></span><span class="caret">▾</span></div>
+    <div class="tbody">
+      <div class="why"><b>11:15–12:00 DS/A</b> · <b>12:00–1:00 lunch with a Googler</b> · <b>1:00–2:00 systems design</b> · <b>2:00–2:45 DS/A</b>. No new material today.</div>
+      <ul class="q">
+        <li><input type="checkbox" data-q="d20-warmup"><label><b>30-min warm-up, morning</b> <span class="note">One problem you've already solved, purely to get your hands moving. Skim the pattern index in <code>leetcode_cheatsheet.html</code>.</span></label></li>
+        <li><input type="checkbox" data-q="d20-doc"><label><b>Write Python by hand once before the 20th</b> <span class="note">Google still codes in Google Docs. No autocomplete, no formatter, no run button. Multiple reports mention this.</span></label></li>
+        <li><input type="checkbox" data-q="d20-narrate"><label><b>DS/A rounds: brute force + Big-O before optimising</b> <span class="note">Expect one problem that escalates, not two separate ones. Finish the simple version fast so there's runway for follow-ups.</span></label></li>
+        <li><input type="checkbox" data-q="d20-design"><label><b>Design round: requirements before boxes, pick your own dives</b> <span class="note">Never name a technology without the trade-off attached.</span></label></li>
+        <li><input type="checkbox" data-q="d20-lunch"><label><b>Lunch still counts</b> <span class="note">Not rubric-scored, but the Googler's impression can reach the packet.</span></label></li>
+        <li><input type="checkbox" data-q="d20-log"><label><b>After: log all three rounds while fresh</b> <span class="note"><code>interview_history.html</code>, plus new shapes in <code>learning_journal.html</code>.</span></label></li>
+      </ul>
+    </div>
   </div>
 
   <div class="panel">
-    <h2>Overflow rules — if a day ends early</h2>
+    <h2>Rules of engagement</h2>
     <ul>
-      <li><b>Reserve problems</b>, only once the day's core work is done: <b>graphs</b> #133 Clone Graph · #417 Pacific Atlantic Water Flow · #547 Number of Provinces · <b>trees</b> #437 Path Sum III (prefix sum on a tree, a real Google shape) · #298 Binary Tree Longest Consecutive Sequence · <b>backtracking</b> #51 N-Queens · <b>DP</b> #62 Unique Paths. Pick from whichever pattern felt shakiest that day, not from the top.</li>
-      <li><b>Never trade a weekend sys design block for extra LeetCode.</b> Round 2 is a full hour of design and 12h is already the floor for it.</li>
-      <li><b>Slipped a day?</b> Cut in this order: the second DP problem → #269 Alien Dictionary → the Aug 19 intervals pair. <b>Never cut:</b> the backtracking template (Aug 11), the mock debrief (Aug 14), or the Aug 19 light day.</li>
-      <li>If a problem runs 20+ minutes past its budget, stop, read the solution, write the insight in the journal, and schedule a retry. Grinding past the budget teaches the wrong reflex for a 45-minute round.</li>
+      <li><b>Finish all MUST DOs in P1 before starting any P2 follow-up.</b> That's the whole point of dropping dates — breadth across the topics that are actually being asked beats depth in one.</li>
+      <li><b>Never trade a weekend sys design block for extra LeetCode.</b> Round 2 is a full hour and 12h is already the floor.</li>
+      <li><b>If a problem runs 20+ min past budget</b>, stop, read the solution, write the insight in the journal, schedule a retry. Grinding past the budget teaches the wrong reflex for a 45-minute round.</li>
+      <li><b>Aug 19 stays light and Aug 20 gets nothing new.</b> Cramming a fresh pattern the night before has never once helped.</li>
+      <li><b>Falling behind?</b> Cut in this order: P3 follow-ups → P3 must-dos → P2 follow-ups. Never cut a P1 must-do or the mock debrief.</li>
     </ul>
   </div>
 
-  <div class="panel" style="background:#fffbeb;border-color:#fde68a">
-    <h2>Coverage check — the 7 target patterns</h2>
-    <ul>
-      <li><b>Backtracking</b> · #78, #46, #39, #131 <span style="color:#5b6784">(Aug 11–12) — oldest flagged gap, gets the most days</span></li>
-      <li><b>Prefix tries</b> · #211 <span style="color:#5b6784">(Aug 13) — #208 and #212 already logged, wildcard only</span></li>
-      <li><b>Topological sort / cycles</b> · #210, #269 <span style="color:#5b6784">(Aug 14) — builds on #207</span></li>
-      <li><b>Union find / Dijkstra</b> · #684, #721, #787 <span style="color:#5b6784">(Aug 15) — #743 already logged</span></li>
-      <li><b>DP</b> · #198, #322, #300, #139, #1143 <span style="color:#5b6784">(Aug 16–17) — was entirely unscheduled before this block</span></li>
-      <li><b>Trees</b> · #124, #297 <span style="color:#5b6784">(Aug 18) — #98, #102, #199, #236 already logged</span></li>
-      <li><b>Overlapping intervals</b> · #986, #253 <span style="color:#5b6784">(Aug 19) — #56, #57, #435, #252 already logged, taper only</span></li>
-      <li><b>19 problems, 12h systems design, 9 study days.</b> Graphs are covered through the union find and topological sort days rather than as a separate block, since #200, #207 and #743 are already in the journal.</li>
-    </ul>
-  </div>
-
-  <div class="foot">Aug 11–20 · backtracking → tries → topo sort → union find → DP → trees → intervals · sys design 12h, mock Aug 13, onsite Thu Aug 20. Log every session in learning_journal.html.</div>
+  <div class="foot">Aug 11–20 · topic-ordered by 1point3acres evidence · sys design 12h, mock Aug 13, onsite Thu Aug 20 · evidence in google-prep.html · log sessions in learning_journal.html</div>
 </div>
 
 <script>
 (function(){
-  var today=new Date(); today.setHours(0,0,0,0);
-  function parse(d){var a=d.split('-');return new Date(+a[0],+a[1]-1,+a[2]);}
-  var days=[].slice.call(document.querySelectorAll('.day'));
-  var weeks=[].slice.call(document.querySelectorAll('.week'));
-  function daysOf(week){var els=[],n=week.nextElementSibling;while(n&&!n.classList.contains('week')){if(n.classList.contains('day'))els.push(n);n=n.nextElementSibling;}return els;}
-  function syncWeeks(){weeks.forEach(function(w){var ds=daysOf(w);if(ds.length){var allC=ds.every(function(d){return d.classList.contains('collapsed');});w.classList.toggle('collapsed',allC);}});}
-  days.forEach(function(day){
-    var dh=day.querySelector('.dh');
-    if(dh&&!dh.querySelector('.caret')){var c=document.createElement('span');c.className='caret';c.textContent='▾';dh.appendChild(c);}
-    var end=day.getAttribute('data-end')||day.getAttribute('data-date');
-    if(end&&parse(end)<today){day.classList.add('collapsed','is-past');}
-    if(dh){dh.addEventListener('click',function(){day.classList.toggle('collapsed');syncWeeks();});}
-  });
-  weeks.forEach(function(week){
-    if(!week.querySelector('.caret')){var c=document.createElement('span');c.className='caret';c.textContent='▾';week.appendChild(c);}
-    week.addEventListener('click',function(){
-      var ds=daysOf(week);
-      var anyOpen=ds.some(function(d){return !d.classList.contains('collapsed');});
-      ds.forEach(function(d){d.classList.toggle('collapsed',anyOpen);});
-      week.classList.toggle('collapsed',anyOpen);
+  var KEY = 'august-schedule-2026';
+
+  function boxes(){ return [].slice.call(document.querySelectorAll('ul.q input[type=checkbox]')); }
+
+  function save(){
+    var state = {};
+    boxes().forEach(function(cb){ if(cb.checked) state[cb.dataset.q] = 1; });
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  function load(){
+    var state = {};
+    try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ state = {}; }
+    boxes().forEach(function(cb){
+      // problems already logged in the journal start checked the first time only
+      var pre = !localStorage.getItem(KEY) && cb.dataset.solved === '1';
+      if(state[cb.dataset.q] || pre){
+        cb.checked = true;
+        cb.closest('li').classList.add('done');
+      }
+    });
+  }
+
+  function render(){
+    var all = boxes();
+    var done = all.filter(function(cb){ return cb.checked; }).length;
+    document.getElementById('cnt').textContent = done + ' / ' + all.length + ' complete';
+    document.getElementById('barfill').style.width = all.length ? (done/all.length*100) + '%' : '0%';
+
+    var by = document.getElementById('bysec');
+    by.innerHTML = '';
+    [].slice.call(document.querySelectorAll('.topic')).forEach(function(t){
+      var cbs = [].slice.call(t.querySelectorAll('input[type=checkbox]'));
+      if(!cbs.length) return;
+      var d = cbs.filter(function(c){ return c.checked; }).length;
+      var name = t.querySelector('h3').textContent;
+      var el = document.createElement('span');
+      el.textContent = name + ' ' + d + '/' + cbs.length;
+      if(d === cbs.length) el.className = 'full';
+      by.appendChild(el);
+      t.querySelector('.tcount').textContent = d + ' / ' + cbs.length;
+    });
+  }
+
+  boxes().forEach(function(cb){
+    cb.addEventListener('change', function(){
+      cb.closest('li').classList.toggle('done', cb.checked);
+      save(); render();
     });
   });
-  syncWeeks();
-  var ea=document.getElementById('expandAll'),cp=document.getElementById('collapsePast');
-  if(ea)ea.addEventListener('click',function(){days.forEach(function(d){d.classList.remove('collapsed');});weeks.forEach(function(w){w.classList.remove('collapsed');});});
-  if(cp)cp.addEventListener('click',function(){days.forEach(function(d){var end=d.getAttribute('data-end')||d.getAttribute('data-date');d.classList.toggle('collapsed',!!(end&&parse(end)<today));});syncWeeks();});
+
+  [].slice.call(document.querySelectorAll('.topic .th')).forEach(function(th){
+    th.addEventListener('click', function(e){
+      if(e.target.tagName === 'INPUT') return;
+      th.parentNode.classList.toggle('collapsed');
+    });
+  });
+
+  document.getElementById('expandAll').addEventListener('click', function(){
+    [].slice.call(document.querySelectorAll('.topic')).forEach(function(t){ t.classList.remove('collapsed'); });
+  });
+  document.getElementById('collapseAll').addEventListener('click', function(){
+    [].slice.call(document.querySelectorAll('.topic')).forEach(function(t){ t.classList.add('collapsed'); });
+  });
+  document.getElementById('reset').addEventListener('click', function(){
+    if(!confirm('Clear all checkmarks?')) return;
+    try { localStorage.removeItem(KEY); } catch(e){}
+    boxes().forEach(function(cb){ cb.checked = false; cb.closest('li').classList.remove('done'); });
+    render();
+  });
+
+  load();
+  render();
 })();
 </script>
 </body>

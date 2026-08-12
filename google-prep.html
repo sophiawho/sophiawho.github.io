@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>">
-  <title>Google Prep</title>
+  <title>Google Prep — Aug 20 Onsite</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -16,10 +16,11 @@
     header h1 .g-blue { color: #4285f4; } header h1 .g-red { color: #ea4335; }
     header h1 .g-yellow { color: #fbbc05; } header h1 .g-green { color: #34a853; }
     header p { color: #5f6368; margin-top: 6px; font-size: 0.95rem; }
-    .meta { max-width: 860px; margin: 0 auto 32px auto; text-align: center;
+    .meta { max-width: 1000px; margin: 0 auto 32px auto; text-align: center;
       font-size: 0.85rem; color: #5f6368; background:#fff; border:1px solid #e3e8ef;
-      border-radius: 10px; padding: 10px 16px; }
-    .wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+      border-radius: 10px; padding: 12px 18px; line-height:1.6; }
+    .meta b { color:#202124; }
+    .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
     .section-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
       text-transform: uppercase; color: #4285f4; margin-bottom: 16px;
       border-bottom: 2px solid #e3e8ef; padding-bottom: 8px; }
@@ -28,147 +29,245 @@
     .card h3 { font-size: 1rem; font-weight: 600; color: #202124; margin-bottom: 6px; }
     .card h3 a { color: #1a73e8; text-decoration: none; }
     .card h3 a:hover { text-decoration: underline; }
-    .card p { font-size: 0.9rem; color: #3c4043; line-height: 1.6; }
+    .card p { font-size: 0.9rem; color: #3c4043; line-height: 1.6; margin-bottom:6px; }
+    .card .fu { font-size:0.86rem; color:#5f6368; line-height:1.6; border-left:2px solid #feefc3;
+      padding-left:10px; margin-top:8px; }
+    .card .fu b { color:#b06000; }
+    .when { font-size:0.75rem; color:#80868b; font-weight:600; float:right; }
     .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .tag { font-size: 0.73rem; font-weight: 500; padding: 3px 10px; border-radius: 20px;
       background: #e8f0fe; color: #1967d2; border: 1px solid #c6dafc; }
     .tag.hard { background:#fce8e6; color:#c5221f; border-color:#f6c7c3; }
     .tag.med  { background:#fef7e0; color:#b06000; border-color:#feefc3; }
     .tag.gap  { background:#e6f4ea; color:#137333; border-color:#ceead6; }
-    .q-card { background:#fff; border:1px solid #e3e8ef; border-left:3px solid #fbbc05;
-      border-radius:0 10px 10px 0; padding:16px 20px; margin-bottom:12px; }
-    .q-card .q { font-size:0.95rem; font-weight:600; color:#202124; }
-    .q-card .probe { font-size:0.85rem; color:#5f6368; margin-top:8px; line-height:1.55; }
-    .story-map { background:#e8f0fe; border:1px solid #c6dafc; border-radius:10px;
-      padding:16px 20px; font-size:0.88rem; color:#1a1a1a; line-height:1.7; }
-    .story-map b { color:#1967d2; }
+    .tag.done { background:#f1f3f4; color:#5f6368; border-color:#dadce0; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e3e8ef;
+      border-radius:10px; overflow:hidden; font-size:0.86rem; }
+    th { text-align:left; background:#f1f3f4; color:#5f6368; font-size:0.72rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.6px; padding:10px 14px; }
+    td { padding:10px 14px; border-top:1px solid #eef1f5; color:#3c4043; vertical-align:top; }
+    td b { color:#202124; }
     .frame { background:#fff; border:1px solid #e3e8ef; border-radius:10px; padding:16px 20px;
       font-size:0.88rem; color:#3c4043; line-height:1.7; }
-    .frame ol { margin:8px 0 0 20px; } .frame li { margin-bottom:4px; }
+    .frame ol, .frame ul { margin:8px 0 0 20px; } .frame li { margin-bottom:6px; }
+    .warn { background:#fef7e0; border:1px solid #feefc3; border-radius:10px; padding:16px 20px;
+      font-size:0.88rem; color:#3c4043; line-height:1.7; }
+    .warn b { color:#b06000; }
+    .rounds { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .rd { background:#fff; border:1px solid #e3e8ef; border-radius:10px; padding:16px 18px; }
+    .rd .n { font-size:0.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#4285f4; }
+    .rd h4 { font-size:1rem; margin:4px 0 6px; }
+    .rd p { font-size:0.85rem; color:#5f6368; line-height:1.6; }
+    code { background:#f1f3f4; border-radius:4px; padding:1px 5px; font-family:"SF Mono",Menlo,monospace;
+      font-size:0.82em; color:#1967d2; }
+    .foot { text-align:center; color:#80868b; font-size:0.78rem; margin-top:8px; }
+    @media(max-width:820px){ .rounds{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
 
 <header>
   <h1><span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span> Prep</h1>
-  <p>Behavioural bank + must-review LeetCode · onsite Fri July 17 · DS/A + Behavioural</p>
+  <p>In-person onsite · Thursday Aug 20, 2026</p>
 </header>
 
 <div class="meta">
-  Source: 1point3acres reports. Format: DS/A coding + behavioural. Map every LC below to a pattern you already know cold, don't grind new theory. Behavioural runs on your 5 STAR stories.
+  <b>Source: 8 verified 1point3acres threads, Jul–Aug 2026.</b> These are questions candidates were actually asked, not a generic Google list.
+  Read the <b>Signal</b> panel first — the recent distribution is not what Google's reputation would predict.
+  Day-by-day work lives in <code>August-Studying-Schedule.html</code>.
 </div>
 
 <div class="wrap">
 
-  <!-- ───────── LC REVIEW ───────── -->
+  <!-- ───────── THE LOOP ───────── -->
   <div>
-    <div class="section-title">Must Review Before Google</div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/median-of-two-sorted-arrays/">#4 Median of Two Sorted Arrays</a></h3>
-      <p>Binary search on the smaller array to find the partition where left halves ≤ right halves. The trick is searching for a <em>cut point</em>, not a value. Classic Google hard — know the partition invariant and the odd/even length handling cold.</p>
-      <div class="tags"><span class="tag">Binary Search</span><span class="tag hard">Hard</span></div>
-    </div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/trapping-rain-water/">#42 Trapping Rain Water</a></h3>
-      <p>Water above each bar = min(maxLeft, maxRight) − height. Three ways: prefix-max arrays (O(n) space), two pointers moving inward from the shorter side (O(1) space), or a monotonic stack. Two-pointer is the one to have ready. A Google staple.</p>
-      <div class="tags"><span class="tag">Two Pointers</span><span class="tag">Monotonic Stack</span><span class="tag hard">Hard</span></div>
-    </div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/implement-trie-prefix-tree/">Prefix Tries — #208 Implement Trie</a> <span style="font-weight:400;color:#5f6368">(+ #211 search w/ wildcard, #212 Word Search II)</span></h3>
-      <p>Your flagged gap. Each node = dict of children + <code>is_end</code> flag. <code>insert</code>/<code>search</code>/<code>startsWith</code> walk char by char. Once #208 is solid, #212 (Trie + grid DFS) is the Google-flavored boss version. Build the node class from scratch twice.</p>
-      <div class="tags"><span class="tag">Trie</span><span class="tag gap">Gap — must do</span><span class="tag med">Medium</span></div>
-    </div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/course-schedule-ii/">#210 Course Schedule II — Topological Sort</a></h3>
-      <p>Kahn's: build indegree counts, seed a queue with indegree-0 nodes, pop and decrement neighbors, append to order. If the order is shorter than n, there's a cycle. Double-duty with the Scale Task Prioritizer prep — same algorithm, priority-queue variant there.</p>
-      <div class="tags"><span class="tag">Topological Sort</span><span class="tag">Graph (BFS)</span><span class="tag med">Medium</span></div>
-    </div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/palindrome-partitioning/">#131 Palindrome Partitioning</a></h3>
-      <p>Backtracking: for each start index, try every prefix that's a palindrome, recurse on the rest, undo. Choose / explore / unchoose — the same skeleton as #78/#46. Optionally precompute an <code>isPalindrome[i][j]</code> DP table to skip re-checking.</p>
-      <div class="tags"><span class="tag">Backtracking</span><span class="tag med">Medium</span></div>
-    </div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/binary-tree-longest-consecutive-sequence/">#298 Binary Tree Longest Consecutive Sequence</a></h3>
-      <p>DFS carrying two things down: the parent's value and the current run length. If <code>node.val == parent.val + 1</code>, extend the run, else reset to 1. Track a global max. One clean post/pre-order pass, O(n).</p>
-      <div class="tags"><span class="tag">Tree DFS</span><span class="tag med">Medium</span></div>
-    </div>
-
-    <div class="card">
-      <h3><a href="https://leetcode.com/problems/smallest-rectangle-enclosing-black-pixels/">#302 Smallest Rectangle Enclosing Black Pixels</a></h3>
-      <p>Given one black pixel, binary search each of the four borders: the columns/rows split cleanly into "has a black pixel" vs "doesn't", so you can binary search for the leftmost, rightmost, top, bottom black boundary. O(m log n + n log m) beats the O(mn) flood fill. The hardest of the set — review the "projection is monotonic" argument.</p>
-      <div class="tags"><span class="tag">Binary Search</span><span class="tag hard">Hard</span></div>
+    <div class="section-title">The loop — Thu Aug 20</div>
+    <div class="rounds">
+      <div class="rd">
+        <div class="n">11:15–12:00 · Round 1</div>
+        <h4>DS/A</h4>
+        <p>45 min. Expect one problem plus escalating follow-ups rather than two separate problems.</p>
+      </div>
+      <div class="rd">
+        <div class="n">1:00–2:00 · Round 2</div>
+        <h4>Systems Design</h4>
+        <p>60 min. Recent reports show product-flavoured design (rate limiter, anomaly detection), not pure infra.</p>
+      </div>
+      <div class="rd">
+        <div class="n">2:00–2:45 · Round 3</div>
+        <h4>DS/A</h4>
+        <p>45 min. Shortest round. Lunch with a Googler sits between rounds 1 and 2 and still generates feedback.</p>
+      </div>
     </div>
   </div>
 
-  <!-- ───────── BEHAVIOURAL ───────── -->
+  <!-- ───────── SIGNAL ───────── -->
   <div>
-    <div class="section-title">Behavioural Bank</div>
+    <div class="section-title">Signal — what the sample actually says</div>
+    <div class="warn">
+      <b>Intervals + heap scheduling is the single most common shape</b>, appearing in 3 of 8 threads across two different onsites and a phone screen.
+      <b>Graph connectivity (union find / connected components) is second</b>, in 2 of 8.
+      <br><br>
+      <b>Zero DP questions appeared. Zero tree questions. Zero trie questions.</b> That contradicts Google's general reputation, which is why it's worth writing down.
+      <br><br>
+      <b>Caveat before you over-rotate:</b> n=8, self-selected posts, a mix of phone screens and onsites, and several are L4/L5 rather than your level. This justifies re-weighting, not eliminating. DP stays in the plan at reduced volume.
+      <br><br>
+      <b>Second pattern, and it matters more than the topic list:</b> almost every report describes <i>one problem that escalates</i>, not a fresh problem per follow-up. The Aug 11 candidate was explicitly told the interviewer starts easy and adds difficulty to see how far you get. Practice the follow-up, not just the base problem.
+    </div>
+  </div>
 
-    <div class="story-map" style="margin-bottom:16px">
-      Everything below maps onto your <b>5 STAR stories</b>: impact, disagreement, failure, simplifying complexity, ownership beyond scope. Google probes hard, so every story needs two extra layers ready: <b>"can you tell me more about that?"</b> (specific details, numbers, your exact actions) and <b>"what would you have done differently?"</b> (a reflective alternative). 90 seconds spoken, "I" not "we", quantified result.
+  <!-- ───────── QUESTIONS ───────── -->
+  <div>
+    <div class="section-title">Questions asked — Jul / Aug 2026</div>
+
+    <div class="card">
+      <span class="when">Aug 10 phone · PASS &nbsp;|&nbsp; Aug 5 phone · PASS</span>
+      <h3>Car rental scheduling <span style="font-weight:400;color:#5f6368">(asked twice, two separate candidates)</span></h3>
+      <p>Given rental orders <code>(id, pickupTime, returnTime)</code>, assign every order to a car so no car has overlapping intervals, using as few cars as possible. Return the order list per car. <b>You are explicitly asked to design a <code>Car</code> class</b> to hold the data.</p>
+      <p>Sort by pickup time, min-heap keyed on each car's next free time. If the heap top is free before the current pickup, reuse that car, otherwise allocate a new one. An order returning at exactly time <code>t</code> and another picking up at exactly <code>t</code> may share a car.</p>
+      <div class="fu"><b>Follow-up:</b> only K cars exist. If the orders can't be served with K cars, output <code>IMPOSSIBLE</code>. Constraints ran to n = 200,000.</div>
+      <div class="tags"><span class="tag">Intervals</span><span class="tag">Min-Heap</span><span class="tag">Greedy</span><span class="tag">OOD</span><span class="tag med">#253 shape</span></div>
     </div>
 
-    <div class="frame" style="margin-bottom:16px">
-      <b>Challenging-project question — prep this as a full walkthrough, it's the most likely opener:</b>
+    <div class="card">
+      <span class="when">Aug 5 onsite R1 · PASS</span>
+      <h3>Maximum meeting rooms — output the windows</h3>
+      <p>Not just "how many meetings overlap at peak." Given meetings as half-open intervals and an integer X, <b>output every maximal continuous time interval during which exactly X meetings are in progress.</b></p>
+      <p>Sweep line over start and end events. The whole difficulty is event ordering when a start and an end land on the same timestamp, and then merging adjacent qualifying windows into maximal intervals rather than emitting fragments.</p>
+      <div class="tags"><span class="tag">Sweep Line</span><span class="tag">Intervals</span><span class="tag hard">No clean LC equivalent</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Aug 5 onsite R3 · PASS</span>
+      <h3>Determine player rankings</h3>
+      <p>N players, M results of the form "A beat B". A player's rank is determinable if the results plus their transitive implications settle that player's relationship against <b>every</b> other player. Return which players are determinable.</p>
+      <p>Directed graph, players are nodes, wins are edges. Compute transitive closure. Floyd–Warshall is the compact answer; DFS or BFS from each node is the O(V·E) alternative and is usually the better thing to say first.</p>
+      <div class="tags"><span class="tag">Graph</span><span class="tag">Transitive Closure</span><span class="tag">Floyd–Warshall</span><span class="tag">DFS/BFS</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Aug 4 phone screen</span>
+      <h3>2D clustering</h3>
+      <p>Given points on a plane and a radius r, two points are directly connected if their Euclidean distance is ≤ r. Connectivity is transitive. Return the number of clusters.</p>
+      <p>Connected components. DFS, BFS, or union find all work. <b>The interviewer asked for brute-force O(n²) pair checking first</b>, then discussed optimizing neighbour lookup (spatial grid, KD-tree) once it worked.</p>
+      <div class="fu"><b>Read this as a process lesson:</b> the interviewer wanted a correct simple version before the clever one. That's the same brute-force-then-optimize order in your coding playbook.</div>
+      <div class="tags"><span class="tag">Union Find</span><span class="tag">Connected Components</span><span class="tag">Geometry</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Nov 2025 onsite · FAIL</span>
+      <h3><a href="https://leetcode.com/problems/find-median-from-data-stream/">#295 Find Median from Data Stream</a></h3>
+      <p>Two heaps, max-heap for the lower half and min-heap for the upper half, rebalanced so the sizes differ by at most one. Candidate was asked to dry-run it and analyse complexity after writing.</p>
+      <div class="fu"><b>Follow-up 1:</b> what if the value range is very small? (Counting / bucket array, O(1) amortised.) <b>Follow-up 2:</b> return the kth smallest instead of the median. The candidate ran out of time on this one.</div>
+      <div class="tags"><span class="tag">Two Heaps</span><span class="tag">Order Statistics</span><span class="tag gap">Not yet in your journal</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Nov 2025 onsite · FAIL</span>
+      <h3><a href="https://leetcode.com/problems/number-of-islands/">#200 Number of Islands</a> → dynamic land</h3>
+      <p>Standard grid BFS to count islands. Then the follow-up: <b>land keeps getting added one cell at a time, report the island count after each addition.</b> The candidate tried to patch their BFS and the interviewer pushed them to union find, which is <a href="https://leetcode.com/problems/number-of-islands-ii/">#305 Number of Islands II</a>.</p>
+      <div class="fu"><b>The lesson from the failure:</b> they tried to extend the wrong data structure instead of switching. When "things get added incrementally" appears, that is almost always a union find signal.</div>
+      <div class="tags"><span class="tag">Grid BFS</span><span class="tag">Union Find</span><span class="tag done">#200 done</span><span class="tag gap">#305 not done</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Aug 11 phone · FAIL</span>
+      <h3>Partition an array by frequency</h3>
+      <p>Every occurrence of the same value must sit in one partition, so each distinct value forms exactly one partition whose size is that value's frequency. Determine whether the array can be partitioned so <b>no two partitions have the same size</b>. Reduces to: are all frequencies pairwise distinct? <code>Counter</code> plus a set.</p>
+      <p>Example: <code>[1,2,3,4,2,3,3,4,4,4]</code> → true (frequencies 1,2,3,4). <code>[1,2,3]</code> → false (three partitions of size 1).</p>
+      <div class="fu"><b>Follow-up:</b> now each partition must form a consecutive run (a "straight"). <code>[1,2,2,3,3,4,4,5,5,6]</code> → true, <code>[4,5,6,7,7,8,9]</code> → false. This is <a href="https://leetcode.com/problems/hand-of-straights/">#846 Hand of Straights</a> — greedy from the smallest remaining value, consume a run, repeat.</div>
+      <div class="fu">Recruiter feedback was "data structure may not have been optimal enough." Both parts were solved. <b>Solving it isn't sufficient at Google if the structure isn't clean.</b></div>
+      <div class="tags"><span class="tag">Hash Map</span><span class="tag">Counting</span><span class="tag">Greedy</span><span class="tag gap">#846 not done</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Jul 29 R1 &nbsp;|&nbsp; Jul 28 L4 R1 · FAIL</span>
+      <h3><a href="https://leetcode.com/problems/decode-string/">#394 Decode String</a> <span style="font-weight:400;color:#5f6368">(asked twice)</span></h3>
+      <p>Stack of <code>[count, partial_string]</code> per nesting level. You already have this logged in the journal from June.</p>
+      <div class="fu"><b>Follow-up:</b> memory behaviour when the decoded string is enormous. Talk about generating lazily / streaming output rather than materialising the whole string.</div>
+      <div class="tags"><span class="tag">Stack</span><span class="tag">Parsing</span><span class="tag done">Already solved</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Onsite, Jan–Mar 2026 · FAIL</span>
+      <h3>Parse a log line with quoted sections</h3>
+      <p>Given one large log string, split it on whitespace — but content inside quotes must not be split. A character-by-character state machine tracking whether you're currently inside quotes. Escaped quotes are the edge case to raise unprompted.</p>
+      <div class="fu"><b>Follow-up:</b> what if the log doesn't fit on one machine? Chunked/streaming parse, and the real problem is that a chunk boundary can land inside a quoted section, so each chunk needs to carry its in-quote state across the boundary.</div>
+      <div class="tags"><span class="tag">String Parsing</span><span class="tag">State Machine</span><span class="tag">Streaming</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Jul 28 L4 onsite · FAIL</span>
+      <h3><a href="https://leetcode.com/problems/permutations-ii/">#47 Permutations II</a> + binary search on strings</h3>
+      <p>R2 had two coding problems. One was binary search over a <b>sorted array of strings</b>. The other was #47 Permutations II, described by the candidate as "classic backtracking" — permutations with duplicate values, so you sort first and skip a value when it equals its predecessor and the predecessor hasn't been used at this depth.</p>
+      <div class="tags"><span class="tag">Backtracking</span><span class="tag">Dedupe</span><span class="tag">Binary Search</span><span class="tag med">#47 &gt; #46 for you</span></div>
+    </div>
+
+    <div class="card">
+      <span class="when">Nov 2025 onsite R2</span>
+      <h3>Two Sum → Three Sum</h3>
+      <p>Warm-up escalation. Both already in your journal (#15, #167). Listed only to show that Google still opens with easy problems and grows them.</p>
+      <div class="tags"><span class="tag">Two Pointers</span><span class="tag done">Already solved</span></div>
+    </div>
+  </div>
+
+  <!-- ───────── SYS DESIGN ───────── -->
+  <div>
+    <div class="section-title">Systems design questions asked</div>
+    <div class="card">
+      <h3>Distributed rate limiter for AI agents — limit <em>tokens</em>, not requests <span class="when">Aug 5 onsite R2 · PASS</span></h3>
+      <p>Token bucket, but the unit of consumption is billing tokens rather than request count. The interesting wrinkle the thread calls out: you can <b>estimate</b> input tokens and a max output-token count before the LLM call, but the actual consumption is only known afterwards. So you reserve on the estimate and reconcile on completion.</p>
+      <div class="tags"><span class="tag">Rate Limiting</span><span class="tag">Token Bucket</span><span class="tag">Distributed State</span></div>
+    </div>
+    <div class="card">
+      <h3>Anomaly detection for internal metrics <span class="when">Aug 9 team match</span></h3>
+      <p>Detect anomalies over continuously arriving business and service metrics, then alert. Probes covered missing/delayed data, seasonality and trend, defining an anomaly (spike vs drop vs slow drift), training without labels, suppressing false positives via thresholding and alert grouping, and a human feedback loop.</p>
+      <div class="tags"><span class="tag">Streaming</span><span class="tag">Alerting</span><span class="tag med">ML-flavoured</span></div>
+    </div>
+  </div>
+
+  <!-- ───────── PRIORITY ───────── -->
+  <div>
+    <div class="section-title">Priority order, given what you've already solved</div>
+    <table>
+      <thead><tr><th style="width:170px">Topic</th><th style="width:60px">Seen</th><th>Do these</th><th style="width:150px">Status</th></tr></thead>
+      <tbody>
+        <tr><td><b>Intervals + heap</b></td><td>3×</td><td>#253 Meeting Rooms II · #1109 Car Pooling · #986 Interval List Intersections · the "output all X-concurrent windows" drill</td><td>#56 #57 #435 #252 done</td></tr>
+        <tr><td><b>Union find / components</b></td><td>2×</td><td>#305 Number of Islands II · #684 Redundant Connection · #721 Accounts Merge</td><td>#200 done, #305 is the gap</td></tr>
+        <tr><td><b>Heap / order stats</b></td><td>1×</td><td>#295 Find Median from Data Stream + kth-smallest follow-up</td><td>Not in journal</td></tr>
+        <tr><td><b>Graph traversal / closure</b></td><td>1×</td><td>Player-rankings drill · #210 Course Schedule II · #269 Alien Dictionary</td><td>#207 #743 done</td></tr>
+        <tr><td><b>Hash map + greedy grouping</b></td><td>1×</td><td>#846 Hand of Straights · frequency-partition drill</td><td>Not in journal</td></tr>
+        <tr><td><b>Backtracking</b></td><td>1×</td><td>#78 Subsets · #47 Permutations II · #39 Combination Sum</td><td>Flagged gap</td></tr>
+        <tr><td><b>Stack / parsing</b></td><td>2×</td><td>#394 re-fire · quoted-log-split drill</td><td>#394 done</td></tr>
+        <tr><td><b>Binary search</b></td><td>1×</td><td>Sorted-string-array variant</td><td>#33 #153 #981 done</td></tr>
+        <tr><td><b>DP</b></td><td>0×</td><td>#198 House Robber · #322 Coin Change (reduced from 5)</td><td>Kept at low volume</td></tr>
+        <tr><td><b>Trees</b></td><td>0×</td><td>#124 Max Path Sum only</td><td>#98 #102 #199 #236 done</td></tr>
+        <tr><td><b>Tries</b></td><td>0×</td><td>Skip unless time is spare</td><td>#208 #212 done</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ───────── HOW TO RUN THE ROUND ───────── -->
+  <div>
+    <div class="section-title">How to run a Google DS/A round</div>
+    <div class="frame">
       <ol>
-        <li>Project background — one sentence of context</li>
-        <li>Your specific role — "I", not "we"</li>
-        <li>What exactly made it challenging — the real constraint, not "it was hard"</li>
-        <li>Actions you took — concrete decisions and trade-offs</li>
-        <li>Final result — quantified</li>
-        <li>What you learned — the reflective close Google wants</li>
+        <li><b>Expect escalation, not variety.</b> Nearly every report is one problem that grows. Finish the simple version cleanly and fast so there's runway for the follow-ups — that's what's actually being scored.</li>
+        <li><b>Brute force first, out loud, when asked.</b> The 2D-clustering interviewer explicitly wanted the naive version working before optimisation.</li>
+        <li><b>Watch for "things get added incrementally."</b> That phrasing turned #200 into union find and is the most reusable tell in this whole sample.</li>
+        <li><b>Clean structure counts separately from correctness.</b> The Aug 11 candidate solved both parts and still got "data structure may not have been optimal enough."</li>
+        <li><b>Be ready to design a small class.</b> The car-rental question required a <code>Car</code> class outright. See <code>python-class-cheatsheet.html</code>.</li>
+        <li><b>Dry run and state complexity after coding, unprompted.</b> Two separate reports mention being asked to do exactly this.</li>
+        <li><b>Google still uses Google Docs for coding.</b> No autocomplete, no formatter, no run button. Practise writing Python by hand at least once before the 20th.</li>
       </ol>
     </div>
+  </div>
 
-    <div class="q-card">
-      <div class="q">Describe a challenging project and what made it challenging.</div>
-      <div class="probe">→ Maps to your <b>simplifying-complexity</b> or <b>impact</b> story. Lead with the specific constraint. Follow the 6-point frame above.</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">Tell me about a time you disagreed with a team member and how you resolved it.</div>
-      <div class="probe">→ <b>Disagreement</b> story. Probes: tell me more about the specifics · what would you have done differently? Show you heard them out and reached a decision on merits, not seniority.</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">Describe a situation where you had to deliver under a very tight deadline.</div>
-      <div class="probe">→ <b>Impact</b> or <b>ownership</b> story. Probes: more specifics · what would you do differently? Name what you cut and why the trade-off was right.</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">Tell me about a project you're most proud of and why.</div>
-      <div class="probe">→ Your strongest <b>impact</b> story. Probes: more specifics · alternatives. Lead with the quantified result, then the "why it mattered".</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">How do you handle receiving critical feedback?</div>
-      <div class="probe">→ <b>Failure</b> / growth story. Probes: more specifics · what would you do differently? Show a concrete change you made after the feedback, not just "I took it well".</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">Give an example of when you took ownership of a problem outside your responsibility.</div>
-      <div class="probe">→ <b>Ownership-beyond-scope</b> story. Probes: more specifics · alternatives. This is the Googliness ownership signal — make the "not my job, but I did it anyway" explicit.</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">What would you do if a colleague's project progress was not keeping up?</div>
-      <div class="probe">→ Hypothetical — no story needed, but answer with a real instinct: understand why first, offer help, escalate only if blocked. Tie to a real time you did this if you have one.</div>
-    </div>
-
-    <div class="q-card">
-      <div class="q">If your manager gave you an extremely difficult task, how would you handle it? Have you faced this?</div>
-      <div class="probe">→ Hypothetical + story. Break it down, clarify scope, find the first tractable piece, communicate early. Anchor to your challenging-project story.</div>
-    </div>
+  <div class="foot">
+    Compiled from 1point3acres threads 1185858 · 1185773 · 1185652 · 1185247 · 1185060 · 1184962 · 1184450 · 1184361 (Jul–Aug 2026).
+    Replaces the Jul 9 version, which was scoped to the July 17 phone screen and had no systems design coverage.
   </div>
 
 </div>
-
 </body>
 </html>

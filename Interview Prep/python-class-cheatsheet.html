@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Classes in an Interview</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777; --purple:#7c3aed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink);line-height:1.55;padding:26px 20px 44px;font-size:15px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 18px;max-width:820px}
+  h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--accent2);
+     margin:26px 0 10px;border-bottom:2px solid var(--line);padding-bottom:7px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 19px;
+    box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:13px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2)}
+  .card.warn::before{background:var(--pink)}
+  .card.good::before{background:var(--accent)}
+  .card.amber::before{background:var(--warn)}
+  .card h3{font-size:16px;font-weight:800;margin-bottom:5px;letter-spacing:-.2px}
+  .card p{font-size:14px;color:#374357;margin-bottom:7px}
+  .card p b{color:var(--ink)}
+  pre{background:#1a2233;color:#e6ecf7;border-radius:9px;padding:12px 14px;overflow-x:auto;
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.8px;line-height:1.55;margin:8px 0}
+  pre .kw{color:#c792ea} pre .fn{color:#82aaff} pre .str{color:#c3e88d}
+  pre .cm{color:#7a88a8;font-style:italic} pre .num{color:#f78c6c} pre .bad{color:#ff8a9b}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .note{background:var(--card2);border-radius:9px;padding:9px 12px;font-size:13.5px;color:#374357;margin-top:8px}
+  .note b{color:var(--ink)}
+  .say{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:9px 12px;font-size:13.5px;
+    color:#14532d;margin-top:8px;font-style:italic}
+  .say b{font-style:normal;color:#15803d}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;font-size:13.5px;margin-bottom:13px}
+  th{text-align:left;background:var(--card2);color:var(--muted);font-size:11px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.5px;padding:9px 13px}
+  td{padding:9px 13px;border-top:1px solid #eef1f6;color:#374357;vertical-align:top}
+  td b{color:var(--ink)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Python Classes <span>in an Interview</span></h1>
+<div class="sub">Everything you need to define a small class under time pressure, using the Google <b>car rental</b> question as the running example. Every snippet below was run before being written down. Ordered by what you'll reach for first.</div>
+
+<!-- ═══════════ THE 30-SECOND VERSION ═══════════ -->
+<h2>The 30-second version</h2>
+
+<div class="card good">
+  <h3>The whole thing</h3>
+  <pre><span class="kw">class</span> <span class="fn">Car</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, car_id: <span class="kw">int</span>):
+        self.id = car_id            <span class="cm"># fields are just assignments in __init__</span>
+        self.orders: List[<span class="kw">int</span>] = []   <span class="cm"># fresh list per instance</span>
+        self.free_at = <span class="num">0</span>
+
+    <span class="kw">def</span> <span class="fn">assign</span>(self, order_id: <span class="kw">int</span>, end: <span class="kw">int</span>) -> <span class="kw">None</span>:
+        self.orders.append(order_id)
+        self.free_at = end
+
+car = Car(<span class="num">1</span>)
+car.assign(<span class="num">101</span>, <span class="num">4</span>)</pre>
+  <p>That is a complete, interview-acceptable class. <b>No constructor keyword, no <code>new</code>, no field declarations above <code>__init__</code>.</b> Fields spring into existence when you assign to <code>self.something</code>.</p>
+  <div class="note"><b><code>self</code> is not magic and not optional.</b> It's the instance, passed as the first argument automatically. You write it in every method signature; you never pass it at the call site. Forgetting it is the single most common syntax error under pressure.</div>
+</div>
+
+<div class="card">
+  <h3>Answers to the questions you're actually asking</h3>
+  <table>
+    <tbody>
+      <tr><td style="width:250px"><b>Do I need a constructor?</b></td><td>Only if the object has state to initialise. <code>__init__</code> is the constructor. If there's nothing to set, skip it entirely.</td></tr>
+      <tr><td><b>Do I declare fields first?</b></td><td>No. Assign them in <code>__init__</code>. Type hints on the assignment are optional and read as senior.</td></tr>
+      <tr><td><b>Public / private?</b></td><td>No enforcement in Python. A leading underscore <code>_free_at</code> is a convention meaning "internal." Don't bother in a 45-minute round.</td></tr>
+      <tr><td><b>Getters and setters?</b></td><td>No. Access the attribute directly. Writing Java-style getters in Python is a mild negative signal.</td></tr>
+      <tr><td><b>Return type of <code>__init__</code>?</b></td><td><code>None</code>. It mutates <code>self</code>; it does not return the object.</td></tr>
+      <tr><td><b>Inheritance?</b></td><td>Almost never needed in a coding round. If asked: <code>class SUV(Car):</code> then <code>super().__init__(car_id)</code> inside its <code>__init__</code>.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════ THE TRAP ═══════════ -->
+<h2>The one trap that will actually bite you</h2>
+
+<div class="card warn">
+  <h3>Mutable class attribute — shared across every instance</h3>
+  <pre><span class="cm"># WRONG — orders is defined on the CLASS, so all cars share one list</span>
+<span class="kw">class</span> <span class="fn">Car</span>:
+    orders = []                     <span class="bad"># class attribute</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, car_id):
+        self.id = car_id
+
+a, b = Car(<span class="num">1</span>), Car(<span class="num">2</span>)
+a.orders.append(<span class="str">'x'</span>)
+<span class="fn">print</span>(b.orders)                     <span class="cm"># ['x']  &lt;-- b was never touched</span></pre>
+  <pre><span class="cm"># RIGHT — orders is created per instance inside __init__</span>
+<span class="kw">class</span> <span class="fn">Car</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, car_id):
+        self.id = car_id
+        self.orders = []            <span class="cm"># instance attribute</span></pre>
+  <p>I ran the wrong version above and it really does print <code>['x']</code>. This is the bug that silently produces a correct-looking answer with wrong output, and it's very hard to spot while an interviewer is watching.</p>
+  <div class="note"><b>Same trap in function signatures:</b> <code>def f(items=[])</code> reuses one list across every call. Use <code>def f(items=None)</code> then <code>items = items or []</code>.</div>
+  <div class="say"><b>Worth saying out loud:</b> "I'm putting <code>orders</code> in <code>__init__</code> rather than at class level so each car gets its own list."</div>
+</div>
+
+<!-- ═══════════ HEAP ═══════════ -->
+<h2>Making your class work with <code>heapq</code></h2>
+
+<div class="card amber">
+  <h3><code>__lt__</code> — the only comparison a heap needs</h3>
+  <p>The car rental question needs a min-heap of cars ordered by next-free time. <code>heapq</code> compares elements with <code>&lt;</code>, so give the class a <code>__lt__</code> and you can push the objects directly.</p>
+  <pre><span class="kw">def</span> <span class="fn">__lt__</span>(self, other: <span class="str">"Car"</span>) -> <span class="kw">bool</span>:
+    <span class="kw">return</span> self.free_at &lt; other.free_at</pre>
+  <p><b>Two alternatives</b>, both fine, and worth naming so the interviewer sees you know the options:</p>
+  <pre><span class="cm"># 1. push a tuple, no __lt__ needed</span>
+heapq.heappush(heap, (car.free_at, car.id, car))
+<span class="cm">#   include a tiebreaker (car.id) so Python never has to</span>
+<span class="cm">#   compare two Car objects when free_at ties -> TypeError</span>
+
+<span class="cm"># 2. dataclass with order=True (see below)</span></pre>
+  <div class="note"><b>The tuple tiebreaker matters.</b> Without <code>car.id</code> in the middle, two equal <code>free_at</code> values make Python fall through to comparing the <code>Car</code> objects, and you get <code>TypeError: '&lt;' not supported</code>. This is a classic live-interview crash.</div>
+</div>
+
+<div class="card">
+  <h3><code>__repr__</code> — free debugging</h3>
+  <pre><span class="kw">def</span> <span class="fn">__repr__</span>(self) -> <span class="kw">str</span>:
+    <span class="kw">return</span> <span class="fn">f</span><span class="str">"Car(id={self.id}, free_at={self.free_at}, orders={self.orders})"</span></pre>
+  <p>Without it, <code>print(car)</code> gives <code>&lt;__main__.Car object at 0x104f2a3d0&gt;</code>, which is useless when you're dry-running by hand in a Google Doc. With it, printing a list of cars shows you the whole state at a glance.</p>
+  <div class="say"><b>Cheap credibility:</b> add <code>__repr__</code> early and say "this makes the dry run readable." Interviewers notice.</div>
+</div>
+
+<!-- ═══════════ FULL SOLUTION ═══════════ -->
+<h2>The full car rental solution</h2>
+
+<div class="card good">
+  <h3>Verified against both example cases from the real question</h3>
+  <pre><span class="kw">import</span> heapq
+<span class="kw">from</span> typing <span class="kw">import</span> List, Optional, Tuple
+
+<span class="kw">class</span> <span class="fn">Car</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, car_id: <span class="kw">int</span>):
+        self.id = car_id
+        self.orders: List[<span class="kw">int</span>] = []
+        self.free_at = <span class="num">0</span>
+
+    <span class="kw">def</span> <span class="fn">assign</span>(self, order_id: <span class="kw">int</span>, end: <span class="kw">int</span>) -> <span class="kw">None</span>:
+        self.orders.append(order_id)
+        self.free_at = end
+
+    <span class="kw">def</span> <span class="fn">__lt__</span>(self, other: <span class="str">"Car"</span>) -> <span class="kw">bool</span>:
+        <span class="kw">return</span> self.free_at &lt; other.free_at
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self) -> <span class="kw">str</span>:
+        <span class="kw">return</span> <span class="fn">f</span><span class="str">"Car(id={self.id}, free_at={self.free_at}, orders={self.orders})"</span>
+
+
+<span class="kw">def</span> <span class="fn">assign_cars</span>(orders: List[Tuple[<span class="kw">int</span>, <span class="kw">int</span>, <span class="kw">int</span>]],
+                k: Optional[<span class="kw">int</span>] = <span class="kw">None</span>) -> Optional[List[Car]]:
+    <span class="str">"""orders = [(id, start, end)]. Returns cars, or None if k is too small."""</span>
+    orders = <span class="fn">sorted</span>(orders, key=<span class="kw">lambda</span> o: o[<span class="num">1</span>])   <span class="cm"># by pickup time</span>
+    heap: List[Car] = []          <span class="cm"># cars in use, ordered by free_at</span>
+    cars: List[Car] = []          <span class="cm"># every car, in creation order</span>
+
+    <span class="kw">for</span> oid, start, end <span class="kw">in</span> orders:
+        <span class="kw">if</span> heap <span class="kw">and</span> heap[<span class="num">0</span>].free_at &lt;= start:   <span class="cm"># &lt;= : return at t, pickup at t is OK</span>
+            car = heapq.heappop(heap)
+        <span class="kw">else</span>:
+            <span class="kw">if</span> k <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span> <span class="kw">and</span> <span class="fn">len</span>(cars) &gt;= k:
+                <span class="kw">return</span> <span class="kw">None</span>                  <span class="cm"># IMPOSSIBLE</span>
+            car = Car(<span class="fn">len</span>(cars) + <span class="num">1</span>)
+            cars.append(car)
+        car.assign(oid, end)
+        heapq.heappush(heap, car)
+
+    <span class="kw">return</span> cars</pre>
+  <div class="note"><b>Why <code>heap</code> and <code>cars</code> are separate lists:</b> the heap reorders itself constantly, so it can't give you cars in creation order for the output. <code>cars</code> holds stable insertion order. Both hold references to the <i>same</i> objects, so <code>car.assign(...)</code> is visible through either — that's Python's reference semantics doing the work for you, and it's worth saying out loud.</div>
+  <p style="margin-top:8px"><b>Complexity:</b> O(n log n) for the sort plus O(n log n) heap operations. O(n) space.</p>
+</div>
+
+<!-- ═══════════ TESTING ═══════════ -->
+<h2>How to test it in the room</h2>
+
+<div class="card">
+  <h3>Bare <code>assert</code>, no framework</h3>
+  <p>You have no test runner in a Google Doc or CoderPad. Plain asserts read as deliberate and cost three lines.</p>
+  <pre><span class="cm"># example 1 from the problem: 4 orders, 2 cars</span>
+res = assign_cars([(<span class="num">101</span>,<span class="num">1</span>,<span class="num">4</span>), (<span class="num">102</span>,<span class="num">2</span>,<span class="num">5</span>), (<span class="num">103</span>,<span class="num">4</span>,<span class="num">6</span>), (<span class="num">104</span>,<span class="num">5</span>,<span class="num">7</span>)], k=<span class="num">2</span>)
+<span class="kw">assert</span> [c.orders <span class="kw">for</span> c <span class="kw">in</span> res] == [[<span class="num">101</span>,<span class="num">103</span>], [<span class="num">102</span>,<span class="num">104</span>]]
+
+<span class="cm"># example 2: infeasible with 1 car</span>
+<span class="kw">assert</span> assign_cars([(<span class="num">1</span>,<span class="num">1</span>,<span class="num">3</span>), (<span class="num">2</span>,<span class="num">2</span>,<span class="num">4</span>), (<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>)], k=<span class="num">1</span>) <span class="kw">is</span> <span class="kw">None</span>
+
+<span class="cm"># edge cases worth naming even if you don't code them</span>
+<span class="kw">assert</span> assign_cars([]) == []                        <span class="cm"># empty input</span>
+<span class="kw">assert</span> <span class="fn">len</span>(assign_cars([(<span class="num">1</span>,<span class="num">1</span>,<span class="num">2</span>), (<span class="num">2</span>,<span class="num">2</span>,<span class="num">3</span>)])) == <span class="num">1</span>   <span class="cm"># touching intervals share a car</span></pre>
+  <div class="say"><b>The touching-intervals assert is the valuable one.</b> The problem states a return at time <code>t</code> and a pickup at time <code>t</code> may share a car. That's the difference between <code>&lt;=</code> and <code>&lt;</code> in your heap check, and it's exactly the kind of off-by-one an interviewer probes. Testing it proves you read the spec.</div>
+</div>
+
+<div class="card">
+  <h3>Test list to state out loud</h3>
+  <table>
+    <tbody>
+      <tr><td style="width:210px"><b>Empty input</b></td><td>No orders → no cars, not a crash.</td></tr>
+      <tr><td><b>Single order</b></td><td>Exactly one car.</td></tr>
+      <tr><td><b>All overlapping</b></td><td>n orders all at once → n cars. Worst case.</td></tr>
+      <tr><td><b>None overlapping</b></td><td>Sequential orders → 1 car. Best case.</td></tr>
+      <tr><td><b>Touching at a boundary</b></td><td>End == next start. The <code>&lt;=</code> vs <code>&lt;</code> decision.</td></tr>
+      <tr><td><b>k too small / k = n</b></td><td>IMPOSSIBLE path, and the trivially-feasible path.</td></tr>
+      <tr><td><b>Unsorted input</b></td><td>Your sort handles it, but say that you rely on it.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════ DATACLASS ═══════════ -->
+<h2>Dataclasses — when they help, when they don't</h2>
+
+<div class="cols">
+  <div class="card">
+    <h3>The short version</h3>
+    <pre><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+
+<span class="fn">@dataclass</span>(order=<span class="kw">True</span>)
+<span class="kw">class</span> <span class="fn">Car</span>:
+    free_at: <span class="kw">int</span> = <span class="num">0</span>
+    id: <span class="kw">int</span> = <span class="num">0</span>
+    orders: List[<span class="kw">int</span>] = field(
+        default_factory=<span class="kw">list</span>, compare=<span class="kw">False</span>)</pre>
+    <p>You get <code>__init__</code>, <code>__repr__</code>, <code>__eq__</code> and (with <code>order=True</code>) all the comparisons for free, generated <b>in field declaration order</b>.</p>
+  </div>
+  <div class="card">
+    <h3>Two things to know</h3>
+    <p><b>1. Field order is comparison order.</b> <code>free_at</code> is listed first so heap ordering works. Reorder the fields and you silently change the sort key.</p>
+    <p><b>2. Mutable defaults need <code>default_factory</code>.</b> Writing <code>orders: List[int] = []</code> raises <code>ValueError</code> at class definition — the dataclass module catches the shared-mutable trap for you. <code>compare=False</code> keeps the list out of comparisons.</p>
+  </div>
+</div>
+
+<div class="card amber">
+  <h3>Should you use one on Aug 20?</h3>
+  <p><b>Probably not.</b> A plain class is three more lines and shows the interviewer you know what <code>__init__</code> and <code>__lt__</code> actually do. A dataclass hides exactly the mechanics being assessed when someone says "design a Car class."</p>
+  <div class="say"><b>Best of both:</b> write the plain class, then mention "in production I'd make this a dataclass — I'm writing it out to keep the ordering behaviour explicit."</div>
+</div>
+
+<!-- ═══════════ EQ HASH ═══════════ -->
+<h2>Dict keys and set members</h2>
+
+<div class="card">
+  <h3><code>__eq__</code> + <code>__hash__</code> — only when you need it</h3>
+  <p>By default, two objects with identical fields are different keys, because the default hash is identity-based. If you need to dedupe objects in a set or use them as dict keys, define both.</p>
+  <pre><span class="kw">class</span> <span class="fn">Point</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, x, y):
+        self.x, self.y = x, y
+    <span class="kw">def</span> <span class="fn">__eq__</span>(self, o):
+        <span class="kw">return</span> <span class="fn">isinstance</span>(o, Point) <span class="kw">and</span> (self.x, self.y) == (o.x, o.y)
+    <span class="kw">def</span> <span class="fn">__hash__</span>(self):
+        <span class="kw">return</span> <span class="fn">hash</span>((self.x, self.y))
+
+<span class="fn">len</span>({Point(<span class="num">1</span>,<span class="num">2</span>), Point(<span class="num">1</span>,<span class="num">2</span>), Point(<span class="num">3</span>,<span class="num">4</span>)})   <span class="cm"># 2</span></pre>
+  <div class="note"><b>Defining <code>__eq__</code> alone sets <code>__hash__</code> to <code>None</code></b> and your object becomes unhashable. Always define both or neither. <br><br><b>For the 2D clustering question, skip all of this</b> — index into the points list and union find on integer indices. Objects as dict keys is more machinery than that problem needs.</div>
+</div>
+
+<!-- ═══════════ REFERENCE ═══════════ -->
+<h2>Syntax reference</h2>
+
+<table>
+  <thead><tr><th style="width:230px">You want</th><th>Write</th></tr></thead>
+  <tbody>
+    <tr><td>Constructor</td><td><code>def __init__(self, a, b):</code></td></tr>
+    <tr><td>Instance field</td><td><code>self.name = value</code> inside <code>__init__</code></td></tr>
+    <tr><td>Method</td><td><code>def method(self, arg):</code> — <code>self</code> always first</td></tr>
+    <tr><td>Printable</td><td><code>def __repr__(self): return f"..."</code></td></tr>
+    <tr><td>Heap-sortable</td><td><code>def __lt__(self, other): return ...</code></td></tr>
+    <tr><td>Set / dict key</td><td><code>__eq__</code> <b>and</b> <code>__hash__</code>, always both</td></tr>
+    <tr><td>Length via <code>len()</code></td><td><code>def __len__(self): return len(self.orders)</code></td></tr>
+    <tr><td>Shared across instances</td><td>Class attribute — only for immutables like <code>MAX = 100</code></td></tr>
+    <tr><td>No instance needed</td><td><code>@staticmethod</code> (no <code>self</code>) or <code>@classmethod</code> (takes <code>cls</code>)</td></tr>
+    <tr><td>Alternate constructor</td><td><code>@classmethod</code><br><code>def from_tuple(cls, t): return cls(*t)</code></td></tr>
+    <tr><td>Inheritance</td><td><code>class SUV(Car):</code> then <code>super().__init__(car_id)</code></td></tr>
+    <tr><td>Forward type reference</td><td><code>def __lt__(self, other: "Car")</code> — quotes, class isn't defined yet</td></tr>
+  </tbody>
+</table>
+
+<div class="card warn">
+  <h3>Mistakes ranked by how likely you are to make them at 11:15am</h3>
+  <table>
+    <tbody>
+      <tr><td style="width:56px"><b>1</b></td><td>Forgetting <code>self</code> in a method signature.</td></tr>
+      <tr><td><b>2</b></td><td>Mutable class attribute shared across instances.</td></tr>
+      <tr><td><b>3</b></td><td>Pushing tuples to a heap without a tiebreaker → <code>TypeError</code> on ties.</td></tr>
+      <tr><td><b>4</b></td><td><code>__eq__</code> without <code>__hash__</code> → object silently unhashable.</td></tr>
+      <tr><td><b>5</b></td><td>Calling <code>Car.assign(order)</code> on the class instead of an instance.</td></tr>
+      <tr><td><b>6</b></td><td>Expecting <code>__init__</code> to return the object. It returns <code>None</code>.</td></tr>
+      <tr><td><b>7</b></td><td>Writing Java-style <code>get_id()</code> / <code>set_id()</code>. Just use the attribute.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="foot">Every snippet here was executed before being written down. Companion to <code>google-prep.html</code> — the car rental question is real and was asked twice in August 2026.</div>
+
+</div>
+</body>
+</html>
