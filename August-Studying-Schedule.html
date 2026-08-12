@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>August Studying Schedule</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗓️</text></svg>">
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2f9; --ink:#1a2233; --muted:#5b6784;
+    --line:#dde3ee; --accent:#16a34a; --accent2:#0284c7; --warn:#d97706; --pink:#db2777; --purple:#7c3aed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#e7eefb 0,var(--bg) 55%);
+    color:var(--ink); line-height:1.5; padding:26px 20px 40px; font-size:15px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.4px}
+  h1 span{color:var(--accent2)}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 14px;max-width:820px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .cat{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;letter-spacing:.3px}
+  .dsa{background:#e0f2fe;color:#0369a1}
+  .ui{background:#fce7f3;color:#be185d}
+  .beh{background:#ede9fe;color:#6d28d9}
+  .sd{background:#fef3c7;color:#b45309}
+  .iv{background:#dcfce7;color:#15803d}
+  .week{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 0 10px}
+  .day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 17px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:12px;position:relative;overflow:hidden}
+  .day::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2)}
+  .day.interview::before{background:var(--accent);width:5px}
+  .day.interview{background:linear-gradient(90deg,#ecfdf5 0,#f6fefa 60%,var(--card) 100%);border-color:#a7f3d0;box-shadow:0 1px 4px rgba(16,163,74,.12)}
+  .day.weekend::before{background:var(--pink)}
+  .dh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .dh h3{font-size:15.5px;font-weight:800}
+  .hrs{font-size:12px;color:var(--muted);font-weight:700}
+  .ivtag{font-size:12px;font-weight:800;color:#15803d;background:#dcfce7;border-radius:999px;padding:2px 10px}
+  .todo{font-size:11.5px;font-weight:800;color:#b45309;background:#fef3c7;border-radius:999px;padding:2px 10px}
+  ul{list-style:none}
+  li{position:relative;padding-left:15px;margin:5px 0;font-size:14px;color:#374357}
+  li::before{content:"›";position:absolute;left:0;top:-1px;color:var(--accent2);font-weight:800}
+  li b{color:var(--ink)}
+  code{background:#eef2f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--accent2)}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,30,60,.05);margin-bottom:14px}
+  .panel h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--warn);margin-bottom:8px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:14px}
+
+  /* collapsible days/weeks */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+  .controls button{font-size:12px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;border-radius:8px;padding:5px 11px;cursor:pointer}
+  .controls button:hover{background:#d0eafc}
+  .week{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px}
+  .week .caret{font-size:12px;color:var(--muted);transition:transform .15s}
+  .week.collapsed .caret{transform:rotate(-90deg)}
+  .day .dh{cursor:pointer}
+  .day .caret{margin-left:auto;font-size:13px;color:var(--muted);transition:transform .15s;padding-left:8px}
+  .day.collapsed .caret{transform:rotate(-90deg)}
+  .day.collapsed ul{display:none}
+  .day.collapsed .dh{margin-bottom:0}
+  .day.collapsed{opacity:.72}
+  .day.is-past .dh h3{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>August Studying <span>Schedule</span></h1>
+  <div class="sub">Aug 11 → Aug 20, everything pointed at the <b>Google onsite Thu Aug 20</b>. Weekdays 1–2 LeetCode problems, weekends 2–3. Systems design is a 12-hour block weighted to the weekend, with a mock on Aug 13. No behavioural — that's already done. Click any day or week header to collapse it; past days auto-collapse.</div>
+  <div class="legend">
+    <span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="cat iv">Interview day</span>
+  </div>
+
+  <div class="controls"><button id="expandAll">Expand all</button><button id="collapsePast">Collapse past</button></div>
+
+  <div class="panel" style="background:#eef6ff;border-color:#c9e0fb">
+    <h2 style="color:#0369a1">How this block works — read first</h2>
+    <ul>
+      <li><b>The loop is DS/A-heavy.</b> Rounds 1 and 3 are DS/A (45 min each), round 2 is systems design (60 min). That's the reverse of the Plaid/Retool/Scale loops you just finished, so the weighting here flips accordingly — 19 problems against 12 hours of design.</li>
+      <li><b>Topic order is deliberate.</b> Backtracking first (Aug 11–12) because it's your oldest flagged gap and the choose/explore/unchoose skeleton is a prerequisite for palindrome partitioning and N-Queens. DP lands on the weekend (Aug 16–17) where there's room to actually build the recurrence rather than pattern-match it. Trees and intervals sit last because they're your strongest — they're a confidence taper, not new learning.</li>
+      <li><b>Systems design = 12h total</b>, split 1 + 1.5 + 1 + 3.5 + 3.5 + 1.5. The two big weekend blocks are unallocated on purpose — <span class="todo">TODO · fill in sys design focus</span>. Everything else is scheduled around them.</li>
+      <li><b>Aug 19 is deliberately light and Aug 20 has no new material.</b> Cramming a new pattern the night before an onsite has never once helped.</li>
+      <li>Log every problem in <code>learning_journal.html</code> the same day. Retry dates matter more than volume here.</li>
+    </ul>
+  </div>
+
+  <div class="week">Week 1 — Backtracking, tries, topological sort (Aug 11–16)</div>
+
+  <div class="day" data-date="2026-08-11">
+    <div class="dh"><h3>Tue Aug 11</h3><div class="hrs">2.5 h</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
+    <ul>
+      <li><b>[DS/A · 1.5h · Backtracking template]</b> <b>#78 Subsets</b> then <b>#46 Permutations</b> (~40 min each). These two are the same skeleton with one difference — subsets passes a start index down, permutations tracks a used set. Write the skeleton from memory before you look at either problem, then check. <b>Everything else in backtracking this week derives from these two</b>, so don't rush past them.</li>
+      <li><b>[Sys Design · 1h]</b> Re-read <code>sd_playbook_quarter.pdf</code> and <code>sd_tech_quarter.pdf</code> end to end, then say the 6-step sequence out loud from memory with time budgets attached. <span class="todo">TODO · confirm focus</span></li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-12">
+    <div class="dh"><h3>Wed Aug 12</h3><div class="hrs">3 h</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
+    <ul>
+      <li><b>[DS/A · 1.5h · Backtracking applied]</b> <b>#39 Combination Sum</b> (~40 min — reuse without advancing the index, the one twist) then <b>#131 Palindrome Partitioning</b> (~45 min — flagged in <code>google-prep.html</code>; try every palindromic prefix, recurse on the rest). If #78/#46 didn't stick yesterday, redo one of them instead of starting #131.</li>
+      <li><b>[Sys Design · 1.5h]</b> Mock prep. <span class="todo">TODO · confirm focus</span></li>
+    </ul>
+  </div>
+
+  <div class="day interview" data-date="2026-08-13">
+    <div class="dh"><h3>Thu Aug 13</h3><span class="ivtag">GOOGLE — MOCK · Systems Design 4–5pm PT</span><div class="hrs">2 h study</div><span class="cat sd">Sys Design</span><span class="cat dsa">DS/A</span></div>
+    <ul>
+      <li><b>[Sys Design · 1h · before]</b> Skim only, nothing new. One spoken run of the 6-step sequence, and pick your two default deep dives in advance so you're not choosing them live.</li>
+      <li><b>[MOCK · 4–5pm PT]</b> Treat it as the real thing. <b>Announce every transition out loud</b> — that's the single habit the mock exists to test. Note where you ran over time.</li>
+      <li><b>[DS/A · 1h · after]</b> <b>#211 Design Add and Search Words</b> (~45 min). You have #208 and #212 already, so this is the wildcard variant only — at a <code>.</code>, recurse into every child. Small delta, high recall value.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-14">
+    <div class="dh"><h3>Fri Aug 14</h3><div class="hrs">2.5 h</div><span class="cat dsa">DS/A</span><span class="todo">Mock debrief</span></div>
+    <ul>
+      <li><b>[Mock debrief · 30 min]</b> Write down the two weakest moments from yesterday while they're fresh, and which of the 6 steps you rushed. This drives what goes in the Sat/Sun design blocks.</li>
+      <li><b>[DS/A · 2h · Topological sort]</b> <b>#210 Course Schedule II</b> (~40 min — you have #207, this is the same Kahn's with the order returned; if the order is shorter than n there's a cycle). Then <b>#269 Alien Dictionary</b> (~60 min — a Google staple, and much harder than it looks: the trap is that a prefix word appearing after its extension is invalid input, not just an empty answer).</li>
+    </ul>
+  </div>
+
+  <div class="day weekend" data-date="2026-08-15">
+    <div class="dh"><h3>Sat Aug 15</h3><div class="hrs">5.5 h</div><span class="cat sd">Sys Design</span><span class="cat dsa">DS/A</span></div>
+    <ul>
+      <li><b>[Sys Design · 3.5h]</b> Largest block of the plan. <span class="todo">TODO · confirm focus</span></li>
+      <li><b>[DS/A · 2h · Union find, cycles, weighted paths]</b> <b>#684 Redundant Connection</b> (~35 min — union find where the union that fails *is* the answer; write find with path compression from scratch). <b>#721 Accounts Merge</b> (~45 min — union find keyed by email, a real Google question). <b>#787 Cheapest Flights Within K Stops</b> (~45 min — this is the one sitting in your journal's Up Next. Plain Dijkstra gives wrong answers because the K-stops constraint breaks the greedy invariant; use Bellman-Ford or BFS over state <code>(node, stops_used)</code>. Be able to say *why* Dijkstra fails, not just that it does).</li>
+    </ul>
+  </div>
+
+  <div class="day weekend" data-date="2026-08-16">
+    <div class="dh"><h3>Sun Aug 16</h3><div class="hrs">5.5 h</div><span class="cat sd">Sys Design</span><span class="cat dsa">DS/A</span></div>
+    <ul>
+      <li><b>[Sys Design · 3.5h]</b> Second big block. <span class="todo">TODO · confirm focus</span></li>
+      <li><b>[DS/A · 2h · DP, 1-D]</b> Your least-practiced family, so start from the smallest recurrence and grow it. <b>#198 House Robber</b> (~30 min — two states, take or skip; write the recurrence in words before any code). <b>#322 Coin Change</b> (~45 min — unbounded, min instead of max, and the unreachable sentinel is where people trip). <b>#300 Longest Increasing Subsequence</b> (~45 min — get the O(n²) version first and state it out loud; only attempt the patience-sorting O(n log n) if the first one is solid).</li>
+    </ul>
+  </div>
+
+  <div class="week">Week 2 — DP, trees, intervals → Google onsite (Aug 17–20)</div>
+
+  <div class="day" data-date="2026-08-17">
+    <div class="dh"><h3>Mon Aug 17</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span></div>
+    <ul>
+      <li><b>[DS/A · 2h · DP, strings]</b> <b>#139 Word Break</b> (~45 min — DP over prefixes, and the honest framing is that it's backtracking plus memoization, which ties back to Aug 11). <b>#1143 Longest Common Subsequence</b> (~45 min — the 2-D grid template; once this is solid, edit distance and #718 are the same table with a different transition). Say the state definition out loud before filling any cell.</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-18">
+    <div class="dh"><h3>Tue Aug 18</h3><div class="hrs">2 h</div><span class="cat dsa">DS/A</span></div>
+    <ul>
+      <li><b>[DS/A · 2h · Trees]</b> <b>#124 Binary Tree Maximum Path Sum</b> (~50 min — the classic split between what you *return* to the parent, one branch only, and what you *record* globally, both branches. Naming those two things differently in your code is most of the battle). <b>#297 Serialize and Deserialize Binary Tree</b> (~50 min — preorder with explicit null markers; a Google favourite and a good one to narrate).</li>
+    </ul>
+  </div>
+
+  <div class="day" data-date="2026-08-19">
+    <div class="dh"><h3>Wed Aug 19</h3><div class="hrs">2.5 h</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span><span class="todo">Light day — no new patterns</span></div>
+    <ul>
+      <li><b>[DS/A · 1h · Intervals, confidence taper]</b> <b>#986 Interval List Intersections</b> (~30 min — two pointers, overlap is <code>max(starts)</code> to <code>min(ends)</code>) and <b>#253 Meeting Rooms II</b> (~30 min — min-heap of end times). You already have #56, #57, #435 and #252 logged, so this is a re-fire of a pattern you own, chosen deliberately to end the block on something that works.</li>
+      <li><b>[Sys Design · 1.5h · review only]</b> Re-read your own worked examples in <code>systems-design/worked-examples/</code> and the two quarter sheets. <b>No new material.</b> <span class="todo">TODO · confirm focus</span></li>
+      <li>Lay out clothes, confirm the address and parking, and sleep. In-person loops start earlier than they feel like they will.</li>
+    </ul>
+  </div>
+
+  <div class="day interview" data-date="2026-08-20">
+    <div class="dh"><h3>Thu Aug 20</h3><span class="ivtag">GOOGLE — IN PERSON ONSITE</span><div class="hrs">warm-up only</div><span class="cat dsa">DS/A</span><span class="cat sd">Sys Design</span></div>
+    <ul>
+      <li><b>11:15–12:00 · DS/A</b> · <b>12:00–1:00 · Lunch with a Googler</b> · <b>1:00–2:00 · Systems Design</b> · <b>2:00–2:45 · DS/A</b></li>
+      <li><b>[Warm-up · 30 min, morning]</b> One easy problem you've already solved, purely to get your hands moving. Skim the pattern index in <code>leetcode_cheatsheet.html</code> and the 6-step sequence on the quarter sheet. <b>Nothing new.</b></li>
+      <li><b>DS/A rounds:</b> clarify → example → outline → complexity → code → test, per <code>coding_interview_playbook.html</code>. State the brute force and its Big-O before optimizing, every time. Google grades the narration as much as the solution.</li>
+      <li><b>Design round:</b> requirements before boxes. Pick your own two deep dives. Never name a technology without the trade-off attached.</li>
+      <li><b>Lunch still counts.</b> It's informal and it isn't scored on a rubric, but the Googler's impression can surface in the packet.</li>
+      <li><b>[After]</b> Log all three rounds in <code>interview_history.html</code> while they're fresh, and any new problem shapes in <code>learning_journal.html</code>.</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h2>Overflow rules — if a day ends early</h2>
+    <ul>
+      <li><b>Reserve problems</b>, only once the day's core work is done: <b>graphs</b> #133 Clone Graph · #417 Pacific Atlantic Water Flow · #547 Number of Provinces · <b>trees</b> #437 Path Sum III (prefix sum on a tree, a real Google shape) · #298 Binary Tree Longest Consecutive Sequence · <b>backtracking</b> #51 N-Queens · <b>DP</b> #62 Unique Paths. Pick from whichever pattern felt shakiest that day, not from the top.</li>
+      <li><b>Never trade a weekend sys design block for extra LeetCode.</b> Round 2 is a full hour of design and 12h is already the floor for it.</li>
+      <li><b>Slipped a day?</b> Cut in this order: the second DP problem → #269 Alien Dictionary → the Aug 19 intervals pair. <b>Never cut:</b> the backtracking template (Aug 11), the mock debrief (Aug 14), or the Aug 19 light day.</li>
+      <li>If a problem runs 20+ minutes past its budget, stop, read the solution, write the insight in the journal, and schedule a retry. Grinding past the budget teaches the wrong reflex for a 45-minute round.</li>
+    </ul>
+  </div>
+
+  <div class="panel" style="background:#fffbeb;border-color:#fde68a">
+    <h2>Coverage check — the 7 target patterns</h2>
+    <ul>
+      <li><b>Backtracking</b> · #78, #46, #39, #131 <span style="color:#5b6784">(Aug 11–12) — oldest flagged gap, gets the most days</span></li>
+      <li><b>Prefix tries</b> · #211 <span style="color:#5b6784">(Aug 13) — #208 and #212 already logged, wildcard only</span></li>
+      <li><b>Topological sort / cycles</b> · #210, #269 <span style="color:#5b6784">(Aug 14) — builds on #207</span></li>
+      <li><b>Union find / Dijkstra</b> · #684, #721, #787 <span style="color:#5b6784">(Aug 15) — #743 already logged</span></li>
+      <li><b>DP</b> · #198, #322, #300, #139, #1143 <span style="color:#5b6784">(Aug 16–17) — was entirely unscheduled before this block</span></li>
+      <li><b>Trees</b> · #124, #297 <span style="color:#5b6784">(Aug 18) — #98, #102, #199, #236 already logged</span></li>
+      <li><b>Overlapping intervals</b> · #986, #253 <span style="color:#5b6784">(Aug 19) — #56, #57, #435, #252 already logged, taper only</span></li>
+      <li><b>19 problems, 12h systems design, 9 study days.</b> Graphs are covered through the union find and topological sort days rather than as a separate block, since #200, #207 and #743 are already in the journal.</li>
+    </ul>
+  </div>
+
+  <div class="foot">Aug 11–20 · backtracking → tries → topo sort → union find → DP → trees → intervals · sys design 12h, mock Aug 13, onsite Thu Aug 20. Log every session in learning_journal.html.</div>
+</div>
+
+<script>
+(function(){
+  var today=new Date(); today.setHours(0,0,0,0);
+  function parse(d){var a=d.split('-');return new Date(+a[0],+a[1]-1,+a[2]);}
+  var days=[].slice.call(document.querySelectorAll('.day'));
+  var weeks=[].slice.call(document.querySelectorAll('.week'));
+  function daysOf(week){var els=[],n=week.nextElementSibling;while(n&&!n.classList.contains('week')){if(n.classList.contains('day'))els.push(n);n=n.nextElementSibling;}return els;}
+  function syncWeeks(){weeks.forEach(function(w){var ds=daysOf(w);if(ds.length){var allC=ds.every(function(d){return d.classList.contains('collapsed');});w.classList.toggle('collapsed',allC);}});}
+  days.forEach(function(day){
+    var dh=day.querySelector('.dh');
+    if(dh&&!dh.querySelector('.caret')){var c=document.createElement('span');c.className='caret';c.textContent='▾';dh.appendChild(c);}
+    var end=day.getAttribute('data-end')||day.getAttribute('data-date');
+    if(end&&parse(end)<today){day.classList.add('collapsed','is-past');}
+    if(dh){dh.addEventListener('click',function(){day.classList.toggle('collapsed');syncWeeks();});}
+  });
+  weeks.forEach(function(week){
+    if(!week.querySelector('.caret')){var c=document.createElement('span');c.className='caret';c.textContent='▾';week.appendChild(c);}
+    week.addEventListener('click',function(){
+      var ds=daysOf(week);
+      var anyOpen=ds.some(function(d){return !d.classList.contains('collapsed');});
+      ds.forEach(function(d){d.classList.toggle('collapsed',anyOpen);});
+      week.classList.toggle('collapsed',anyOpen);
+    });
+  });
+  syncWeeks();
+  var ea=document.getElementById('expandAll'),cp=document.getElementById('collapsePast');
+  if(ea)ea.addEventListener('click',function(){days.forEach(function(d){d.classList.remove('collapsed');});weeks.forEach(function(w){w.classList.remove('collapsed');});});
+  if(cp)cp.addEventListener('click',function(){days.forEach(function(d){var end=d.getAttribute('data-end')||d.getAttribute('data-date');d.classList.toggle('collapsed',!!(end&&parse(end)<today));});syncWeeks();});
+})();
+</script>
+</body>
+</html>
