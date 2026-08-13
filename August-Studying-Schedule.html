@@ -68,8 +68,10 @@
   ul.q label{cursor:pointer}
   ul.q label b{color:var(--ink)}
   ul.q label .note{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
-  ul.q label a{color:var(--accent2);text-decoration:none}
-  ul.q label a:hover{text-decoration:underline}
+  ul.q label a.lc{color:var(--accent2);text-decoration:none;border-bottom:1px dotted #9dc7e8}
+  ul.q label a.lc:hover{color:#075985;border-bottom-style:solid;background:#eff8ff;border-radius:3px}
+  ul.q label a.lc::after{content:"\2197";font-size:10px;vertical-align:super;opacity:.55;margin-left:1px}
+  ul.q li.done label a.lc{color:#a8b1c3;border-bottom-color:#dfe4ee}
   .doneflag{font-size:10.5px;font-weight:800;color:#15803d;background:#dcfce7;border-radius:999px;padding:1px 7px;margin-left:5px;white-space:nowrap}
 
   /* calendar strip */
@@ -153,16 +155,16 @@
       <div class="why"><b>Why first:</b> the single most common shape in the sample — two separate onsites and a phone screen. The recurring frame is "assign overlapping intervals to the fewest resources," and Google asks it with an <b>OOD twist</b> (design a <code>Car</code> class) and a <b>capacity twist</b> (only K cars, else IMPOSSIBLE). Suggested days: <b>Aug 11–12</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="253"><label><b>#253 Meeting Rooms II</b> <span class="note">Min-heap of end times. The base pattern for every question in this topic.</span></label></li>
+        <li><input type="checkbox" data-q="253"><label><b><a class="lc" href="https://leetcode.com/problems/meeting-rooms-ii/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#253 Meeting Rooms II</a></b> <span class="note">Min-heap of end times. The base pattern for every question in this topic.</span></label></li>
         <li><input type="checkbox" data-q="car-rental"><label><b>Car rental drill</b> — the actual Google question <span class="note">Orders <code>(id, pickup, return)</code> → fewest cars, return orders per car, <b>and design a <code>Car</code> class</b>. See <code>python-class-cheatsheet.html</code> for the class mechanics.</span></label></li>
-        <li><input type="checkbox" data-q="1109"><label><b>#1109 Car Pooling</b> <span class="note">Sweep line with a capacity ceiling. Bridges #253 into the K-resource variant.</span></label></li>
+        <li><input type="checkbox" data-q="1094"><label><b><a class="lc" href="https://leetcode.com/problems/car-pooling/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#1094 Car Pooling</a></b> <span class="note">Sweep line with a capacity ceiling. Bridges #253 into the K-resource variant.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
         <li><input type="checkbox" data-q="x-concurrent"><label><b>"Output every window with exactly X concurrent" drill</b> <span class="note">Asked at the Aug 5 onsite. No clean LeetCode equivalent. The difficulty is start/end tie-ordering on the same timestamp, then merging adjacent qualifying windows into <b>maximal</b> intervals.</span></label></li>
         <li><input type="checkbox" data-q="car-k"><label><b>K-car capacity + IMPOSSIBLE</b> <span class="note">Same drill, but only K cars exist. n ran to 200,000 in the real question.</span></label></li>
-        <li><input type="checkbox" data-q="986"><label><b>#986 Interval List Intersections</b> <span class="note">Two pointers, overlap is <code>max(starts)</code> → <code>min(ends)</code>. Quick confidence rep.</span></label></li>
-        <li><input type="checkbox" data-q="435" data-solved="1"><label><b>#435 Non-overlapping Intervals</b><span class="doneflag">in journal</span> <span class="note">Greedy by end time. Skim only.</span></label></li>
+        <li><input type="checkbox" data-q="986"><label><b><a class="lc" href="https://leetcode.com/problems/interval-list-intersections/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#986 Interval List Intersections</a></b> <span class="note">Two pointers, overlap is <code>max(starts)</code> → <code>min(ends)</code>. Quick confidence rep.</span></label></li>
+        <li><input type="checkbox" data-q="435" data-solved="1"><label><b><a class="lc" href="https://leetcode.com/problems/non-overlapping-intervals/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#435 Non-overlapping Intervals</a></b><span class="doneflag">in journal</span> <span class="note">Greedy by end time. Skim only.</span></label></li>
       </ul>
     </div>
   </div>
@@ -173,14 +175,14 @@
       <div class="why"><b>The tell to internalise:</b> when a problem says things get <b>added incrementally</b>, that is a union find signal. A Nov 2025 candidate failed this round by trying to patch their BFS instead of switching structures. Suggested day: <b>Aug 15</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="305"><label><b>#305 Number of Islands II</b> <span class="note">The exact onsite follow-up. Land added one cell at a time, report island count after each. Write <code>find</code> with path compression from scratch.</span></label></li>
-        <li><input type="checkbox" data-q="684"><label><b>#684 Redundant Connection</b> <span class="note">The union that <em>fails</em> is the answer. Cleanest possible union-find template.</span></label></li>
-        <li><input type="checkbox" data-q="721"><label><b>#721 Accounts Merge</b> <span class="note">Union find keyed by email. A real Google question, and the "map arbitrary keys to indices" step is the part people fumble.</span></label></li>
+        <li><input type="checkbox" data-q="305"><label><b><a class="lc" href="https://leetcode.com/problems/number-of-islands-ii/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#305 Number of Islands II</a></b> <span class="note">The exact onsite follow-up. Land added one cell at a time, report island count after each. Write <code>find</code> with path compression from scratch.</span></label></li>
+        <li><input type="checkbox" data-q="684"><label><b><a class="lc" href="https://leetcode.com/problems/redundant-connection/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#684 Redundant Connection</a></b> <span class="note">The union that <em>fails</em> is the answer. Cleanest possible union-find template.</span></label></li>
+        <li><input type="checkbox" data-q="721"><label><b><a class="lc" href="https://leetcode.com/problems/accounts-merge/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#721 Accounts Merge</a></b> <span class="note">Union find keyed by email. A real Google question, and the "map arbitrary keys to indices" step is the part people fumble.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
         <li><input type="checkbox" data-q="clustering"><label><b>2D clustering drill</b> <span class="note">Points + radius r, connected if distance ≤ r, transitive → count clusters. <b>Write the brute-force O(n²) version first</b> — the real interviewer insisted on that before optimising. Then discuss spatial grid / KD-tree for neighbour lookup.</span></label></li>
-        <li><input type="checkbox" data-q="547"><label><b>#547 Number of Provinces</b> <span class="note">Adjacency-matrix version. Fast rep if the others clicked.</span></label></li>
+        <li><input type="checkbox" data-q="547"><label><b><a class="lc" href="https://leetcode.com/problems/number-of-provinces/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#547 Number of Provinces</a></b> <span class="note">Adjacency-matrix version. Fast rep if the others clicked.</span></label></li>
       </ul>
     </div>
   </div>
@@ -191,13 +193,13 @@
       <div class="why"><b>Nothing in your journal covers this.</b> #295 appeared with two follow-ups at an onsite and the candidate ran out of time on the second. You did #215 and #621 in July, but two-heaps is a different structure. Suggested day: <b>Aug 16</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="295"><label><b>#295 Find Median from Data Stream</b> <span class="note">Max-heap for the lower half, min-heap for the upper, rebalanced so sizes differ by ≤ 1. Python has no max-heap, so negate. Be ready to dry-run and state complexity unprompted.</span></label></li>
+        <li><input type="checkbox" data-q="295"><label><b><a class="lc" href="https://leetcode.com/problems/find-median-from-data-stream/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#295 Find Median from Data Stream</a></b> <span class="note">Max-heap for the lower half, min-heap for the upper, rebalanced so sizes differ by ≤ 1. Python has no max-heap, so negate. Be ready to dry-run and state complexity unprompted.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
         <li><input type="checkbox" data-q="295-kth"><label><b>Kth smallest instead of median</b> <span class="note">The exact follow-up that ran the candidate out of time. Same two-heap idea with the split at k rather than the midpoint.</span></label></li>
         <li><input type="checkbox" data-q="295-range"><label><b>Small value range variant</b> <span class="note">If values are bounded, drop the heaps for a counting array. State the trade-off out loud.</span></label></li>
-        <li><input type="checkbox" data-q="480"><label><b>#480 Sliding Window Median</b> <span class="note">Two heaps plus lazy deletion. Hard, only if the rest is solid.</span></label></li>
+        <li><input type="checkbox" data-q="480"><label><b><a class="lc" href="https://leetcode.com/problems/sliding-window-median/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#480 Sliding Window Median</a></b> <span class="note">Two heaps plus lazy deletion. Hard, only if the rest is solid.</span></label></li>
       </ul>
     </div>
   </div>
@@ -211,12 +213,12 @@
       <div class="grp must">Must do</div>
       <ul class="q">
         <li><input type="checkbox" data-q="rankings"><label><b>Player rankings drill</b> <span class="note">N players, M "A beat B" results. A rank is determinable if transitive implications settle that player against <b>every</b> other. Floyd–Warshall, or DFS/BFS from each node — say the DFS option first, it's the more natural answer.</span></label></li>
-        <li><input type="checkbox" data-q="210"><label><b>#210 Course Schedule II</b> <span class="note">You have #207. Same Kahn's, but return the order; shorter than n means a cycle.</span></label></li>
+        <li><input type="checkbox" data-q="210"><label><b><a class="lc" href="https://leetcode.com/problems/course-schedule-ii/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#210 Course Schedule II</a></b> <span class="note">You have #207. Same Kahn's, but return the order; shorter than n means a cycle.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="269"><label><b>#269 Alien Dictionary</b> <span class="note">Google staple. The trap is that a prefix word appearing <em>after</em> its extension is invalid input, not an empty answer.</span></label></li>
-        <li><input type="checkbox" data-q="787"><label><b>#787 Cheapest Flights Within K Stops</b> <span class="note">Sitting in your journal's Up Next. Plain Dijkstra is wrong because K-stops breaks the greedy invariant — be able to say <em>why</em>, not just that it does. Bellman-Ford, or BFS over <code>(node, stops)</code>.</span></label></li>
+        <li><input type="checkbox" data-q="269"><label><b><a class="lc" href="https://leetcode.com/problems/alien-dictionary/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#269 Alien Dictionary</a></b> <span class="note">Google staple. The trap is that a prefix word appearing <em>after</em> its extension is invalid input, not an empty answer.</span></label></li>
+        <li><input type="checkbox" data-q="787"><label><b><a class="lc" href="https://leetcode.com/problems/cheapest-flights-within-k-stops/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#787 Cheapest Flights Within K Stops</a></b> <span class="note">Sitting in your journal's Up Next. Plain Dijkstra is wrong because K-stops breaks the greedy invariant — be able to say <em>why</em>, not just that it does. Bellman-Ford, or BFS over <code>(node, stops)</code>.</span></label></li>
       </ul>
     </div>
   </div>
@@ -228,7 +230,7 @@
       <div class="grp must">Must do</div>
       <ul class="q">
         <li><input type="checkbox" data-q="freq-partition"><label><b>Frequency-partition drill</b> <span class="note">Same value → same partition, no two partitions may have equal size. Collapses to "are all frequencies pairwise distinct." <code>Counter</code> + set, and the whole point is recognising the collapse fast.</span></label></li>
-        <li><input type="checkbox" data-q="846"><label><b>#846 Hand of Straights</b> <span class="note">The follow-up: partitions must be consecutive runs. Greedy from the smallest remaining value, consume a run, repeat.</span></label></li>
+        <li><input type="checkbox" data-q="846"><label><b><a class="lc" href="https://leetcode.com/problems/hand-of-straights/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#846 Hand of Straights</a></b> <span class="note">The follow-up: partitions must be consecutive runs. Greedy from the smallest remaining value, consume a run, repeat.</span></label></li>
       </ul>
     </div>
   </div>
@@ -239,13 +241,13 @@
       <div class="why">#78 and #46 are the <b>same skeleton</b> — subsets passes a start index down, permutations tracks a used set. Do them first or you'll learn the pattern three times. Write the skeleton from memory before looking at any problem. Suggested day: <b>Aug 11</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="78"><label><b>#78 Subsets</b> <span class="note">Choose / explore / unchoose, with a start index. The base template.</span></label></li>
-        <li><input type="checkbox" data-q="47"><label><b>#47 Permutations II</b> <span class="note">What Google actually asked, so do this instead of #46. Sort first, then skip a value equal to its predecessor when the predecessor is unused at this depth.</span></label></li>
+        <li><input type="checkbox" data-q="78"><label><b><a class="lc" href="https://leetcode.com/problems/subsets/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#78 Subsets</a></b> <span class="note">Choose / explore / unchoose, with a start index. The base template.</span></label></li>
+        <li><input type="checkbox" data-q="47"><label><b><a class="lc" href="https://leetcode.com/problems/permutations-ii/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#47 Permutations II</a></b> <span class="note">What Google actually asked, so do this instead of #46. Sort first, then skip a value equal to its predecessor when the predecessor is unused at this depth.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="39"><label><b>#39 Combination Sum</b> <span class="note">Reuse without advancing the index — the only twist.</span></label></li>
-        <li><input type="checkbox" data-q="131"><label><b>#131 Palindrome Partitioning</b> <span class="note">Try every palindromic prefix, recurse on the rest.</span></label></li>
+        <li><input type="checkbox" data-q="39"><label><b><a class="lc" href="https://leetcode.com/problems/combination-sum/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#39 Combination Sum</a></b> <span class="note">Reuse without advancing the index — the only twist.</span></label></li>
+        <li><input type="checkbox" data-q="131"><label><b><a class="lc" href="https://leetcode.com/problems/palindrome-partitioning/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#131 Palindrome Partitioning</a></b> <span class="note">Try every palindromic prefix, recurse on the rest.</span></label></li>
       </ul>
     </div>
   </div>
@@ -256,12 +258,12 @@
       <div class="why">#394 came up in <b>two separate rounds</b> and you already have it logged, so this is a cheap re-fire rather than new learning. The log-parsing question is the same muscle in unfamiliar clothing. Suggested day: <b>Aug 17</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="394" data-solved="1"><label><b>#394 Decode String</b><span class="doneflag">in journal</span> <span class="note">Re-derive cold, don't reread your notes. Stack of <code>[count, partial]</code> per level.</span></label></li>
+        <li><input type="checkbox" data-q="394" data-solved="1"><label><b><a class="lc" href="https://leetcode.com/problems/decode-string/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#394 Decode String</a></b><span class="doneflag">in journal</span> <span class="note">Re-derive cold, don't reread your notes. Stack of <code>[count, partial]</code> per level.</span></label></li>
         <li><input type="checkbox" data-q="log-parse"><label><b>Quoted-log-split drill</b> <span class="note">Split a log on whitespace, but never inside quotes. Character state machine tracking in-quote. Raise escaped quotes unprompted.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="394-stream"><label><b>#394 memory follow-up</b> <span class="note">Decoded string is enormous. Generate lazily instead of materialising.</span></label></li>
+        <li><input type="checkbox" data-q="394-stream"><label><b><a class="lc" href="https://leetcode.com/problems/decode-string/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#394 memory follow-up</a></b> <span class="note">Decoded string is enormous. Generate lazily instead of materialising.</span></label></li>
         <li><input type="checkbox" data-q="log-chunk"><label><b>Log doesn't fit on one machine</b> <span class="note">The real difficulty is that a chunk boundary can land inside a quoted section, so each chunk must carry its in-quote state across.</span></label></li>
       </ul>
     </div>
@@ -275,13 +277,13 @@
       <div class="why"><b>Zero DP questions across all 8 threads.</b> Cut from 5 problems to 2. Kept rather than dropped because n=8 is a small self-selected sample and DP is genuinely part of Google's historical range. Say the recurrence in words before writing any code. Suggested day: <b>Aug 16</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="198"><label><b>#198 House Robber</b> <span class="note">Smallest real recurrence — take or skip. Start here even though it's easy.</span></label></li>
-        <li><input type="checkbox" data-q="322"><label><b>#322 Coin Change</b> <span class="note">Unbounded, min instead of max. The unreachable sentinel is where people trip.</span></label></li>
+        <li><input type="checkbox" data-q="198"><label><b><a class="lc" href="https://leetcode.com/problems/house-robber/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#198 House Robber</a></b> <span class="note">Smallest real recurrence — take or skip. Start here even though it's easy.</span></label></li>
+        <li><input type="checkbox" data-q="322"><label><b><a class="lc" href="https://leetcode.com/problems/coin-change/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#322 Coin Change</a></b> <span class="note">Unbounded, min instead of max. The unreachable sentinel is where people trip.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups <span style="font-weight:600;text-transform:none;letter-spacing:0">— only if every P1 topic is complete</span></div>
       <ul class="q">
-        <li><input type="checkbox" data-q="300"><label><b>#300 Longest Increasing Subsequence</b> <span class="note">O(n²) first and say it out loud. Patience sorting only if that's solid.</span></label></li>
-        <li><input type="checkbox" data-q="139"><label><b>#139 Word Break</b> <span class="note">Honestly backtracking + memo, which ties back to that topic.</span></label></li>
+        <li><input type="checkbox" data-q="300"><label><b><a class="lc" href="https://leetcode.com/problems/longest-increasing-subsequence/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#300 Longest Increasing Subsequence</a></b> <span class="note">O(n²) first and say it out loud. Patience sorting only if that's solid.</span></label></li>
+        <li><input type="checkbox" data-q="139"><label><b><a class="lc" href="https://leetcode.com/problems/word-break/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#139 Word Break</a></b> <span class="note">Honestly backtracking + memo, which ties back to that topic.</span></label></li>
       </ul>
     </div>
   </div>
@@ -292,12 +294,12 @@
       <div class="why">No tree questions in the sample, and you have #98, #102, #199 and #236 logged. One problem, chosen because it's the one classic you don't have. Suggested day: <b>Aug 18</b>.</div>
       <div class="grp must">Must do</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="124"><label><b>#124 Binary Tree Maximum Path Sum</b> <span class="note">The split between what you <b>return</b> to the parent (one branch) and what you <b>record</b> globally (both branches). Naming those two things differently in your code is most of the battle.</span></label></li>
+        <li><input type="checkbox" data-q="124"><label><b><a class="lc" href="https://leetcode.com/problems/binary-tree-maximum-path-sum/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#124 Binary Tree Maximum Path Sum</a></b> <span class="note">The split between what you <b>return</b> to the parent (one branch) and what you <b>record</b> globally (both branches). Naming those two things differently in your code is most of the battle.</span></label></li>
       </ul>
       <div class="grp fu">Follow-ups</div>
       <ul class="q">
-        <li><input type="checkbox" data-q="297"><label><b>#297 Serialize and Deserialize Binary Tree</b> <span class="note">Preorder with explicit null markers. Good one to narrate.</span></label></li>
-        <li><input type="checkbox" data-q="437"><label><b>#437 Path Sum III</b> <span class="note">Prefix sum on a tree — a real Google shape even though it didn't surface in this sample.</span></label></li>
+        <li><input type="checkbox" data-q="297"><label><b><a class="lc" href="https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#297 Serialize and Deserialize Binary Tree</a></b> <span class="note">Preorder with explicit null markers. Good one to narrate.</span></label></li>
+        <li><input type="checkbox" data-q="437"><label><b><a class="lc" href="https://leetcode.com/problems/path-sum-iii/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#437 Path Sum III</a></b> <span class="note">Prefix sum on a tree — a real Google shape even though it didn't surface in this sample.</span></label></li>
       </ul>
     </div>
   </div>
@@ -309,7 +311,7 @@
       <div class="grp fu">Only if time</div>
       <ul class="q">
         <li><input type="checkbox" data-q="bsearch-str"><label><b>Binary search over a sorted string array</b> <span class="note">Same template you used for #981, with string comparison. 20 minutes, mostly to prove the template transfers.</span></label></li>
-        <li><input type="checkbox" data-q="211"><label><b>#211 Design Add and Search Words</b> <span class="note">You have #208 and #212, so this is only the wildcard delta — at a <code>.</code>, recurse into every child.</span></label></li>
+        <li><input type="checkbox" data-q="211"><label><b><a class="lc" href="https://leetcode.com/problems/design-add-and-search-words-data-structure/" target="_blank" rel="noopener" onclick="event.stopPropagation()">#211 Design Add and Search Words</a></b> <span class="note">You have #208 and #212, so this is only the wildcard delta — at a <code>.</code>, recurse into every child.</span></label></li>
       </ul>
     </div>
   </div>
