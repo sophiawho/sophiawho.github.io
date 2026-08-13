@@ -57,6 +57,68 @@
 <h1>Python Classes <span>in an Interview</span></h1>
 <div class="sub">Everything you need to define a small class under time pressure, using the Google <b>car rental</b> question as the running example. Every snippet below was run before being written down. Ordered by what you'll reach for first.</div>
 
+<!-- ═══════════ THE PROBLEM ═══════════ -->
+<h2>The question this is built around</h2>
+
+<div class="card amber">
+  <h3>Car Rental Request Scheduling <span style="font-weight:600;font-size:12.5px;color:var(--muted);float:right">Google phone screen · asked Aug 5 and Aug 10, 2026 · both candidates passed</span></h3>
+  <p>You are given <code>N</code> available cars and <code>M</code> rental requests. Each request is a tuple <code>(pickupTime, returnTime, id)</code>:</p>
+  <table style="margin:8px 0">
+    <tbody>
+      <tr><td style="width:130px"><code>pickupTime</code></td><td>when the customer picks up the car</td></tr>
+      <tr><td><code>returnTime</code></td><td>when the customer returns the car</td></tr>
+      <tr><td><code>id</code></td><td>a unique request identifier</td></tr>
+    </tbody>
+  </table>
+  <p>A car may serve multiple requests as long as their time intervals do not overlap. <b>If one request returns a car at time <code>t</code> and another picks up a car at exactly time <code>t</code>, they may use the same car.</b></p>
+  <p>Assign a car to every request while satisfying all of the following:</p>
+  <table style="margin:8px 0">
+    <tbody>
+      <tr><td style="width:26px"><b>1</b></td><td>Output the assigned car ID for every request.</td></tr>
+      <tr><td><b>2</b></td><td>Minimise the number of cars used.</td></tr>
+      <tr><td><b>3</b></td><td><b>Design a <code>Car</code> class</b> that stores a car ID and its assigned orders.</td></tr>
+      <tr><td><b>4</b></td><td>Car IDs start at 1 and are assigned in the order cars are first created.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Follow-up (part of the original question, not an extra):</b> there are at most <code>K</code> available cars. If all requests can be served with at most <code>K</code> cars, output the assignment. Otherwise output <code>IMPOSSIBLE</code>. Reported constraints: <code>1 &lt;= n &lt;= 200,000</code>, <code>1 &lt;= K &lt;= n</code>, <code>0 &lt;= start &lt; end &lt;= 10^9</code>, all IDs distinct.</div>
+</div>
+
+<div class="cols">
+  <div class="card good">
+    <h3>Example 1 — feasible</h3>
+    <pre><span class="cm"># input: n=4 orders, K=2 cars</span>
+<span class="cm">#        id  start  end</span>
+        <span class="num">101</span>     <span class="num">1</span>    <span class="num">4</span>
+        <span class="num">102</span>     <span class="num">2</span>    <span class="num">5</span>
+        <span class="num">103</span>     <span class="num">4</span>    <span class="num">6</span>
+        <span class="num">104</span>     <span class="num">5</span>    <span class="num">7</span>
+
+<span class="cm"># output</span>
+<span class="num">1</span>: <span class="num">101</span> <span class="num">103</span>
+<span class="num">2</span>: <span class="num">102</span> <span class="num">104</span></pre>
+    <div class="note"><b>Read the boundary.</b> Order 101 returns at <b>4</b> and order 103 picks up at <b>4</b>, so they share car 1. Same for 102 returning at 5 and 104 picking up at 5. That single detail is the <code>&lt;=</code> versus <code>&lt;</code> decision in your heap check, and it's the most likely place to lose the round quietly.</div>
+  </div>
+  <div class="card warn">
+    <h3>Example 2 — infeasible</h3>
+    <pre><span class="cm"># input: n=3 orders, K=1 car</span>
+<span class="cm">#        id  start  end</span>
+          <span class="num">1</span>     <span class="num">1</span>    <span class="num">3</span>
+          <span class="num">2</span>     <span class="num">2</span>    <span class="num">4</span>
+          <span class="num">3</span>     <span class="num">4</span>    <span class="num">5</span>
+
+<span class="cm"># output</span>
+IMPOSSIBLE</pre>
+    <div class="note">Orders 1 and 2 overlap on <code>[2, 3)</code>, so two cars are needed at minimum. With <code>K=1</code> there is no valid assignment. Note that orders 1 and 3 <i>would</i> share a car happily — the infeasibility comes from a single overlapping pair, not from the whole set.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>What's actually being tested</h3>
+  <p><b>The algorithm is Meeting Rooms II (#253)</b> with an output requirement bolted on. If you've done #253, the scheduling half is solved.</p>
+  <p><b>The class requirement is the real content.</b> "Design a <code>Car</code> class that stores a car ID and its assigned orders" is an unusual instruction for a Google coding round, and it forces three things at once — a per-instance mutable list, an ordering so the objects go straight into <code>heapq</code>, and a separate stable-order list for output because the heap reorders itself. That's the whole reason this cheatsheet exists.</p>
+  <div class="say"><b>Clarifying questions worth asking before you code:</b> can two requests share a car when one ends exactly as the other begins? (Yes — but make them say it.) Is the input sorted? Are IDs guaranteed distinct? Should output be ordered by car ID or by request?</div>
+</div>
+
 <!-- ═══════════ THE 30-SECOND VERSION ═══════════ -->
 <h2>The 30-second version</h2>
 
