@@ -270,6 +270,124 @@
 <div class="journal">
 
 
+  <!-- ══════════════════════ August 13, 2026 ══════════════════════ -->
+  <div class="day">
+
+    <div class="day-header">
+      <span class="day-date">August 13, 2026</span>
+      <div class="day-divider"></div>
+    </div>
+
+    <!-- CONCEPTS LEARNED -->
+    <div class="section">
+      <div class="section-title">Concepts Learned</div>
+
+      <div class="concept-card">
+        <h3>Union-Find (Disjoint Set Union) — the full template</h3>
+        <p>Answers one question repeatedly and cheaply: <em>are these two things already in the same group?</em> Groups only ever merge, never split. Three pieces: a <code>parent</code> array, <code>find</code>, and <code>union</code>.</p>
+        <div class="code-block"><pre><span class="cm"># INIT — every node is its own root, every component has size 1</span>
+parent     = <span class="kw">list</span>(<span class="kw">range</span>(n))
+components = n              <span class="cm"># live component count — the one you actually read</span>
+size       = [<span class="str">1</span>] * n      <span class="cm"># insurance against tall trees; rarely read directly</span>
+
+<span class="cm"># FIND — walk up to the root, flattening as you go (path compression)</span>
+<span class="kw">def</span> <span class="fn">find</span>(x):
+    <span class="kw">while</span> parent[x] != x:
+        parent[x] = parent[parent[x]]
+        x = parent[x]
+    <span class="kw">return</span> x
+
+<span class="cm"># UNION — merge ROOTS, hang the smaller tree under the bigger</span>
+<span class="kw">def</span> <span class="fn">union</span>(a, b):
+    ra, rb = <span class="fn">find</span>(a), <span class="fn">find</span>(b)
+    <span class="kw">if</span> ra == rb:
+        <span class="kw">return</span> <span class="kw">False</span>          <span class="cm"># already connected — this edge closes a cycle</span>
+    <span class="kw">if</span> size[ra] &lt; size[rb]:
+        ra, rb = rb, ra         <span class="cm"># ra is now the bigger root</span>
+    parent[rb] = ra
+    size[ra] += size[rb]        <span class="cm"># size[rb] goes stale forever — fine, never read again</span>
+    <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="cm"># The common usage: count components by decrementing on every real merge</span>
+<span class="kw">for</span> a, b <span class="kw">in</span> edges:
+    <span class="kw">if</span> <span class="fn">union</span>(a, b):
+        components -= <span class="str">1</span></pre></div>
+        <div class="note"><strong><code>components</code> is the payoff, not <code>size</code>.</strong> Start at n, decrement on every successful merge — that's #547, #1319, #305, #261, #323. #305 is only tractable this way: report the count in O(1) after each added cell, where BFS would rescan the whole grid. <code>size</code> is niche (largest-component questions); keep it because it's two lines, not because you'll read it.</div>
+        <div class="note"><strong>The one invariant that prevents every DSU bug:</strong> <em>only ever write <code>parent[x]</code> when <code>x</code> is a root.</em> Writing <code>parent[b] = a</code> directly silently orphans everything already hanging off <code>b</code>. Same rule for <code>size[x]</code>.</div>
+        <div class="note"><strong>Which root wins doesn't affect correctness</strong>, only tree height. Ordering by index (smaller wins) feels principled but gives no guarantee and can build a degenerate chain; union by size does. <strong>Exception:</strong> when the root has to <em>mean</em> something — #1061 Lexicographically Smallest Equivalent String needs the smallest character as representative — drop the size heuristic and union by the semantic minimum instead.</div>
+        <div class="note"><strong>The tell:</strong> things get <b>added incrementally</b> and you're repeatedly asked "same group?" → union-find. If things get <b>removed</b>, DSU can't split, so process time in reverse to turn removals into additions (#803 Bricks Falling When Hit).</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Union-Find</span>
+          <span class="tag purple">Graphs</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>To connect N vertices you need exactly N−1 edges</h3>
+        <p>A connected, acyclic graph on N nodes has exactly N−1 edges. Fewer → can't be connected. More → at least one cycle.</p>
+        <div class="note"><strong>Stopping condition</strong> in MST (build N−1, quit early), and the <strong>impossible check</strong> — run out of edges before N−1 → return −1.</div>
+        <div class="note"><strong>#684:</strong> N nodes, N edges = exactly one edge too many = exactly one cycle = exactly one failed union.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Graph Theory</span>
+          <span class="tag purple">Trees</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Kruskal's Algorithm — Minimum Spanning Tree</h3>
+        <p>Connect every node for the least total cost. Sort all edges cheapest-first, then walk the list and take an edge only if it joins two components that aren't already connected. Union-find is the engine that answers "already connected?".</p>
+        <div class="code-block"><pre><span class="cm"># edges: list of (cost, u, v)</span>
+edges.sort(key=<span class="kw">lambda</span> e: e[<span class="str">0</span>])
+mst, total = [], <span class="str">0</span>
+<span class="kw">for</span> cost, u, v <span class="kw">in</span> edges:
+    <span class="kw">if</span> <span class="fn">union</span>(u, v):        <span class="cm"># True only if it merged something new</span>
+        mst.append((u, v))
+        total += cost
+        <span class="kw">if</span> <span class="kw">len</span>(mst) == n - <span class="str">1</span>:   <span class="cm"># N-1 edges — done</span>
+            <span class="kw">break</span>
+<span class="kw">return</span> total <span class="kw">if</span> <span class="kw">len</span>(mst) == n - <span class="str">1</span> <span class="kw">else</span> -<span class="str">1</span>   <span class="cm"># -1 = can't connect everything</span></pre></div>
+        <div class="note"><strong>Why greedy is safe (cut property):</strong> taking the globally cheapest edge that doesn't close a cycle is provably optimal. Without the cycle check, pure greed builds redundant edges between already-connected nodes.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Kruskal</span>
+          <span class="tag purple">MST</span>
+          <span class="tag">Greedy</span>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Build Bridges Between Islands (Google-style grid MST)</h3>
+        <p>Grid of water/land, connect all islands with the fewest bridge cells. Three phases: <strong>flood fill</strong> to label each land cell with an island id → <strong>scan rows and columns</strong> to generate candidate bridges → <strong>Kruskal</strong> to pick k−1 of them. Full solution saved in <code>build_bridges.py</code>.</p>
+        <div class="code-block"><pre><span class="cm"># Candidate-edge scan: last_land = left endpoint, water_run = cost so far</span>
+<span class="kw">for</span> r <span class="kw">in</span> <span class="kw">range</span>(n):
+    last_land = <span class="kw">None</span>
+    water_run = <span class="str">0</span>
+    <span class="kw">for</span> c <span class="kw">in</span> <span class="kw">range</span>(m):
+        <span class="kw">if</span> grid[r][c] == <span class="str">0</span>:            <span class="cm"># water: extend the run</span>
+            <span class="kw">if</span> last_land <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
+                water_run += <span class="str">1</span>
+        <span class="kw">else</span>:                          <span class="cm"># land: the run just ended</span>
+            <span class="kw">if</span> last_land <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span> <span class="kw">and</span> water_run &gt; <span class="str">0</span>:
+                lr, lc = last_land
+                <span class="kw">if</span> ids[lr][lc] != ids[r][c]:
+                    edges.append((water_run, last_land, (r, c)))
+            last_land = (r, c)
+            water_run = <span class="str">0</span>        <span class="cm"># the reset is the trick</span></pre></div>
+        <div class="note"><strong>Why the reset matters:</strong> zeroing <code>water_run</code> on land means a bridge can never be measured across an island you already passed. Bent and over-land bridges are excluded <em>structurally</em>, not by a special-case check.</div>
+        <div class="note"><strong>Why this beats pairwise island distances:</strong> because bridges are straight and can't cross land, the only legal bridge in a line is between <em>consecutive</em> land segments. One pass per row + one per column = O(NM) candidate edges instead of O(k²). Complexity: O(NM) label + O(NM) edges + O(NM log NM) sort.</div>
+        <div class="note"><strong>Clarify before coding:</strong> diagonal/bent bridges allowed? cost = endpoint distance or water cells crossed? are touching islands already connected? Also handle the impossible case — diagonal-only island placement has no legal straight bridge.</div>
+        <div class="note"><strong>Pattern to generalise:</strong> grid connectivity problems become graph problems the moment you label the blobs. Flood fill turns cells into nodes; then it's an ordinary graph question.</div>
+        <div class="tags" style="margin-top:8px">
+          <span class="tag">Flood Fill</span>
+          <span class="tag purple">MST</span>
+          <span class="tag">Grid</span>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+
   <!-- ══════════════════════ July 14, 2026 ══════════════════════ -->
   <div class="day">
 
